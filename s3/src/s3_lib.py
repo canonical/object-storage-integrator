@@ -1954,7 +1954,7 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
         if self.overrides:
             self.write_overrides(self.overrides, relation_id=event.relation.id)
 
-    def get_storage_connection_info(self, relation: Relation) -> dict[str, str]:
+    def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
         """Assemble the storage connection info for a relation.
 
         Combines the provider-published relation data and any readable secrets
@@ -1966,6 +1966,8 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
         Returns:
             dict[str, str]: Connection info (may be empty if relation/app does not exist).
         """
+        if not relation:
+            relation = next(iter(self.relation_data.relations), None)
         if relation and relation.app:
             info = self.relation_data.fetch_relation_data([relation.id])[relation.id]
             return info
@@ -2115,8 +2117,8 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
         """Event emitted when the S3 relation is joined."""
         logger.debug(f"S3 relation ({event.relation.name}) joined...")
         event_data = {
-            "bucket": self.relation_data.bucket,
-            "path": self.relation_data.path,
+            "bucket": self.overrides.get("bucket", ""),
+            "path": self.overrides.get("path", ""),
             S3_LIB_VERSION_FIELD: f"{LIBAPI}.{LIBPATCH}",
         }
         self.relation_data.update_relation_data(event.relation.id, event_data)
@@ -2214,6 +2216,14 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
                 "Premature access to relation data, update is forbidden before the connection is initialized."
             )
         super(ProviderData, self)._update_relation_data(relation, data)
+
+    def _on_relation_created_event(self, event: RelationJoinedEvent) -> None:
+        """Event emitted when the S3 relation is created."""
+        logger.debug(f"S3 relation ({event.relation.name}) created on provider side...")
+        event_data = {
+            S3_LIB_VERSION_FIELD: f"{LIBAPI}.{LIBPATCH}",
+        }
+        self.relation_data.update_relation_data(event.relation.id, event_data)
 
 
 #

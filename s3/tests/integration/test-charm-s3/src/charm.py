@@ -41,7 +41,7 @@ class ApplicationCharm(CharmBase):
 
         # add relation
         self.framework.observe(
-            self.s3_requirer.on.s3_connection_info_changed,
+            self.s3_requirer.on.storage_connection_info_changed,
             self._on_storage_connection_info_changed,
         )
         self.framework.observe(
@@ -49,7 +49,7 @@ class ApplicationCharm(CharmBase):
         )
 
         self.framework.observe(
-            self.s3_requirer.on.s3_connection_info_gone,
+            self.s3_requirer.on.storage_connection_info_gone,
             self._on_storage_connection_info_gone,
         )
 
@@ -76,7 +76,7 @@ class ApplicationCharm(CharmBase):
         self.unit.status = ActiveStatus()
 
     def _on_storage_connection_info_changed(self, e: StorageConnectionInfoChangedEvent):
-        credentials = self.s3_requirer.get_s3_connection_info()
+        credentials = self.s3_requirer.get_storage_connection_info()
         logger.info(f"S3 credentials changed. New credentials: {credentials}")
 
     def _on_storage_connection_info_gone(self, _: StorageConnectionInfoGoneEvent):
@@ -84,10 +84,10 @@ class ApplicationCharm(CharmBase):
         self.unit.status = WaitingStatus("Waiting for relation")
 
     def _on_get_s3_connection_info_action(self, event: ActionEvent) -> None:
-        event.set_results(self.s3_requirer.get_s3_connection_info())
+        event.set_results(self.s3_requirer.get_storage_connection_info())
 
     def _on_update_status(self, _):
-        s3_info = self.s3_requirer.get_s3_connection_info()
+        s3_info = self.s3_requirer.get_storage_connection_info()
         logger.info(f"S3 client info: {s3_info}")
 
 
