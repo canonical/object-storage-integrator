@@ -20,8 +20,7 @@ from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from events.statuses import BucketStatuses, CharmStatuses
 from managers.s3 import S3BucketError, S3Manager
 from s3_lib import (
-    S3ProviderData,
-    S3ProviderEventHandlers,
+    S3Provider,
     StorageConnectionInfoGoneEvent,
     StorageConnectionInfoRequestedEvent,
 )
@@ -39,8 +38,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
 
         self.charm = charm
         self.state = context
-        self.s3_provider_data = S3ProviderData(self.charm.model, S3_RELATION_NAME)
-        self.s3_provider = S3ProviderEventHandlers(self.charm, self.s3_provider_data)
+        self.s3_provider = S3Provider(self.charm, S3_RELATION_NAME)
         self.framework.observe(
             self.s3_provider.on.storage_connection_info_requested,
             self._on_s3_connection_info_requested,
@@ -70,7 +68,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
         """Return requested buckets and paths from each relation_id of the client relation."""
         return {
             rel_id: {"bucket": data.get("bucket", ""), "path": data.get("path", "")}
-            for rel_id, data in self.s3_provider_data.fetch_relation_data(
+            for rel_id, data in self.s3_provider.fetch_relation_data(
                 fields=["bucket", "path"]
             ).items()
         }
@@ -149,7 +147,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                     continue
                 relation_data = relation_data | {"bucket": relation_bucket_value}
 
-            self.s3_provider_data.update_relation_data(relation_id, relation_data)
+            self.s3_provider.update_relation_data(relation_id, relation_data)
 
         self._handle_status(missing_buckets, invalid_buckets)
 
