@@ -2156,6 +2156,8 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
 class S3Provider(StorageProviderData, StorageProviderEventHandlers):
     """The provider class for S3 relation."""
 
+    RESOURCE_FIELD = "bucket"
+
     def __init__(self, charm: CharmBase, relation_name: str) -> None:
         StorageProviderData.__init__(self, charm.model, relation_name)
         StorageProviderEventHandlers.__init__(self, charm, self)
