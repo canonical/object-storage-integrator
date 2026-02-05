@@ -1970,6 +1970,7 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
             relation = next(iter(self.relation_data.relations), None)
         if relation and relation.app:
             info = self.relation_data.fetch_relation_data([relation.id])[relation.id]
+            info.pop(S3_LIB_VERSION_FIELD, None)
             return info
         return {}
 
@@ -2224,6 +2225,7 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
             S3_LIB_VERSION_FIELD: f"{LIBAPI}.{LIBPATCH}",
         }
         self.relation_data.update_relation_data(event.relation.id, event_data)
+
 
 #
 # Google Cloud Storage related classes
