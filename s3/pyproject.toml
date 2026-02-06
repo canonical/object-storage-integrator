@@ -33,12 +33,12 @@ types-boto3 = { extras = ["s3"], version = "^1.42.13" }
 
 [tool.poetry.group.unit.dependencies]
 coverage = { extras = ["toml"], version = "^7.13.0" }
-pytest = "^8.4.2"
+pytest = "^9.0.2"
 pytest-asyncio = "*"
 ops = { version = ">=3.5.0", extras = ["testing"] }
 
 [tool.poetry.group.integration.dependencies]
-pytest = "^8.4.2"
+pytest = "^9.0.2"
 jubilant = "^1.6.2"
 
 [tool.coverage.run]
