@@ -184,11 +184,11 @@ from ops.model import Relation
 LIBID = "fca396f6254246c9bfa565b1f85ab528"
 
 # Increment this major API version when introducing breaking changes
-LIBAPI = 1
+LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 0
+LIBPATCH = 1
 
 
 REQ_SECRET_FIELDS = "requested-secrets"
