@@ -1920,7 +1920,7 @@ class StorageProviderEventHandlers(EventHandlers):
         """Event emitted when the S3 relation is created."""
         logger.debug(f"S3 relation ({event.relation.name}) created on provider side...")
         event_data = {
-            SCHEMA_VERSION_FIELD: SCHEMA_VERSION,
+            SCHEMA_VERSION_FIELD: str(SCHEMA_VERSION),
         }
         self.relation_data.update_relation_data(event.relation.id, event_data)
 
