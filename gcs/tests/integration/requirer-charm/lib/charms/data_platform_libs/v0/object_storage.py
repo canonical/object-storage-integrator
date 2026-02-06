@@ -2044,10 +2044,14 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
         Returns:
             bool: True if the protocol has been initialized, False otherwise.
         """
+        # IMPORTANT! 
+        # Use super().fetch_relation_data instead of self.fetch_relation_data 
+        # to avoid the override in this class which discards the 'bucket' field 
+        data = super().fetch_relation_data([relation.id], [self.PROTOCOL_INITIATOR_FIELD, self.LEGACY_S3_PROTOCOL_INITIATOR_FIELD], relation.name)
         return (
-            self.fetch_relation_field(relation.id, self.PROTOCOL_INITIATOR_FIELD) is not None # for S3 lib schema v1
+            data.get(relation.id, {}).get(self.PROTOCOL_INITIATOR_FIELD) is not None
             or
-            self.fetch_relation_field(relation.id, self.LEGACY_S3_PROTOCOL_INITIATOR_FIELD) is not None # for S3 lib schema v0
+            data.get(relation.id, {}).get(self.LEGACY_S3_PROTOCOL_INITIATOR_FIELD) is not None
         )
 
 
@@ -2088,7 +2092,8 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
 # Google Cloud Storage related classes
 #
 
-class GcsRequirer(StorageRequirerData, StorageRequirerEventHandlers):
+
+class GcsStorageRequires(StorageRequirerData, StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the GCS backend.
 
     Args:
@@ -2100,17 +2105,48 @@ class GcsRequirer(StorageRequirerData, StorageRequirerEventHandlers):
     def __init__(
         self,
         charm: CharmBase,
-        relation_name: str,
+        relation_name: str = DEFAULT_REL_GCS,
         overrides: dict[str, str] | None = None,
     ) -> None:
         StorageRequirerData.__init__(self, charm.model, relation_name, backend="gcs")
         StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
 
 
-class GcsProvider(StorageProviderData, StorageProviderEventHandlers):
-    """The provider class for GCS relation."""
+class GcsStorageProviderData(StorageProviderData):
+    """Define the resource fields which is provided by requirer, otherwise provider will not publish any payload.
 
-    def __init__(self, charm: CharmBase, relation_name: str) -> None:
-        StorageProviderData.__init__(self, charm.model, relation_name)
-        StorageProviderEventHandlers.__init__(self, charm, self)
-    
+    A requirer must first advertises a field via the
+    RESOURCE_FIELD key so the provider can publish the appropriate
+    payload. This is a  protection mechanism which is implemented in data interfaces not to publish data to a unready requirer.
+    If the requirer put the data defined as RESOURCE FIELD, this means requirer is ready to get the data.
+
+    Attributes:
+        RESOURCE_FIELD (str): Relation key name the requirer uses to declare a RESOURCE_FIELD
+        which is hardcoded to requested-secrets as they always published.
+
+    """
+
+    RESOURCE_FIELD = "requested-secrets"
+
+
+class GcsStorageProviderEventHandlers(StorageProviderEventHandlers):
+    """Provider-side event handlers preconfigured for GCS.
+
+    Args:
+        charm (CharmBase): Parent charm.
+        relation_name (str): Relation endpoint name.
+        unique_key (str): Optional key used by the base handler for
+            idempotency or uniq semantics
+    """
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str = DEFAULT_REL_GCS,
+        unique_key: str = "",
+    ):
+        super().__init__(
+            charm=charm,
+            relation_data=GcsStorageProviderData(charm.model, relation_name),
+            unique_key=unique_key,
+        )
