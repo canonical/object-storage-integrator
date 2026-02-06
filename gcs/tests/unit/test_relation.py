@@ -139,7 +139,7 @@ def test_provider_when_premature_data_access_error_then_event_is_deferred_and_no
 
     monkeypatch.setattr(GCStorageProviderEvents, "publish_to_relation", _raise_premature)
 
-    out = ctx.run(ctx.on.relation_changed(rel), state)
+    out = ctx.run(ctx.on.config_changed(), state)
 
     rel_out = out.get_relations(REL)[0]
     app_data = rel_out.local_app_data

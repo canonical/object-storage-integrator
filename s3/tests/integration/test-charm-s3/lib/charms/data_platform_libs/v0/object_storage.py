@@ -1952,6 +1952,12 @@ class StorageProviderEventHandlers(EventHandlers):
         if provided_secrets is not None:
             self.relation_data._remote_secret_fields = provided_secrets
 
+        if not self.relation_data.is_protocol_ready(event.relation):
+            logger.info(
+                "Protocol not ready for relation %s, thus not emitting storage_connection_info_requested event.",
+                event.relation.name,
+            )
+            return
         self.on.storage_connection_info_requested.emit(
             relation=event.relation, app=event.app, unit=event.unit
         )
