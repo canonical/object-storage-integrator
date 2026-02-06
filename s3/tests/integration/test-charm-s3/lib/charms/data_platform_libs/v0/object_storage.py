@@ -1,104 +1,136 @@
-# Copyright 2025 Canonical Ltd.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#!/usr/bin/env python3
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
 
-r"""A library for communicating with the S3 credentials providers and consumers.
+"""A lightweight library for communicating between Cloud storages provider and requirer charms.
 
-This library provides the relevant interface code implementing the communication
-specification for fetching, retrieving, triggering, and responding to events related to
-the S3 provider charm and its consumers.
+This library implements a common object-storage contract and the relation/event plumbing to publish
+and consume storage connection info.
 
 
 ### Provider charm
 
-The provider is implemented in the `s3-integrator` charm which is meant to be deployed
-alongside one or more consumer charms. The provider charm is serving the s3 credentials and
-metadata needed to communicate and work with an S3 compatible backend.
+A provider publishes the payload when the requirer asks for it. It is needed to wire the handlers and
+emit on demand.
 
+```
 Example:
 ```python
 
-from s3_lib import (
-    S3ProviderData,
-    S3ProviderEventHandlers,
+from charms.data_platform_libs.v0.object_storage import (
     StorageConnectionInfoRequestedEvent,
+    GcsStorageProviderEventHandlers,
 )
 
-class ExampleProviderCharm(CharmBase):
-    def __init__(self, *args) -> None:
-        super().__init__(*args)
+class ExampleStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLogging):
 
-        self.s3_provider_data = S3ProviderData(self.charm.model, S3_RELATION_NAME)
-        self.s3_provider = S3ProviderEventHandlers(self.charm, self.s3_provider_data)
+    def __init__(self, charm: "GCStorageIntegratorCharm", context: Context):
+        self.name = "gc-storage-provider"
+        super().__init__(charm, self.name)
+        self.charm = charm
+        self.state = context
+
+        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm)
 
         self.framework.observe(
-            self.s3_provider.on.storage_connection_info_requested,
-            self._on_s3_connection_info_requested,
+            self.gcs_provider.on.storage_connection_info_requested,
+            self._on_storage_connection_info_requested,
+        )
+        self.framework.observe(
+            self.charm.on[GCS_RELATION_NAME].relation_broken, self._on_gcs_relation_broken
         )
 
-    def _on_s3_connection_info_requested(self, _: StorageConnectionInfoRequestedEvent) -> None:
+    def _on_storage_connection_info_requested(
+        self, event: StorageConnectionInfoRequestedEvent
+    ) -> None:
+        self.logger.info("On storage-connection-info-requested")
         if not self.charm.unit.is_leader():
             return
 
-        bucket_name = self.charm.config.get("bucket")
-        if not bucket_name:
-            self.logger.warning("Bucket is setup by the requirer application!")
+        self.publish_to_relation(event.relation)
 
-        self.s3_provider_data.update({})
+    def _on_gcs_relation_broken(self, event: StorageConnectionInfoRequestedEvent) -> None:
+        self.logger.info("On gcs relation broken")
+        if not self.charm.unit.is_leader():
+            return
+        self.publish_to_relation(event.relation)
 
 
 if __name__ == "__main__":
     main(ExampleProviderCharm)
-
+```
 
 ### Requirer charm
 
-The requirer charm is the charm requiring the S3 credentials.
+A requirer consumes the published fields and (optionally) provides overrides.
+
+Provider charm.
+
 An example of requirer charm is the following:
 
 Example:
 ```python
 
-from s3_lib import S3Requires, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+from charms.data_platform_libs.v0.object_storage import (
+    GcsStorageRequires,
+)
+
+REL_NAME = "gcs-credentials"
+BACKEND_NAME = "gcs"
 
 class ExampleRequirerCharm(CharmBase):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str = REL_NAME,
+    ):
+        super().__init__(charm, "gcs-requirer")
+        self.charm = charm
+        self.relation_name = relation_name
+        self.storage = GcsStorageRequires(
+            charm, relation_name, overrides=self.overrides_from_config()
+        )
+        self.framework.observe(
+            self.storage.on.storage_connection_info_changed, self._on_conn_info_changed
+        )
+        self.framework.observe(
+            self.storage.on.storage_connection_info_gone, self._on_conn_info_gone
+        )
 
-         bucket_name = "test-bucket"
-        # if bucket name is not provided the bucket name will be generated
-        # e.g., ('relation-{relation.id}')
+        self.framework.observe(self.charm.on.config_changed, self._on_config_changed)
 
-        self.s3_client = S3Requires(self, "s3-credentials", bucket_name)
+        self.framework.observe(self.charm.on.start, lambda e: self.refresh_status())
+        self.framework.observe(self.charm.on.update_status, lambda e: self.refresh_status())
 
-        self.framework.observe(self.s3_client.on.s3_connection_info_changed, self._on_credential_changed)
-        self.framework.observe(self.s3_client.on.s3_connection_info_gone, self._on_credential_gone)
+    def _on_config_changed(self, _):
+        self.storage.set_overrides(self.overrides_from_config(), push=True)
+        self.refresh_status()
 
-    def _on_credential_changed(self, event: StorageConnectionInfoChangedEvent):
+    def _on_conn_info_changed(self, event):
+        payload = self._load_payload(event.relation)
+        bucket = payload.get("bucket")
+        secret_content = payload.get("secret-key")
 
-        # access single parameter credential
-        secret_key = event.secret_key
-        access_key = event.access_key
+        missing = [k for k, v in (("bucket", bucket), ("secret-key", secret_content)) if not v]
+        if missing:
+            self.charm.unit.status = BlockedStatus("missing data: " + ", ".join(missing))
+            return
 
-    def _on_credential_gone(self, event: StorageConnectionInfoGoneEvent):
-        # credentials are removed
-        pass
+        self.charm.unit.status = ActiveStatus(f"gcs ok: bucket={bucket}")
+
+    def _on_conn_info_gone(self, event):
+        if self._any_relation_ready(exclude_relation_id=event.relation.id):
+            self.charm.unit.status = ActiveStatus("gcs credentials available")
+        else:
+            self.charm.unit.status = WaitingStatus("gcs credentials not available")
+
 
  if __name__ == "__main__":
     main(ExampleRequirerCharm)
 ```
 """
+
 
 import copy
 import json
@@ -109,7 +141,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Callable,
-    ClassVar,
     Dict,
     ItemsView,
     Iterable,
@@ -122,6 +153,7 @@ from typing import (
     TypeAlias,
     Union,
     ValuesView,
+    override,
 )  # using py38-style typing
 
 from ops import (
@@ -159,11 +191,7 @@ LIBAPI = 1
 LIBPATCH = 0
 
 
-logger = logging.getLogger(__name__)
-
-
 REQ_SECRET_FIELDS = "requested-secrets"
-
 
 Diff = namedtuple("Diff", "added changed deleted")
 Diff.__doc__ = """
@@ -186,6 +214,18 @@ MODEL_ERRORS = {
     "owner_no_refresh": "ERROR secret owner cannot use --refresh",
 }
 
+
+SCHEMA_VERSION_FIELD = "version"
+SCHEMA_VERSION = 1
+
+StorageBackend: TypeAlias = Literal["gcs", "s3", "azure"]
+
+DEFAULT_REL_GCS = "gcs-credentials"
+DEFAULT_REL_S3 = "s3-credentials"
+DEFAULT_REL_AZURE = "azure-credentials"
+
+
+logger = logging.getLogger(__name__)
 
 ##############################################################################
 # Exceptions
@@ -1315,15 +1355,21 @@ class EventHandlers(Object):
         self.relation_data = relation_data
 
         self.framework.observe(
-            charm.on[self.relation_data.relation_name].relation_changed,
-            self._on_relation_changed_event,
-        )
-
-        self.framework.observe(
             self.charm.on[relation_data.relation_name].relation_created,
             self._on_relation_created_event,
         )
-
+        self.framework.observe(
+            charm.on[self.relation_data.relation_name].relation_joined,
+            self._on_relation_joined_event,
+        )
+        self.framework.observe(
+            charm.on[self.relation_data.relation_name].relation_changed,
+            self._on_relation_changed_event,
+        )
+        self.framework.observe(
+            charm.on[self.relation_data.relation_name].relation_broken,
+            self._on_relation_broken_event,
+        )
         self.framework.observe(
             charm.on.secret_changed,
             self._on_secret_changed_event,
@@ -1335,15 +1381,22 @@ class EventHandlers(Object):
         """Event emitted when the relation is created."""
         pass
 
+    def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
+        """Event emitted when the relation is joined."""
+        pass
+
     @abstractmethod
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
         """Event emitted when the relation data has changed."""
         raise NotImplementedError
 
-    @abstractmethod
+    def _on_relation_broken_event(self, event: RelationBrokenEvent) -> None:
+        """Event emitted when the relation is broken."""
+        pass
+
     def _on_secret_changed_event(self, event: SecretChangedEvent) -> None:
-        """Event emitted when the relation data has changed."""
-        raise NotImplementedError
+        """Event emitted when secret data has changed."""
+        pass
 
     def _diff(self, event: RelationChangedEvent) -> Diff:
         """Retrieves the diff of the data in the relation changed databag.
@@ -1356,294 +1409,6 @@ class EventHandlers(Object):
                 keys from the event relation databag.
         """
         return diff(event, self.relation_data.data_component)
-
-
-# Base ProviderData and RequiresData
-
-
-class ProviderData(Data):
-    """Base provides-side of the data products relation."""
-
-    RESOURCE_FIELD = "database"
-
-    def __init__(
-        self,
-        model: Model,
-        relation_name: str,
-    ) -> None:
-        super().__init__(model, relation_name)
-        self.data_component = self.local_app
-        self._local_secret_fields = []
-        self._remote_secret_fields = list(self.SECRET_FIELDS)
-
-    def _update_relation_data(self, relation: Relation, data: Dict[str, str]) -> None:
-        """Set values for fields not caring whether it's a secret or not."""
-        keys = set(data.keys())
-        if self.fetch_relation_field(relation.id, self.RESOURCE_FIELD) is None and (
-            keys - {"endpoints", "read-only-endpoints", "replset"}
-        ):
-            raise PrematureDataAccessError(
-                "Premature access to relation data, update is forbidden before the connection is initialized."
-            )
-        super()._update_relation_data(relation, data)
-
-    # Public functions -- inherited
-
-    fetch_my_relation_data = leader_only(Data.fetch_my_relation_data)
-    fetch_my_relation_field = leader_only(Data.fetch_my_relation_field)
-
-    def _load_secrets_from_databag(self, relation: Relation) -> None:
-        """Load secrets from the databag."""
-        requested_secrets = get_encoded_list(relation, relation.app, REQ_SECRET_FIELDS)
-        provided_secrets = get_encoded_list(relation, relation.app, PROV_SECRET_FIELDS)
-        if requested_secrets is not None:
-            self._local_secret_fields = requested_secrets
-
-        if provided_secrets is not None:
-            self._remote_secret_fields = provided_secrets
-
-
-class RequirerData(Data):
-    """Requirer-side of the relation."""
-
-    SECRET_FIELDS = [
-        "username",
-        "password",
-        "tls",
-        "tls-ca",
-        "uris",
-        "read-only-uris",
-        "entity-name",
-        "entity-password",
-    ]
-
-    def __init__(
-        self,
-        model,
-        relation_name: str,
-        extra_user_roles: Optional[str] = None,
-        additional_secret_fields: Optional[List[str]] = [],
-        extra_group_roles: Optional[str] = None,
-        entity_type: Optional[str] = None,
-        entity_permissions: Optional[str] = None,
-        requested_entity_secret: Optional[str] = None,
-        requested_entity_name: Optional[str] = None,
-        requested_entity_password: Optional[str] = None,
-    ):
-        """Manager of base client relations."""
-        super().__init__(model, relation_name)
-        self.extra_user_roles = extra_user_roles
-        self.extra_group_roles = extra_group_roles
-        self.entity_type = entity_type
-        self.entity_permissions = entity_permissions
-        self.requested_entity_secret = requested_entity_secret
-        self.requested_entity_name = requested_entity_name
-        self.requested_entity_password = requested_entity_password
-
-        if (
-            self.requested_entity_secret or self.requested_entity_name
-        ) and not self.secrets_enabled:
-            raise SecretsUnavailableError("Secrets unavailable on current Juju version")
-
-        if self.requested_entity_secret and (
-            self.requested_entity_name or self.requested_entity_password
-        ):
-            raise IllegalOperationError("Unable to use provided and automated entity name secret")
-
-        if self.requested_entity_password and not self.requested_entity_name:
-            raise IllegalOperationError("Unable to set entity password without an entity name")
-
-        self._remote_secret_fields = list(self.SECRET_FIELDS)
-        self._local_secret_fields = [
-            field
-            for field in self.SECRET_LABEL_MAP.keys()
-            if field not in self._remote_secret_fields
-        ]
-        if additional_secret_fields:
-            self._remote_secret_fields += additional_secret_fields
-        self.data_component = self.local_unit
-
-    # Public functions
-
-    fetch_my_relation_data = leader_only(Data.fetch_my_relation_data)
-    fetch_my_relation_field = leader_only(Data.fetch_my_relation_field)
-
-    def _load_secrets_from_databag(self, relation: Relation) -> None:
-        """Load secrets from the databag."""
-        requested_secrets = get_encoded_list(relation, self.local_unit, REQ_SECRET_FIELDS)
-        provided_secrets = get_encoded_list(relation, self.local_unit, PROV_SECRET_FIELDS)
-        if requested_secrets:
-            self._remote_secret_fields = requested_secrets
-
-        if provided_secrets:
-            self._local_secret_fields = provided_secrets
-
-
-class RequirerEventHandlers(EventHandlers):
-    """Requires-side of the relation."""
-
-    def __init__(self, charm: CharmBase, relation_data: RequirerData, unique_key: str = ""):
-        """Manager of base client relations."""
-        super().__init__(charm, relation_data, unique_key)
-
-    def _main_credentials_shared(self, diff: Diff) -> bool:
-        """Whether the relation data-bag contains username / password keys."""
-        user_secret = self.relation_data._generate_secret_field_name(SECRET_GROUPS.USER)
-        return any(
-            [
-                user_secret in diff.added,
-                "username" in diff.added and "password" in diff.added,
-            ]
-        )
-
-    def _entity_credentials_shared(self, diff: Diff) -> bool:
-        """Whether the relation data-bag contains rolename / password keys."""
-        entity_secret = self.relation_data._generate_secret_field_name(SECRET_GROUPS.ENTITY)
-        return any(
-            [
-                entity_secret in diff.added,
-                "entity-name" in diff.added,
-            ]
-        )
-
-    # Event handlers
-
-    def _on_relation_created_event(self, event: RelationCreatedEvent) -> None:
-        """Event emitted when the relation is created."""
-        if not self.relation_data.local_unit.is_leader():
-            return
-
-        if self.relation_data.remote_secret_fields:
-            if self.relation_data.SCOPE == Scope.APP:
-                set_encoded_field(
-                    event.relation,
-                    self.relation_data.local_app,
-                    REQ_SECRET_FIELDS,
-                    self.relation_data.remote_secret_fields,
-                )
-
-            set_encoded_field(
-                event.relation,
-                self.relation_data.local_unit,
-                REQ_SECRET_FIELDS,
-                self.relation_data.remote_secret_fields,
-            )
-
-        if self.relation_data.local_secret_fields:
-            if self.relation_data.SCOPE == Scope.APP:
-                set_encoded_field(
-                    event.relation,
-                    self.relation_data.local_app,
-                    PROV_SECRET_FIELDS,
-                    self.relation_data.local_secret_fields,
-                )
-            set_encoded_field(
-                event.relation,
-                self.relation_data.local_unit,
-                PROV_SECRET_FIELDS,
-                self.relation_data.local_secret_fields,
-            )
-
-
-class ProviderEventHandlers(EventHandlers):
-    """Provider-side of the relation."""
-
-    def __init__(self, charm: CharmBase, relation_data: ProviderData, unique_key: str = ""):
-        """Manager of base client relations."""
-        super().__init__(charm, relation_data, unique_key)
-
-    @staticmethod
-    def _validate_entity_consistency(event: RelationEvent, diff: Diff) -> None:
-        """Validates that entity information is not changed after relation is established.
-
-        - When entity-type changes, backwards compatibility is broken.
-        - When extra-user-roles changes, role membership checks become incredibly complex.
-        - When extra-group-roles changes, role membership checks become incredibly complex.
-        """
-        if not isinstance(event, RelationChangedEvent):
-            return
-
-        for key in ["entity-type", "extra-user-roles", "extra-group-roles"]:
-            if key in diff.changed:
-                raise ValueError(f"Cannot change {key} after relation has already been created")
-
-    # Event handlers
-
-    def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
-        """Event emitted when the relation data has changed."""
-        requested_secrets = get_encoded_list(event.relation, event.relation.app, REQ_SECRET_FIELDS)
-        provided_secrets = get_encoded_list(event.relation, event.relation.app, PROV_SECRET_FIELDS)
-        if requested_secrets is not None:
-            self.relation_data._local_secret_fields = requested_secrets
-
-        if provided_secrets is not None:
-            self.relation_data._remote_secret_fields = provided_secrets
-
-
-class EventHandlers(Object):
-    """Requires-side of the relation."""
-
-    def __init__(self, charm: CharmBase, relation_data: Data, unique_key: str = ""):
-        """Manager of base client relations."""
-        if not unique_key:
-            unique_key = relation_data.relation_name
-        super().__init__(charm, unique_key)
-
-        self.charm = charm
-        self.relation_data = relation_data
-
-        self.framework.observe(
-            charm.on[self.relation_data.relation_name].relation_changed,
-            self._on_relation_changed_event,
-        )
-
-        self.framework.observe(
-            self.charm.on[relation_data.relation_name].relation_created,
-            self._on_relation_created_event,
-        )
-
-        self.framework.observe(
-            charm.on.secret_changed,
-            self._on_secret_changed_event,
-        )
-
-    # Event handlers
-
-    def _on_relation_created_event(self, event: RelationCreatedEvent) -> None:
-        """Event emitted when the relation is created."""
-        pass
-
-    @abstractmethod
-    def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
-        """Event emitted when the relation data has changed."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _on_secret_changed_event(self, event: SecretChangedEvent) -> None:
-        """Event emitted when the relation data has changed."""
-        raise NotImplementedError
-
-    def _diff(self, event: RelationChangedEvent) -> Diff:
-        """Retrieves the diff of the data in the relation changed databag.
-
-        Args:
-            event: relation changed event.
-
-        Returns:
-            a Diff instance containing the added, deleted and changed
-                keys from the event relation databag.
-        """
-        return diff(event, self.relation_data.data_component)
-
-
-S3_LIB_VERSION_FIELD = "lib-version"
-
-
-StorageBackend: TypeAlias = Literal["gcs", "s3", "azure"]
-
-DEFAULT_REL_GCS = "gcs-credentials"
-DEFAULT_REL_S3 = "s3-credentials"
-DEFAULT_REL_AZURE = "azure-credentials"
 
 
 @dataclass(frozen=True)
@@ -1758,7 +1523,7 @@ class StorageRequirerEvents(CharmEvents):
     storage_connection_info_gone = EventSource(StorageConnectionInfoGoneEvent)
 
 
-class StorageRequirerData(RequirerData):
+class StorageRequirerData(Data):
     """Helper for managing requirer-side storage connection data and secrets.
 
     This class encapsulates reading/writing relation data, tracking which
@@ -1767,7 +1532,6 @@ class StorageRequirerData(RequirerData):
     so different backends (S3, Azure, GCS) can reuse the same flow.
     """
 
-    SECRET_FIELDS: ClassVar[list[str]] = []
     SECRET_LABEL_MAP = {}
 
     def __init__(
@@ -1786,20 +1550,41 @@ class StorageRequirerData(RequirerData):
             relation_name : Relation endpoint name used by this requirer.
             backend: Backend name used by this requirer.
         """
-        contract = _CONTRACTS.get(backend)
-        if not contract:
+        self.contract = _CONTRACTS.get(backend)
+        if not self.contract:
             raise ValueError(f"Unsupported backend {backend!r}")
 
         # PASS secret-fields PER INSTANCE; do not touch class variables.
         super().__init__(
             model=model,
             relation_name=relation_name,
-            additional_secret_fields=list(contract.secret_fields),
         )
-        self.contract = contract
+
+        self._remote_secret_fields = list(self.contract.secret_fields)
+        self._local_secret_fields = [
+            field
+            for field in self.SECRET_LABEL_MAP.keys()
+            if field not in self._remote_secret_fields
+        ]
+        self.data_component = self.local_unit
+
+    # Public functions
+
+    fetch_my_relation_data = leader_only(Data.fetch_my_relation_data)
+    fetch_my_relation_field = leader_only(Data.fetch_my_relation_field)
+
+    def _load_secrets_from_databag(self, relation: Relation) -> None:
+        """Load secrets from the databag."""
+        requested_secrets = get_encoded_list(relation, self.local_unit, REQ_SECRET_FIELDS)
+        provided_secrets = get_encoded_list(relation, self.local_unit, PROV_SECRET_FIELDS)
+        if requested_secrets:
+            self._remote_secret_fields = requested_secrets
+
+        if provided_secrets:
+            self._local_secret_fields = provided_secrets
 
 
-class StorageRequirerEventHandlers(RequirerEventHandlers):
+class StorageRequirerEventHandlers(EventHandlers):
     """Bind the requirer lifecycle to the relation's events.
 
     Validates that all required and secret fields are present, registers newly discovered secret
@@ -1841,19 +1626,6 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
         self.contract = relation_data.contract
         self.overrides = overrides
         self._last_overrides: dict[str, str] = {}
-
-        self.framework.observe(
-            self.charm.on[self.relation_name].relation_joined, self._on_relation_joined_event
-        )
-        self.framework.observe(
-            self.charm.on[self.relation_name].relation_changed, self._on_relation_changed_event
-        )
-        self.framework.observe(self.charm.on.secret_changed, self._on_secret_changed_event)
-
-        self.framework.observe(
-            self.charm.on[self.relation_name].relation_broken,
-            self._on_relation_broken_event,
-        )
 
     def _active_relations(self) -> list[Relation]:
         return list(self.charm.model.relations.get(self.relation_name, []))
@@ -1948,11 +1720,51 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
         payload = {k: v for k, v in overrides.items() if v is not None}
         self.relation_data.update_relation_data(relation_id, payload)
 
+    def _on_relation_created_event(self, event: RelationCreatedEvent) -> None:
+        """Event emitted when the relation is created."""
+        if not self.relation_data.local_unit.is_leader():
+            return
+
+        if self.relation_data.remote_secret_fields:
+            if self.relation_data.SCOPE == Scope.APP:
+                set_encoded_field(
+                    event.relation,
+                    self.relation_data.local_app,
+                    REQ_SECRET_FIELDS,
+                    self.relation_data.remote_secret_fields,
+                )
+
+            set_encoded_field(
+                event.relation,
+                self.relation_data.local_unit,
+                REQ_SECRET_FIELDS,
+                self.relation_data.remote_secret_fields,
+            )
+
+        if self.relation_data.local_secret_fields:
+            if self.relation_data.SCOPE == Scope.APP:
+                set_encoded_field(
+                    event.relation,
+                    self.relation_data.local_app,
+                    PROV_SECRET_FIELDS,
+                    self.relation_data.local_secret_fields,
+                )
+            set_encoded_field(
+                event.relation,
+                self.relation_data.local_unit,
+                PROV_SECRET_FIELDS,
+                self.relation_data.local_secret_fields,
+            )
+
     def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
         """Handle relation-joined, apply optional requirer-side overrides."""
         logger.info(f"Storage relation ({event.relation.name}) joined...")
-        if self.overrides:
-            self.write_overrides(self.overrides, relation_id=event.relation.id)
+        if not self.overrides or not self.charm.unit.is_leader():
+            return
+
+        payload = {k: v for k, v in self.overrides.items() if v is not None}
+        payload[SCHEMA_VERSION_FIELD] = SCHEMA_VERSION
+        self.relation_data.update_relation_data(event.relation.id, payload)
 
     def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
         """Assemble the storage connection info for a relation.
@@ -1970,7 +1782,7 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
             relation = next(iter(self.relation_data.relations), None)
         if relation and relation.app:
             info = self.relation_data.fetch_relation_data([relation.id])[relation.id]
-            info.pop(S3_LIB_VERSION_FIELD, None)
+            info.pop(SCHEMA_VERSION_FIELD, None)
             return info
         return {}
 
@@ -2038,8 +1850,10 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
         )
 
 
-class StorageProviderData(ProviderData):
+class StorageProviderData(Data):
     """Responsible for publishing provider-owned connection information to the relation databag."""
+
+    RESOURCE_FIELD = "requested-secrets"
 
     def __init__(self, model: Model, relation_name: str) -> None:
         """Initialize the provider data helper.
@@ -2049,6 +1863,35 @@ class StorageProviderData(ProviderData):
             relation_name (str): Provider relation endpoint name.
         """
         super().__init__(model, relation_name)
+        self._local_secret_fields = []
+        self._remote_secret_fields = list(self.SECRET_FIELDS)
+
+    @override
+    def _update_relation_data(self, relation: Relation, data: Dict[str, str]) -> None:
+        """Set values for fields not caring whether it's a secret or not."""
+        keys = set(data.keys())
+        if self.fetch_relation_field(relation.id, self.RESOURCE_FIELD) is None and (
+            keys - {SCHEMA_VERSION_FIELD}
+        ):
+            raise PrematureDataAccessError(
+                "Premature access to relation data, update is forbidden before the connection is initialized."
+            )
+        super()._update_relation_data(relation, data)
+
+    # Public functions -- inherited
+
+    fetch_my_relation_data = leader_only(Data.fetch_my_relation_data)
+    fetch_my_relation_field = leader_only(Data.fetch_my_relation_field)
+
+    def _load_secrets_from_databag(self, relation: Relation) -> None:
+        """Load secrets from the databag."""
+        requested_secrets = get_encoded_list(relation, relation.app, REQ_SECRET_FIELDS)
+        provided_secrets = get_encoded_list(relation, relation.app, PROV_SECRET_FIELDS)
+        if requested_secrets is not None:
+            self._local_secret_fields = requested_secrets
+
+        if provided_secrets is not None:
+            self._remote_secret_fields = provided_secrets
 
 
 class StorageProviderEventHandlers(EventHandlers):
@@ -2072,22 +1915,31 @@ class StorageProviderEventHandlers(EventHandlers):
         """
         super().__init__(charm, relation_data, unique_key)
 
+    @override
+    def _on_relation_created_event(self, event: RelationJoinedEvent) -> None:
+        """Event emitted when the S3 relation is created."""
+        logger.debug(f"S3 relation ({event.relation.name}) created on provider side...")
+        event_data = {
+            SCHEMA_VERSION_FIELD: SCHEMA_VERSION,
+        }
+        self.relation_data.update_relation_data(event.relation.id, event_data)
+
+    @override
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
         """Emit a request for connection info when the requirer changes."""
         if not self.charm.unit.is_leader():
             return
+        requested_secrets = get_encoded_list(event.relation, event.relation.app, REQ_SECRET_FIELDS)
+        provided_secrets = get_encoded_list(event.relation, event.relation.app, PROV_SECRET_FIELDS)
+        if requested_secrets is not None:
+            self.relation_data._local_secret_fields = requested_secrets
+
+        if provided_secrets is not None:
+            self.relation_data._remote_secret_fields = provided_secrets
 
         self.on.storage_connection_info_requested.emit(
             relation=event.relation, app=event.app, unit=event.unit
         )
-
-    def _on_secret_changed_event(self, event: SecretChangedEvent) -> None:
-        """Event emitted when the secret has changed.
-
-        This method is called by the event handler on `secret-changed` event due to being registered in
-        the parent class. If this method is overridden, `secret-changed` event need not be observed separately.
-        """
-        pass
 
 
 #
@@ -2114,29 +1966,20 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
             self, charm, self, overrides={"bucket": bucket, "path": path}
         )
 
-    def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
-        """Event emitted when the S3 relation is joined."""
-        logger.debug(f"S3 relation ({event.relation.name}) joined...")
-        event_data = {
-            "bucket": self.overrides.get("bucket", ""),
-            "path": self.overrides.get("path", ""),
-            S3_LIB_VERSION_FIELD: f"{LIBAPI}.{LIBPATCH}",
-        }
-        self.relation_data.update_relation_data(event.relation.id, event_data)
-
+    @override
     def _on_relation_changed_event(self, event):
         is_provider_v0 = False
         provider_data = self.relation_data.fetch_relation_data([event.relation.id])[
             event.relation.id
         ]
-        if len(provider_data) > 0 and S3_LIB_VERSION_FIELD not in provider_data:
+        if len(provider_data) > 0 and SCHEMA_VERSION_FIELD not in provider_data:
             # This means that provider has written something on its part of relation data,
             # but that something is not its version -- this means provider will never write its version
             # because that's something the provider is meant to write first (on relation-created)!!!
             is_provider_v0 = True
         elif (
-            S3_LIB_VERSION_FIELD in provider_data
-            and float(provider_data[S3_LIB_VERSION_FIELD]) < 1
+            SCHEMA_VERSION_FIELD in provider_data
+            and float(provider_data[SCHEMA_VERSION_FIELD]) < 1
         ):
             is_provider_v0 = True
 
@@ -2165,6 +2008,7 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
         StorageProviderData.__init__(self, charm.model, relation_name)
         StorageProviderEventHandlers.__init__(self, charm, self)
 
+    @override
     def fetch_relation_data(
         self,
         relation_ids: list[int] | None = None,
@@ -2197,34 +2041,27 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
                 return_data[relation_id].pop("bucket", None)
         return return_data
 
+    @override
     def _update_relation_data(self, relation: Relation, data: Dict[str, str]) -> None:
         """Override `update_relation_data` to bypass the parent's validation that raises PrematureDataAccessError."""
         relation_id = relation.id
         data_from_requirer = super().fetch_relation_data(
-            [relation.id], [S3_LIB_VERSION_FIELD, self.RESOURCE_FIELD], relation.name
+            [relation.id], [SCHEMA_VERSION_FIELD, self.RESOURCE_FIELD], relation.name
         )
         keys = set(data.keys())
         if (
-            keys - {S3_LIB_VERSION_FIELD}
-            and data_from_requirer.get(relation_id, {}).get(S3_LIB_VERSION_FIELD) is None
+            keys - {SCHEMA_VERSION_FIELD}
+            and data_from_requirer.get(relation_id, {}).get(SCHEMA_VERSION_FIELD) is None
             and data_from_requirer.get(relation_id, {}).get(self.RESOURCE_FIELD) is None
         ):
             # The logic here is that the provider should not start writing S3 data to the databag
             # before the requirer has asked for it (during their relation-joined) with either:
             #           RESOURCE_FIELD: a field guaranteed to be there if LIBAPI=0
-            #       OR  S3_LIB_VERSION_FIELD: a field guaranteed to be there if LIBAPI=1
+            #       OR  SCHEMA_VERSION_FIELD: a field guaranteed to be there if LIBAPI=1
             raise PrematureDataAccessError(
                 "Premature access to relation data, update is forbidden before the connection is initialized."
             )
-        super(ProviderData, self)._update_relation_data(relation, data)
-
-    def _on_relation_created_event(self, event: RelationJoinedEvent) -> None:
-        """Event emitted when the S3 relation is created."""
-        logger.debug(f"S3 relation ({event.relation.name}) created on provider side...")
-        event_data = {
-            S3_LIB_VERSION_FIELD: f"{LIBAPI}.{LIBPATCH}",
-        }
-        self.relation_data.update_relation_data(event.relation.id, event_data)
+        super(StorageProviderData, self)._update_relation_data(relation, data)
 
 
 #
