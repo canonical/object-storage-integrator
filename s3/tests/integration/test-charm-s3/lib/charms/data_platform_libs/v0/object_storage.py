@@ -1763,7 +1763,7 @@ class StorageRequirerEventHandlers(EventHandlers):
             return
 
         payload = {k: v for k, v in self.overrides.items() if v is not None}
-        payload[SCHEMA_VERSION_FIELD] = SCHEMA_VERSION
+        payload[SCHEMA_VERSION_FIELD] = str(SCHEMA_VERSION)
         self.relation_data.update_relation_data(event.relation.id, payload)
 
     def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
