@@ -31,7 +31,7 @@ def test_relation_when_requirer_overrides_values_then_relation_databag_includes_
             "bucket": "override-b",
             "path": "ov/p",
             "storage-class": "ARCHIVE",
-            "version": "1"
+            "version": "1",
         },
     )
     state = dataclasses.replace(
@@ -68,7 +68,7 @@ def test_provider_when_relation_joined_and_requested_secrets_in_databag_then_pro
             "bucket": "",
             "path": "",
             "storage-class": "",
-            "version": "1"
+            "version": "1",
         },
     )
     state = dataclasses.replace(
