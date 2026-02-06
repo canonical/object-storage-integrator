@@ -21,7 +21,7 @@ S3_INTEGRATOR_V1 = "s3-integrator-v1"
 
 SECRET_LABEL = "s3-creds-secret-provider"
 INVALID_BUCKET = "random?invali!dname"
-S3_LIB_VERSION_FIELD = "lib-version"
+S3_SCHEMA_VERSION_FIELD = "version"
 
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ def test_integrate_provider_v1_requirer_v0(
         lambda status: jubilant.all_active(status) and jubilant.all_agents_idle(status), delay=5
     )
     result = juju.run(f"{REQUIRER_V0}/0", "get-s3-connection-info").results
-    result.pop(S3_LIB_VERSION_FIELD, None)
+    result.pop(S3_SCHEMA_VERSION_FIELD, None)
     result.pop("data", None)
 
     # In this case, the consumer should be provided with the connection info with bucket from config option
@@ -178,7 +178,7 @@ def test_integrate_provider_v0_requirer_v1(
         delay=5,
     )
     result = juju.run(f"{REQUIRER_V1}/0", "get-s3-connection-info").results
-    result.pop(S3_LIB_VERSION_FIELD, None)
+    result.pop(S3_SCHEMA_VERSION_FIELD, None)
     result.pop("data", None)
 
     assert result == {
