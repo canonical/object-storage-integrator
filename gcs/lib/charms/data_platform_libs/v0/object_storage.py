@@ -1853,7 +1853,7 @@ class StorageRequirerEventHandlers(EventHandlers):
 class StorageProviderData(Data):
     """Responsible for publishing provider-owned connection information to the relation databag."""
 
-    RESOURCE_FIELD = "requested-secrets"
+    PROTOCOL_INITIATOR_FIELD = SCHEMA_VERSION_FIELD
 
     def __init__(self, model: Model, relation_name: str) -> None:
         """Initialize the provider data helper.
@@ -1866,16 +1866,31 @@ class StorageProviderData(Data):
         self._local_secret_fields = []
         self._remote_secret_fields = list(self.SECRET_FIELDS)
 
+    def is_protocol_ready(self, relation: Relation) -> bool:
+        """Check whether the protocol has been initialized by the requirer and
+        now the provider is ready to start sharing the data.
+
+        Args:
+            relation (Relation): The relation to check.
+
+        Returns:
+            bool: True if the protocol has been initialized, False otherwise.
+        """
+        return (
+            self.fetch_relation_field(relation.id, self.PROTOCOL_INITIATOR_FIELD) is not None
+        )
+
     @override
     def _update_relation_data(self, relation: Relation, data: Dict[str, str]) -> None:
         """Set values for fields not caring whether it's a secret or not."""
         keys = set(data.keys())
-        if self.fetch_relation_field(relation.id, self.RESOURCE_FIELD) is None and (
-            keys - {SCHEMA_VERSION_FIELD}
-        ):
+
+        if not self.is_protocol_ready(relation) and not keys.issubset({SCHEMA_VERSION_FIELD}):
+            # Schema version is allowed to be written before protocol is ready, but no other field should be written before that.
             raise PrematureDataAccessError(
                 "Premature access to relation data, update is forbidden before the connection is initialized."
             )
+
         super()._update_relation_data(relation, data)
 
     # Public functions -- inherited
@@ -1942,9 +1957,16 @@ class StorageProviderEventHandlers(EventHandlers):
         )
 
 
+
+
+############################################################################
+# Storage Cloud specific provider and requirer classes
+############################################################################
+
 #
 # S3 related classes
 #
+
 class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the S3 backend.
 
@@ -1966,24 +1988,27 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
             self, charm, self, overrides={"bucket": bucket, "path": path}
         )
 
-    @override
-    def _on_relation_changed_event(self, event):
-        is_provider_v0 = False
-        provider_data = self.relation_data.fetch_relation_data([event.relation.id])[
-            event.relation.id
+    def is_provider_schema_v0(self, relation: Relation) -> bool:
+        """Check if the S3 provider is using schema v0."""
+        provider_data = self.relation_data.fetch_relation_data([relation.id])[
+            relation.id
         ]
         if len(provider_data) > 0 and SCHEMA_VERSION_FIELD not in provider_data:
             # This means that provider has written something on its part of relation data,
-            # but that something is not its version -- this means provider will never write its version
-            # because that's something the provider is meant to write first (on relation-created)!!!
-            is_provider_v0 = True
+            # but that something is not the schema version -- this means provider will never write schema version
+            # because that's the first thing the provider is meant to write in relation (on relation-created)!!!
+            return True
         elif (
             SCHEMA_VERSION_FIELD in provider_data
             and float(provider_data[SCHEMA_VERSION_FIELD]) < 1
         ):
-            is_provider_v0 = True
+            return True
+        return False
 
-        if is_provider_v0 and not self.relation_data.fetch_my_relation_field(
+
+    @override
+    def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
+        if self.is_provider_schema_v0(event.relation) and not self.relation_data.fetch_my_relation_field(
             event.relation.id, "bucket"
         ):
             # The following line exists here due to compatibility for v1 requirer to work with v0 provider
@@ -2002,12 +2027,38 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
 class S3Provider(StorageProviderData, StorageProviderEventHandlers):
     """The provider class for S3 relation."""
 
-    RESOURCE_FIELD = "bucket"
+    LEGACY_S3_PROTOCOL_INITIATOR_FIELD = "bucket"
 
     def __init__(self, charm: CharmBase, relation_name: str) -> None:
         StorageProviderData.__init__(self, charm.model, relation_name)
         StorageProviderEventHandlers.__init__(self, charm, self)
 
+    @override
+    def is_protocol_ready(self, relation: Relation) -> bool:
+        """Check whether the protocol has been initialized by the requirer and
+        now the provider is ready to start sharing the data.
+
+        Args:
+            relation (Relation): The relation to check.
+
+        Returns:
+            bool: True if the protocol has been initialized, False otherwise.
+        """
+        return (
+            self.fetch_relation_field(relation.id, self.PROTOCOL_INITIATOR_FIELD) is not None # for S3 lib schema v1
+            or
+            self.fetch_relation_field(relation.id, self.LEGACY_S3_PROTOCOL_INITIATOR_FIELD) is not None # for S3 lib schema v0
+        )
+
+
+    def is_requirer_schema_v0(self, relation_id: int, relation_name: str) -> bool:
+        """Check if the S3 requirer is using schema v0."""
+        secret_fields = super().fetch_relation_data([relation_id], [REQ_SECRET_FIELDS], relation_name)
+        if not secret_fields.get(relation_id, {}).get(REQ_SECRET_FIELDS):
+            return True
+        return False
+
+    
     @override
     def fetch_relation_data(
         self,
@@ -2015,61 +2066,29 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
         fields: list[str] | None = None,
         relation_name: str | None = None,
     ):
-        """Override the behavior of `fetch_relation_data` to remove `bucket` field if request is from LIBAPI=0.
+        """Override the behavior of `fetch_relation_data` to remove `bucket` field if request is from v0.
 
-        This is required because LIBAPI=0 requirer automatically sets a bucket name as `relation-id-xxx` which used
-        to be ignored by LIBAPI=1 provider when providing S3 credentials. The same behavior is expected from LIBAPI=1,
-        if the request is from s3 lib with LIBAPI=0.
+        This is required because v0 requirer automatically sets a bucket name as `relation-id-xxx` which used
+        to be ignored by v0 provider when providing S3 credentials. The same behavior is expected from v1,
+        if the request is from s3 lib with v0.
         """
-        secret_fields = super().fetch_relation_data(
-            relation_ids, [REQ_SECRET_FIELDS], relation_name
+        data = super().fetch_relation_data(
+            relation_ids=relation_ids, fields=fields, relation_name=relation_name
         )
-        return_data = {}
-        for relation_id, relation_data in (
-            super()
-            .fetch_relation_data(
-                relation_ids=relation_ids, fields=fields, relation_name=relation_name
-            )
-            .items()
-        ):
-            return_data[relation_id] = relation_data
-            if not secret_fields.get(relation_id, {}).get(REQ_SECRET_FIELDS):
-                # This means the request is coming from S3 LIBAPI=0
+        for relation_id in data:
+            if self.is_requirer_schema_v0(relation_id, relation_name):
                 logger.info(
-                    "The requirer is using s3 lib LIBAPI=0, thus discarding the 'bucket' parameter."
+                    "The requirer is using s3 lib schema v0, thus discarding the 'bucket' parameter."
                 )
-                return_data[relation_id].pop("bucket", None)
-        return return_data
-
-    @override
-    def _update_relation_data(self, relation: Relation, data: Dict[str, str]) -> None:
-        """Override `update_relation_data` to bypass the parent's validation that raises PrematureDataAccessError."""
-        relation_id = relation.id
-        data_from_requirer = super().fetch_relation_data(
-            [relation.id], [SCHEMA_VERSION_FIELD, self.RESOURCE_FIELD], relation.name
-        )
-        keys = set(data.keys())
-        if (
-            keys - {SCHEMA_VERSION_FIELD}
-            and data_from_requirer.get(relation_id, {}).get(SCHEMA_VERSION_FIELD) is None
-            and data_from_requirer.get(relation_id, {}).get(self.RESOURCE_FIELD) is None
-        ):
-            # The logic here is that the provider should not start writing S3 data to the databag
-            # before the requirer has asked for it (during their relation-joined) with either:
-            #           RESOURCE_FIELD: a field guaranteed to be there if LIBAPI=0
-            #       OR  SCHEMA_VERSION_FIELD: a field guaranteed to be there if LIBAPI=1
-            raise PrematureDataAccessError(
-                "Premature access to relation data, update is forbidden before the connection is initialized."
-            )
-        super(StorageProviderData, self)._update_relation_data(relation, data)
+                data[relation_id].pop("bucket", None)
+        return data
 
 
 #
 # Google Cloud Storage related classes
 #
 
-
-class GcsStorageRequires(StorageRequirerData, StorageRequirerEventHandlers):
+class GcsRequirer(StorageRequirerData, StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the GCS backend.
 
     Args:
@@ -2081,48 +2100,17 @@ class GcsStorageRequires(StorageRequirerData, StorageRequirerEventHandlers):
     def __init__(
         self,
         charm: CharmBase,
-        relation_name: str = DEFAULT_REL_GCS,
+        relation_name: str,
         overrides: dict[str, str] | None = None,
     ) -> None:
         StorageRequirerData.__init__(self, charm.model, relation_name, backend="gcs")
         StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
 
 
-class GcsStorageProviderData(StorageProviderData):
-    """Define the resource fields which is provided by requirer, otherwise provider will not publish any payload.
+class GcsProvider(StorageProviderData, StorageProviderEventHandlers):
+    """The provider class for GCS relation."""
 
-    A requirer must first advertises a field via the
-    RESOURCE_FIELD key so the provider can publish the appropriate
-    payload. This is a  protection mechanism which is implemented in data interfaces not to publish data to a unready requirer.
-    If the requirer put the data defined as RESOURCE FIELD, this means requirer is ready to get the data.
-
-    Attributes:
-        RESOURCE_FIELD (str): Relation key name the requirer uses to declare a RESOURCE_FIELD
-        which is hardcoded to requested-secrets as they always published.
-
-    """
-
-    RESOURCE_FIELD = "requested-secrets"
-
-
-class GcsStorageProviderEventHandlers(StorageProviderEventHandlers):
-    """Provider-side event handlers preconfigured for GCS.
-
-    Args:
-        charm (CharmBase): Parent charm.
-        relation_name (str): Relation endpoint name.
-        unique_key (str): Optional key used by the base handler for
-            idempotency or uniq semantics
-    """
-
-    def __init__(
-        self,
-        charm: CharmBase,
-        relation_name: str = DEFAULT_REL_GCS,
-        unique_key: str = "",
-    ):
-        super().__init__(
-            charm=charm,
-            relation_data=GcsStorageProviderData(charm.model, relation_name),
-            unique_key=unique_key,
-        )
+    def __init__(self, charm: CharmBase, relation_name: str) -> None:
+        StorageProviderData.__init__(self, charm.model, relation_name)
+        StorageProviderEventHandlers.__init__(self, charm, self)
+    
