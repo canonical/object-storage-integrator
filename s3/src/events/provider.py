@@ -9,6 +9,10 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from charms.data_platform_libs.v0.object_storage import (
+    S3Provider,
+    StorageConnectionInfoRequestedEvent,
+)
 from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
 from data_platform_helpers.advanced_statuses.types import Scope
@@ -20,10 +24,6 @@ from core.domain import BUCKET_REGEX
 from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from events.statuses import BucketStatuses, CharmStatuses
 from managers.s3 import S3BucketError, S3Manager
-from charms.data_platform_libs.v0.object_storage import (
-    S3Provider,
-    StorageConnectionInfoRequestedEvent,
-)
 
 if TYPE_CHECKING:
     from charm import S3IntegratorCharm
