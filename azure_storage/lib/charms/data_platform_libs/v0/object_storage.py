@@ -131,6 +131,7 @@ class ExampleRequirerCharm(CharmBase):
 ```
 """
 
+from __future__ import annotations
 
 import copy
 import json
@@ -153,8 +154,8 @@ from typing import (
     TypeAlias,
     Union,
     ValuesView,
-    override,
 )  # using py38-style typing
+from typing_extensions import override
 
 from ops import (
     Application,
