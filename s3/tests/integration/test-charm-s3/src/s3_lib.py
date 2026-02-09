@@ -190,10 +190,6 @@ SCHEMA_VERSION = 1
 
 StorageBackend: TypeAlias = Literal["gcs", "s3", "azure"]
 
-DEFAULT_REL_GCS = "gcs-credentials"
-DEFAULT_REL_S3 = "s3-credentials"
-DEFAULT_REL_AZURE = "azure-credentials"
-
 
 logger = logging.getLogger(__name__)
 
@@ -602,8 +598,6 @@ class DataDict(UserDict):
 
     def __eq__(self, d: object) -> bool:
         """Equality."""
-        if not isinstance(d, dict):
-            return NotImplemented
         return self.data == d
 
     def __repr__(self) -> str:
@@ -622,7 +616,7 @@ class DataDict(UserDict):
         """Does the key exist in the Abstract Relation Data dictionary?"""
         return key in self.data
 
-    def update(self, items: dict[str, str]) -> None:  # type: ignore[override]
+    def update(self, items: Dict[str, str]) -> None:  # type: ignore[override]
         """Update the Abstract Relation Data dictionary."""
         self.relation_data.update_relation_data(self.relation_id, items)
 
@@ -648,8 +642,6 @@ class DataDict(UserDict):
 
     def __contains__(self, item: object) -> bool:
         """Does the Abstract Relation Data dictionary contain item?"""
-        if not isinstance(item, str):
-            return False
         return item in self.data.values()
 
     def __iter__(self):
@@ -672,17 +664,7 @@ class Data(ABC):
     SCOPE = Scope.APP
 
     # Local map to associate mappings with secrets potentially as a group
-    SECRET_LABEL_MAP = {
-        "username": SECRET_GROUPS.USER,
-        "password": SECRET_GROUPS.USER,
-        "uris": SECRET_GROUPS.USER,
-        "read-only-uris": SECRET_GROUPS.USER,
-        "tls": SECRET_GROUPS.TLS,
-        "tls-ca": SECRET_GROUPS.TLS,
-        "mtls-cert": SECRET_GROUPS.MTLS,
-        "entity-name": SECRET_GROUPS.ENTITY,
-        "entity-password": SECRET_GROUPS.ENTITY,
-    }
+    SECRET_LABEL_MAP: Dict[str, SecretGroup] = {}
 
     SECRET_FIELDS: List[str] = []
 
@@ -698,7 +680,7 @@ class Data(ABC):
         self._jujuversion: Optional[JujuVersion] = None
         self.component = self.local_app if self.SCOPE == Scope.APP else self.local_unit
         self.secrets = SecretCache(self._model, self.component)
-        self.data_component: Unit | Application | None = None
+        self.data_component: Optional[Union[Unit, Application]] = None
         self._local_secret_fields: List[str] = []
         self._remote_secret_fields = list(self.SECRET_FIELDS)
 
@@ -1065,7 +1047,6 @@ class Data(ABC):
         if secret:
             return secret.get_content()
         return None
-        return None
 
     # Core operations on Relation Fields manipulations (regardless whether the field is in the databag or in a secret)
     # Internal functions to be called directly from transparent public interface functions (+closely related helpers)
@@ -1407,39 +1388,26 @@ class _Contract:
             databag before the relation is considered "ready". This may include
             non-secret fields such as bucket-name, container and secret fields
             such as secret-key, access-key.
-        optional_info: Keys that must be optionally present in the provider's application
-            databag. These are the non-secret fields such as storage-account, path, storage-class, etc.
         secret_fields: Keys in the provider's databag that represent Juju secret
             references (URIs, labels, or IDs). The library will automatically
             register and track these secrets for the requirer.
     """
 
     required_info: list[str]
-    optional_info: list[str]
     secret_fields: list[str]
 
 
 _CONTRACTS: dict[StorageBackend, _Contract] = {
     "gcs": _Contract(
         required_info=["bucket", "secret-key"],
-        optional_info=["storage-class", "path"],
         secret_fields=["secret-key"],
     ),
     "s3": _Contract(
         required_info=["access-key", "secret-key"],
-        optional_info=[
-            "endpoint",
-            "region",
-            "path",
-            "s3-uri-style",
-            "storage-class",
-            "s3-api-version",
-        ],
         secret_fields=["access-key", "secret-key"],
     ),
     "azure": _Contract(
         required_info=["container", "storage-account", "secret-key", "connection-protocol"],
-        optional_info=["path", "connection-protocol", "endpoint", "resource-group"],
         secret_fields=["secret-key"],
     ),
 }

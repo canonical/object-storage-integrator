@@ -1047,7 +1047,6 @@ class Data(ABC):
         if secret:
             return secret.get_content()
         return None
-        return None
 
     # Core operations on Relation Fields manipulations (regardless whether the field is in the databag or in a secret)
     # Internal functions to be called directly from transparent public interface functions (+closely related helpers)
@@ -1389,39 +1388,26 @@ class _Contract:
             databag before the relation is considered "ready". This may include
             non-secret fields such as bucket-name, container and secret fields
             such as secret-key, access-key.
-        optional_info: Keys that must be optionally present in the provider's application
-            databag. These are the non-secret fields such as storage-account, path, storage-class, etc.
         secret_fields: Keys in the provider's databag that represent Juju secret
             references (URIs, labels, or IDs). The library will automatically
             register and track these secrets for the requirer.
     """
 
     required_info: list[str]
-    optional_info: list[str]
     secret_fields: list[str]
 
 
 _CONTRACTS: dict[StorageBackend, _Contract] = {
     "gcs": _Contract(
         required_info=["bucket", "secret-key"],
-        optional_info=["storage-class", "path"],
         secret_fields=["secret-key"],
     ),
     "s3": _Contract(
         required_info=["access-key", "secret-key"],
-        optional_info=[
-            "endpoint",
-            "region",
-            "path",
-            "s3-uri-style",
-            "storage-class",
-            "s3-api-version",
-        ],
         secret_fields=["access-key", "secret-key"],
     ),
     "azure": _Contract(
         required_info=["container", "storage-account", "secret-key", "connection-protocol"],
-        optional_info=["path", "connection-protocol", "endpoint", "resource-group"],
         secret_fields=["secret-key"],
     ),
 }
