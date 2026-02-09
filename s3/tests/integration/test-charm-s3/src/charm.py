@@ -68,7 +68,7 @@ class ApplicationCharm(CharmBase):
         bucket = self.config.get("bucket", "")
         path = self.config.get("path", "")
         if (rel := self.model.get_relation(S3_RELATION_NAME)):
-            self.requirer_data.update_relation_data(rel.id, {"bucket": bucket, "path": path})
+            self.s3_requirer.update_relation_data(rel.id, {"bucket": bucket, "path": path})
 
     def _on_relation_joined(self, _: RelationJoinedEvent):
         """On s3 credential relation joined."""
