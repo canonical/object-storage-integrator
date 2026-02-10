@@ -1649,13 +1649,13 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
         return list(self.charm.model.relations.get(self.relation_name, []))
 
     def _all_required_info_present(self, relation: Relation) -> bool:
-        info = self.get_storage_connection_info(relation)
+        info = self.get_storage_connection_info(relation)  # type: ignore[misc]
         if self.contract:
             return all(k in info for k in self.contract.required_info)
         return False
 
     def _missing_fields(self, relation: Relation) -> list[str]:
-        info = self.get_storage_connection_info(relation)
+        info = self.get_storage_connection_info(relation)  # type: ignore[misc]
         missing = []
         if self.contract:
             for k in self.contract.required_info:
