@@ -1802,7 +1802,9 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
         self: "StorageRequirerEventHandlers[Azure]", relation: Relation | None = None
     ) -> AzureInfo: ...
 
-    def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
+    def get_storage_connection_info(
+        self, relation: Relation | None = None
+    ) -> Union[S3Info, GCSInfo, AzureInfo]:
         """Assemble the storage connection info for a relation.
 
         Combines the provider-published relation data and any readable secrets
@@ -1819,8 +1821,8 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
         if relation and relation.app:
             info = self.relation_data.fetch_relation_data([relation.id])[relation.id]
             info.pop(SCHEMA_VERSION_FIELD, None)
-            return info
-        return {}
+            return cast(Union[S3Info, GCSInfo, AzureInfo], info)
+        return cast(Union[S3Info, GCSInfo, AzureInfo], {})
 
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
         """Validate fields on relation-changed and emit requirer events."""
