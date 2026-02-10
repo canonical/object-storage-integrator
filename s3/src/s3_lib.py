@@ -114,6 +114,7 @@ from enum import Enum
 from typing import (
     Callable,
     Dict,
+    Generic,
     ItemsView,
     Iterable,
     KeysView,
@@ -123,9 +124,12 @@ from typing import (
     Set,
     Tuple,
     TypeAlias,
+    TypedDict,
+    TypeVar,
     Union,
     ValuesView,
     cast,
+    overload,
 )  # using py38-style typing
 
 from ops import (
@@ -189,6 +193,65 @@ SCHEMA_VERSION_FIELD = "version"
 SCHEMA_VERSION = 1
 
 StorageBackend: TypeAlias = Literal["gcs", "s3", "azure"]
+
+
+# Marker classes for backend types
+class S3:
+    """Marker class for S3 backend type."""
+
+    pass
+
+
+class GCS:
+    """Marker class for GCS backend type."""
+
+    pass
+
+
+class Azure:
+    """Marker class for Azure backend type."""
+
+    pass
+
+
+# TypedDict definitions for storage connection info
+class S3Info(TypedDict, total=False):
+    """Type definition for S3 connection information."""
+
+    access_key: str
+    secret_key: str
+    endpoint: str
+    region: str
+    path: str
+    bucket: str
+    s3_uri_style: str
+    storage_class: str
+    s3_api_version: str
+
+
+class GCSInfo(TypedDict, total=False):
+    """Type definition for GCS connection information."""
+
+    bucket: str
+    secret_key: str
+    storage_class: str
+    path: str
+
+
+class AzureInfo(TypedDict, total=False):
+    """Type definition for Azure connection information."""
+
+    container: str
+    storage_account: str
+    secret_key: str
+    connection_protocol: str
+    path: str
+    endpoint: str
+    resource_group: str
+
+
+# TypeVar for generic backend types
+T = TypeVar("T", bound=Union[S3, GCS, Azure])
 
 
 logger = logging.getLogger(__name__)
@@ -1478,7 +1541,7 @@ class StorageRequirerEvents(CharmEvents):
     storage_connection_info_gone = EventSource(StorageConnectionInfoGoneEvent)
 
 
-class StorageRequirerData(Data):
+class StorageRequirerData(Data, Generic[T]):
     """Helper for managing requirer-side storage connection data and secrets.
 
     This class encapsulates reading/writing relation data, tracking which
@@ -1539,7 +1602,7 @@ class StorageRequirerData(Data):
             self._local_secret_fields = provided_secrets
 
 
-class StorageRequirerEventHandlers(EventHandlers):
+class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
     """Bind the requirer lifecycle to the relation's events.
 
     Validates that all required and secret fields are present, registers newly discovered secret
@@ -1560,7 +1623,7 @@ class StorageRequirerEventHandlers(EventHandlers):
     on = StorageRequirerEvents()  # pyright: ignore[reportAssignmentType]
 
     def __init__(
-        self, charm: CharmBase, relation_data: StorageRequirerData, overrides: dict[str, str]
+        self, charm: CharmBase, relation_data: "StorageRequirerData[T]", overrides: dict[str, str]
     ):
         """Initialize the requirer event handlers.
 
@@ -1724,6 +1787,21 @@ class StorageRequirerEventHandlers(EventHandlers):
         payload[SCHEMA_VERSION_FIELD] = str(SCHEMA_VERSION)
         self.relation_data.update_relation_data(event.relation.id, payload)
 
+    @overload
+    def get_storage_connection_info(
+        self: "StorageRequirerEventHandlers[S3]", relation: Relation | None = None
+    ) -> S3Info: ...
+
+    @overload
+    def get_storage_connection_info(
+        self: "StorageRequirerEventHandlers[GCS]", relation: Relation | None = None
+    ) -> GCSInfo: ...
+
+    @overload
+    def get_storage_connection_info(
+        self: "StorageRequirerEventHandlers[Azure]", relation: Relation | None = None
+    ) -> AzureInfo: ...
+
     def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
         """Assemble the storage connection info for a relation.
 
@@ -1809,7 +1887,7 @@ class StorageRequirerEventHandlers(EventHandlers):
         )
 
 
-class StorageProviderData(Data):
+class StorageProviderData(Data, Generic[T]):
     """Responsible for publishing provider-owned connection information to the relation databag."""
 
     PROTOCOL_INITIATOR_FIELD = SCHEMA_VERSION_FIELD
@@ -1867,7 +1945,7 @@ class StorageProviderData(Data):
             self._remote_secret_fields = provided_secrets
 
 
-class StorageProviderEventHandlers(EventHandlers):
+class StorageProviderEventHandlers(EventHandlers, Generic[T]):
     """Listen for requirer changes and emits a higher-level events."""
 
     on = StorageProviderEvents()
@@ -1875,7 +1953,7 @@ class StorageProviderEventHandlers(EventHandlers):
     def __init__(
         self,
         charm: CharmBase,
-        relation_data: StorageProviderData,
+        relation_data: "StorageProviderData[T]",
         unique_key: str = "",
     ):
         """Initialize provider event handlers.
@@ -1928,7 +2006,7 @@ class StorageProviderEventHandlers(EventHandlers):
 #
 
 
-class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
+class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers[S3]):
     """Requirer helper preconfigured for the S3 backend.
 
     Args:
@@ -1981,7 +2059,7 @@ class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
         return super()._on_relation_changed_event(event)
 
 
-class S3Provider(StorageProviderData, StorageProviderEventHandlers):
+class S3Provider(StorageProviderData[S3], StorageProviderEventHandlers[S3]):
     """The provider class for S3 relation."""
 
     LEGACY_PROTOCOL_INITIATOR_FIELD = "bucket"
