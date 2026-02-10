@@ -49,9 +49,6 @@ class ExampleProviderCharm(CharmBase):
             return
 
         bucket_name = self.charm.config.get("bucket")
-        # Note: prepare_keys() is a placeholder for your credential handling function.
-        # In production, use a proper secret handling function like decode_secret_key()
-        # instead of accessing credentials directly from config.
         access_key, secret_key = prepare_keys(self.charm.config.get("credentials"))
         if not bucket_name:
             self.logger.warning("Bucket is setup by the requirer application!")
