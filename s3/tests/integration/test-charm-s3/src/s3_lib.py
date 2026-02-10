@@ -49,8 +49,7 @@ class ExampleProviderCharm(CharmBase):
             return
 
         bucket_name = self.charm.config.get("bucket")
-        access_key = self.charm.config.get("access-key")
-        secret_key = self.charm.config.get("secret-key")
+        access_key, secret_key = prepare_keys(self.charm.config.get("credentials"))
         if not bucket_name:
             self.logger.warning("Bucket is setup by the requirer application!")
 
