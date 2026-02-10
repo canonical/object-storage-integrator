@@ -1570,7 +1570,7 @@ class StorageRequirerEventHandlers(EventHandlers):
         Args:
             charm (CharmBase): The parent charm instance.
             relation_data (StorageRequirerData): Requirer-side relation data helper.
-            overrides (Dict): The key-value pairs that being overridden in the relation data.
+            overrides (Dict): The key-value pairs that are being overridden in the relation data.
         """
         super().__init__(charm, relation_data)
 
