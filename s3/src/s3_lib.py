@@ -199,19 +199,13 @@ StorageBackend: TypeAlias = Literal["gcs", "s3", "azure"]
 class S3:
     """Marker class for S3 backend type."""
 
-    pass
-
 
 class GCS:
     """Marker class for GCS backend type."""
 
-    pass
-
 
 class Azure:
     """Marker class for Azure backend type."""
-
-    pass
 
 
 # TypedDict definitions for storage connection info
@@ -251,7 +245,7 @@ class AzureInfo(TypedDict, total=False):
 
 
 # TypeVar for generic backend types
-T = TypeVar("T", bound=Union[S3, GCS, Azure])
+BackendType = TypeVar("BackendType", bound=Union[S3, GCS, Azure])
 
 
 logger = logging.getLogger(__name__)
@@ -1541,7 +1535,7 @@ class StorageRequirerEvents(CharmEvents):
     storage_connection_info_gone = EventSource(StorageConnectionInfoGoneEvent)
 
 
-class StorageRequirerData(Data, Generic[T]):
+class StorageRequirerData(Data, Generic[BackendType]):
     """Helper for managing requirer-side storage connection data and secrets.
 
     This class encapsulates reading/writing relation data, tracking which
@@ -1602,7 +1596,7 @@ class StorageRequirerData(Data, Generic[T]):
             self._local_secret_fields = provided_secrets
 
 
-class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
+class StorageRequirerEventHandlers(EventHandlers, Generic[BackendType]):
     """Bind the requirer lifecycle to the relation's events.
 
     Validates that all required and secret fields are present, registers newly discovered secret
@@ -1623,7 +1617,10 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
     on = StorageRequirerEvents()  # pyright: ignore[reportAssignmentType]
 
     def __init__(
-        self, charm: CharmBase, relation_data: "StorageRequirerData[T]", overrides: dict[str, str]
+        self,
+        charm: CharmBase,
+        relation_data: "StorageRequirerData[BackendType]",
+        overrides: dict[str, str],
     ):
         """Initialize the requirer event handlers.
 
@@ -1649,12 +1646,14 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
         return list(self.charm.model.relations.get(self.relation_name, []))
 
     def _all_required_info_present(self, relation: Relation) -> bool:
+        # Type ignore needed due to overload self-type constraint incompatibility with generic class
         info = self.get_storage_connection_info(relation)  # type: ignore[misc]
         if self.contract:
             return all(k in info for k in self.contract.required_info)
         return False
 
     def _missing_fields(self, relation: Relation) -> list[str]:
+        # Type ignore needed due to overload self-type constraint incompatibility with generic class
         info = self.get_storage_connection_info(relation)  # type: ignore[misc]
         missing = []
         if self.contract:
@@ -1889,7 +1888,7 @@ class StorageRequirerEventHandlers(EventHandlers, Generic[T]):
         )
 
 
-class StorageProviderData(Data, Generic[T]):
+class StorageProviderData(Data, Generic[BackendType]):
     """Responsible for publishing provider-owned connection information to the relation databag."""
 
     PROTOCOL_INITIATOR_FIELD = SCHEMA_VERSION_FIELD
@@ -1947,7 +1946,7 @@ class StorageProviderData(Data, Generic[T]):
             self._remote_secret_fields = provided_secrets
 
 
-class StorageProviderEventHandlers(EventHandlers, Generic[T]):
+class StorageProviderEventHandlers(EventHandlers, Generic[BackendType]):
     """Listen for requirer changes and emits a higher-level events."""
 
     on = StorageProviderEvents()
@@ -1955,7 +1954,7 @@ class StorageProviderEventHandlers(EventHandlers, Generic[T]):
     def __init__(
         self,
         charm: CharmBase,
-        relation_data: "StorageProviderData[T]",
+        relation_data: "StorageProviderData[BackendType]",
         unique_key: str = "",
     ):
         """Initialize provider event handlers.
