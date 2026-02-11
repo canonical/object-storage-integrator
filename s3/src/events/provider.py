@@ -147,7 +147,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                     continue
                 relation_data = relation_data | {"bucket": relation_bucket_value}
 
-            self.s3_provider.update_relation_data(relation_id, relation_data)
+            self.s3_provider.set_storage_connection_info(relation_id, relation_data)
 
         self._handle_status(missing_buckets, invalid_buckets)
 
