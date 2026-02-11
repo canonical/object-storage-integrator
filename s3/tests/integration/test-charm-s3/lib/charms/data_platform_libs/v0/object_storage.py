@@ -1,71 +1,60 @@
-# Copyright 2025 Canonical Ltd.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#!/usr/bin/env python3
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
 
-r"""A library for communicating with the S3 credentials providers and consumers.
+"""A lightweight library for communicating between Cloud storages provider and requirer charms.
 
-This library provides the relevant interface code implementing the communication
-specification for fetching, retrieving, triggering, and responding to events related to
-the S3 provider charm and its consumers.
+This library implements a common object-storage contract and the relation/event plumbing to publish
+and consume storage connection info.
 
 
 ### Provider charm
 
-The provider is implemented in the `s3-integrator` charm which is meant to be deployed
-alongside one or more consumer charms. The provider charm is serving the s3 credentials and
-metadata needed to communicate and work with an S3 compatible backend.
+A provider publishes the payload when the requirer asks for it. It is needed to wire the handlers and
+emit on demand.
 
+```
 Example:
 ```python
 
-from s3_lib import (
-    S3Provider,
+from charms.data_platform_libs.v0.object_storage import (
     StorageConnectionInfoRequestedEvent,
+    S3Provider,
 )
 
 class ExampleProviderCharm(CharmBase):
-    def __init__(self, *args) -> None:
-        super().__init__(*args)
+
+    def __init__(self, charm: CharmBase):
+        super().__init__(charm, "example-provider")
 
         self.s3_provider = S3Provider(self, S3_RELATION_NAME)
-
         self.framework.observe(
             self.s3_provider.on.storage_connection_info_requested,
-            self._on_s3_connection_info_requested,
+            self._on_storage_connection_info_requested,
         )
 
-    def _on_s3_connection_info_requested(self, _: StorageConnectionInfoRequestedEvent) -> None:
+    def _on_storage_connection_info_requested(
+        self, event: StorageConnectionInfoRequestedEvent
+    ) -> None:
         if not self.charm.unit.is_leader():
             return
-
         bucket_name = self.charm.config.get("bucket")
         access_key, secret_key = prepare_keys(self.charm.config.get("credentials"))
-        if not bucket_name:
-            self.logger.warning("Bucket is setup by the requirer application!")
 
-        self.s3_provider_data.update(
+        self.s3_provider.update_relation_data(
             {"bucket": bucket_name, "access-key": access_key, "secret-key": secret_key}
         )
 
 
 if __name__ == "__main__":
     main(ExampleProviderCharm)
-
+```
 
 ### Requirer charm
 
-The requirer charm is the charm requiring the S3 credentials.
-An example of requirer charm is the following:
+A requirer consumes the published fields.
+
+An example of requirer charm using S3 storage is the following:
 
 Example:
 ```python
@@ -74,20 +63,23 @@ from s3_lib import S3Requirer, StorageConnectionInfoChangedEvent, StorageConnect
 
 class ExampleRequirerCharm(CharmBase):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(
+        self,
+        charm: CharmBase,
+    ):
+        super().__init__(charm, "s3-requirer")
+        self.charm = charm
+        self.s3_client = S3Requirer(
+            charm, relation_name, bucket="test-bucket"
+        )
+        self.framework.observe(
+            self.s3_client.on.storage_connection_info_changed, self._on_conn_info_changed
+        )
+        self.framework.observe(
+            self.s3_client.on.storage_connection_info_gone, self._on_conn_info_gone
+        )
 
-         bucket_name = "test-bucket"
-        # if bucket name is not provided the bucket name will be generated
-        # e.g., ('relation-{relation.id}')
-
-        self.s3_client = S3Requirer(self, "s3-credentials", bucket=bucket_name)
-
-        self.framework.observe(self.s3_client.on.s3_connection_info_changed, self._on_credential_changed)
-        self.framework.observe(self.s3_client.on.s3_connection_info_gone, self._on_credential_gone)
-
-    def _on_credential_changed(self, event: StorageConnectionInfoChangedEvent):
-
+    def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
         # access data from the provider
         connection_info = self.s3_client.get_storage_connection_info()
         process_connection_info(connection_info)
@@ -155,11 +147,11 @@ from ops.model import Relation
 LIBID = "fca396f6254246c9bfa565b1f85ab528"
 
 # Increment this major API version when introducing breaking changes
-LIBAPI = 1
+LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 0
+LIBPATCH = 1
 
 
 Diff = namedtuple("Diff", "added changed deleted")
@@ -1559,7 +1551,7 @@ class StorageRequirerEventHandlers(EventHandlers):
     on = StorageRequirerEvents()  # pyright: ignore[reportAssignmentType]
 
     def __init__(
-        self, charm: CharmBase, relation_data: StorageRequirerData, overrides: dict[str, str]
+        self, charm: CharmBase, relation_data: StorageRequirerData, overrides: dict[str, str] | None = None
     ):
         """Initialize the requirer event handlers.
 
@@ -1917,6 +1909,18 @@ class StorageProviderEventHandlers(EventHandlers):
             relation=event.relation, app=event.app, unit=event.unit
         )
 
+    def set_storage_connection_info(self, relation_id: str, data: Dict[str, Optional[str]]) -> None:
+        """Set the storage connection info for a relation.
+
+        Args:
+            relation_id: ID of relation to set storage connection info for.
+            data: Connection info to set for the relation.
+        """
+        # Replace null values with empty strings, as Juju databag does not allow null values.
+        data = {k: (v if v is not None else "") for k, v in data.items()}
+        return self.relation_data.update_relation_data(
+            relation_id=relation_id, data=data
+        )
 
 ############################################################################
 # Storage Cloud specific provider and requirer classes
@@ -2045,3 +2049,200 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
                 )
                 data[relation_id].pop("bucket", None)
         return data
+
+
+#
+# Google Cloud Storage related classes
+#
+
+
+class GcsStorageRequires(StorageRequirerData, StorageRequirerEventHandlers):
+    """Requirer helper preconfigured for the GCS backend.
+
+    Args:
+        charm: Parent charm.
+        relation_name: Relation endpoint
+        overrides: Optional requirer-side overrides to write on join/push.
+    """
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str,
+        overrides: dict[str, str] | None = None,
+    ) -> None:
+        StorageRequirerData.__init__(self, charm.model, relation_name, backend="gcs")
+        StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
+
+
+class GcsStorageProviderData(StorageProviderData):
+    """Define the resource fields which is provided by requirer, otherwise provider will not publish any payload.
+    """
+    LEGACY_PROTOCOL_INITIATOR_FIELD = "requested-secrets" 
+
+    def is_protocol_ready(self, relation: Relation) -> bool:
+        """Check whether the protocol has been initialized by the requirer and
+        now the provider is ready to start sharing the data.
+
+        Args:
+            relation (Relation): The relation to check.
+
+        Returns:
+            bool: True if the protocol has been initialized, False otherwise.
+        """
+        # IMPORTANT! 
+        # Use super().fetch_relation_data instead of self.fetch_relation_data 
+        # to avoid the override in this class which discards the 'bucket' field 
+        data = super().fetch_relation_data([relation.id], [self.PROTOCOL_INITIATOR_FIELD, self.LEGACY_PROTOCOL_INITIATOR_FIELD], relation.name)
+        return (
+            data.get(relation.id, {}).get(self.PROTOCOL_INITIATOR_FIELD) is not None
+            or
+            data.get(relation.id, {}).get(self.LEGACY_PROTOCOL_INITIATOR_FIELD) is not None
+        )
+
+
+
+class GcsStorageProviderEventHandlers(StorageProviderEventHandlers):
+    """Provider-side event handlers preconfigured for GCS.
+
+    Args:
+        charm (CharmBase): Parent charm.
+        relation_name (str): Relation endpoint name.
+        unique_key (str): Optional key used by the base handler for
+            idempotency or uniq semantics
+    """
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str,
+        unique_key: str = "",
+    ):
+        super().__init__(
+            charm=charm,
+            relation_data=GcsStorageProviderData(charm.model, relation_name),
+            unique_key=unique_key,
+        )
+
+
+#
+# Azure Storage related classes
+# 
+
+class AzureStorageRequirer(StorageRequirerData, StorageRequirerEventHandlers):
+    """Requirer helper preconfigured for the Azure Storage backend.
+
+    Args:
+        charm: Parent charm.
+        relation_name: Relation endpoint
+        overrides: Optional requirer-side overrides to write on join/push.
+    """
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str,
+        container: str = "",
+    ) -> None:
+        StorageRequirerData.__init__(self, charm.model, relation_name, backend="azure")
+        StorageRequirerEventHandlers.__init__(self, charm, self, overrides={"container": container})
+
+
+    def is_provider_schema_v0(self, relation: Relation) -> bool:
+        """Check if the Azure storage provider is using schema v0."""
+        provider_data = self.relation_data.fetch_relation_data([relation.id])[
+            relation.id
+        ]
+        if len(provider_data) > 0 and SCHEMA_VERSION_FIELD not in provider_data:
+            # This means that provider has written something on its part of relation data,
+            # but that something is not the schema version -- this means provider will never write schema version
+            # because that's the first thing the provider is meant to write in relation (on relation-created)!!!
+            return True
+        elif (
+            SCHEMA_VERSION_FIELD in provider_data
+            and float(provider_data[SCHEMA_VERSION_FIELD]) < 1
+        ):
+            return True
+        return False
+
+
+    def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
+        if self.is_provider_schema_v0(event.relation) and not self.relation_data.fetch_my_relation_field(
+            event.relation.id, "container"
+        ):
+            # The following line exists here due to compatibility for v1 requirer to work with v0 provider
+            # The v0 provider will still wait for `container` to appear in the databag, and if it does not exist,
+            # the provider will simply not write any data to the databag.
+            container_name = f"relation-{event.relation.id}"
+            self.relation_data.update_relation_data(event.relation.id, {"container": container_name})
+            logger.info(
+                f"azure_storage_lib v1 detected that the provider is on v0, thus writing container={container_name} and exiting for now..."
+            )
+            return
+
+        return super()._on_relation_changed_event(event)
+
+
+
+class AzureStorageProvider(StorageProviderData, StorageProviderEventHandlers):
+    """The provider class for Azure Storage relation."""
+
+    LEGACY_PROTOCOL_INITIATOR_FIELD = "container"
+
+    def __init__(self, charm: CharmBase, relation_name: str) -> None:
+        StorageProviderData.__init__(self, charm.model, relation_name)
+        StorageProviderEventHandlers.__init__(self, charm, self)
+
+
+    def is_protocol_ready(self, relation: Relation) -> bool:
+        """Check whether the protocol has been initialized by the requirer and
+        now the provider is ready to start sharing the data.
+
+        Args:
+            relation (Relation): The relation to check.
+
+        Returns:
+            bool: True if the protocol has been initialized, False otherwise.
+        """
+        # IMPORTANT! 
+        # Use super().fetch_relation_data instead of self.fetch_relation_data 
+        # to avoid the override in this class which discards the 'bucket' field 
+        data = super().fetch_relation_data([relation.id], [self.PROTOCOL_INITIATOR_FIELD, self.LEGACY_PROTOCOL_INITIATOR_FIELD], relation.name)
+        return (
+            data.get(relation.id, {}).get(self.PROTOCOL_INITIATOR_FIELD) is not None
+            or
+            data.get(relation.id, {}).get(self.LEGACY_PROTOCOL_INITIATOR_FIELD) is not None
+        )
+
+
+    def is_requirer_schema_v0(self, relation_id: int, relation_name: Optional[str]) -> bool:
+        """Check if the Azure requirer is using older schema."""
+        version_field = super().fetch_relation_data([relation_id], [SCHEMA_VERSION_FIELD], relation_name)
+        if not version_field.get(relation_id, {}).get(SCHEMA_VERSION_FIELD):
+            return True
+        return False
+
+    
+    def fetch_relation_data(
+        self,
+        relation_ids: list[int] | None = None,
+        fields: list[str] | None = None,
+        relation_name: str | None = None,
+    ):
+        """Override the behavior of `fetch_relation_data` to remove `container` field if request is from v0.
+
+        This is required because v0 requirer automatically sets a container name as `relation-id-xxx` which used
+        to be ignored by v0 provider when providing Azure Storage credentials. The same behavior is expected from v1,
+        if the request is from azure_storage lib with v0.
+        """
+        data = super().fetch_relation_data(
+            relation_ids=relation_ids, fields=fields, relation_name=relation_name
+        )
+        for relation_id in data:
+            if self.is_requirer_schema_v0(relation_id, relation_name):
+                logger.info(
+                    "The requirer is using s3 lib schema v0, thus discarding the 'bucket' parameter."
+                )
+                data[relation_id].pop("bucket", None)
+        return data
+

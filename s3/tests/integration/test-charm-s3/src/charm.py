@@ -12,7 +12,8 @@ the s3 requires-provides relation.
 
 import logging
 
-from s3_lib import (
+
+from charms.data_platform_libs.v0.object_storage import (
     StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent, S3Requirer
 )
 from ops.charm import CharmBase, RelationJoinedEvent
