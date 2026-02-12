@@ -3,15 +3,13 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import base64
 import logging
-import re
 from pathlib import Path
 
 import jubilant
 import pytest
 from conftest import S3ConnectionInfo
-from helpers import delete_bucket, get_bucket
+from helpers import b64_to_ca_chain_json_dumps, delete_bucket, get_bucket
 
 S3 = "s3"
 CONSUMER1 = "consumer1"
@@ -49,21 +47,6 @@ def relation_bucket_name_2(s3_root_user):
     bucket_name = "s3-integrator-relation-bucket2"
     yield bucket_name
     delete_bucket(s3_info=s3_root_user, bucket_name=bucket_name)
-
-
-def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
-    """Validate the `tls-ca-chain` config option."""
-    if not ca_chain:
-        return ""
-    decoded_value = base64.b64decode(ca_chain).decode("utf-8")
-    chain_list = re.findall(
-        pattern="(?=-----BEGIN CERTIFICATE-----)(.*?)(?<=-----END CERTIFICATE-----)",
-        string=decoded_value,
-        flags=re.DOTALL,
-    )
-    if not chain_list:
-        raise ValueError("No certificate found in chain file")
-    return str(chain_list)
 
 
 def test_deploy(
