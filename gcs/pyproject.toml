@@ -69,7 +69,7 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 99
-extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/test-charm-gcs"]
+extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/requirer-charm"]
 target-version = "py311"
 src = ["src", "tests"]
 

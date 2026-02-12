@@ -9,9 +9,14 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from charms.data_platform_libs.v0.object_storage import (
+    S3Provider,
+    StorageConnectionInfoRequestedEvent,
+)
 from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
 from data_platform_helpers.advanced_statuses.types import Scope
+from ops import RelationBrokenEvent
 
 from constants import S3_RELATION_NAME
 from core.context import Context
@@ -19,11 +24,6 @@ from core.domain import BUCKET_REGEX
 from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from events.statuses import BucketStatuses, CharmStatuses
 from managers.s3 import S3BucketError, S3Manager
-from s3_lib import (
-    S3Provider,
-    StorageConnectionInfoGoneEvent,
-    StorageConnectionInfoRequestedEvent,
-)
 
 if TYPE_CHECKING:
     from charm import S3IntegratorCharm
@@ -56,7 +56,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
 
         self.reconcile_buckets()
 
-    def _on_s3_relation_broken(self, event: StorageConnectionInfoGoneEvent) -> None:
+    def _on_s3_relation_broken(self, event: RelationBrokenEvent) -> None:
         """Handle the `relation-broken` event for S3 relation."""
         self.logger.info("On s3 relation broken")
         if not self.charm.unit.is_leader():
@@ -147,7 +147,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                     continue
                 relation_data = relation_data | {"bucket": relation_bucket_value}
 
-            self.s3_provider.update_relation_data(relation_id, relation_data)
+            self.s3_provider.set_storage_connection_info(relation_id, relation_data)
 
         self._handle_status(missing_buckets, invalid_buckets)
 

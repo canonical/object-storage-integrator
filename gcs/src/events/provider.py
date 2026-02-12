@@ -35,7 +35,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         self.charm = charm
         self.state = context
 
-        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm)
+        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm, GCS_RELATION_NAME)
 
         self.framework.observe(
             self.gcs_provider.on.storage_connection_info_requested,

@@ -7,7 +7,7 @@
 from functools import wraps
 from typing import Callable
 
-from charms.data_platform_libs.v0.data_interfaces import PrematureDataAccessError
+from charms.data_platform_libs.v0.object_storage import PrematureDataAccessError
 from ops import EventBase, Model, Object, StatusBase
 from ops.model import ActiveStatus, BlockedStatus, ModelError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed

@@ -10,8 +10,8 @@ the azure storage requires-provides relation.
 
 import logging
 
-from charms.data_platform_libs.v0.azure_storage import (
-    AzureStorageRequires,
+from charms.data_platform_libs.v0.object_storage import (
+    AzureStorageRequirer,
     StorageConnectionInfoChangedEvent,
     StorageConnectionInfoGoneEvent,
 )
@@ -40,8 +40,8 @@ class ApplicationCharm(CharmBase):
         # Events related to the requested database
         # (these events are defined in the database requires charm library).
 
-        self.first_azure_client = AzureStorageRequires(self, FIRST_RELATION)
-        self.second_azure_client = AzureStorageRequires(
+        self.first_azure_client = AzureStorageRequirer(self, FIRST_RELATION)
+        self.second_azure_client = AzureStorageRequirer(
             self, SECOND_RELATION, container=CONTAINER_NAME
         )
 
@@ -87,11 +87,11 @@ class ApplicationCharm(CharmBase):
         self.unit.status = ActiveStatus()
 
     def _on_first_storage_connection_info_changed(self, e: StorageConnectionInfoChangedEvent):
-        credentials = self.first_azure_client.get_azure_storage_connection_info()
+        credentials = self.first_azure_client.get_storage_connection_info()
         logger.info(f"Relation_1 credentials changed. New credentials: {credentials}")
 
     def _on_second_storage_connection_info_changed(self, e: StorageConnectionInfoChangedEvent):
-        credentials = self.second_azure_client.get_azure_storage_connection_info()
+        credentials = self.second_azure_client.get_storage_connection_info()
         logger.info(f"Relation_2 credentials changed. New credentials: {credentials}")
 
     def _on_first_storage_connection_info_gone(self, _: StorageConnectionInfoGoneEvent):
@@ -108,9 +108,9 @@ class ApplicationCharm(CharmBase):
         return self.model.get_relation(PEER)
 
     def _on_update_status(self, _):
-        first_info = self.first_azure_client.get_azure_storage_connection_info()
+        first_info = self.first_azure_client.get_storage_connection_info()
         logger.info(f"First Azure client info: {first_info}")
-        second_info = self.second_azure_client.get_azure_storage_connection_info()
+        second_info = self.second_azure_client.get_storage_connection_info()
         logger.info(f"Second Azure client info: {second_info}")
 
 
