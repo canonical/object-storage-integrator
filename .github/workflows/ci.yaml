@@ -97,7 +97,7 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@fix/charmcraft #TODO use upstream tags once fix for charmcraftlocal is available
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.0.2 #TODO use upstream tags once fix for charmcraftlocal is available
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: false
