@@ -1807,8 +1807,6 @@ class StorageRequirerEventHandlers(EventHandlers):
                 PROV_SECRET_FIELDS,
                 self.relation_data.local_secret_fields,
             )
-        self.relation_data.update_relation_data({SCHEMA_VERSION_FIELD: str(SCHEMA_VERSION)})
-
 
     def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
         """Handle relation-joined, apply optional requirer-side overrides."""
