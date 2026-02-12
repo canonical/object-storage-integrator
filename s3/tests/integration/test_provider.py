@@ -4,7 +4,6 @@
 # See LICENSE file for licensing details.
 
 import base64
-import json
 import logging
 import re
 from pathlib import Path
@@ -64,7 +63,7 @@ def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
     )
     if not chain_list:
         raise ValueError("No certificate found in chain file")
-    return json.dumps(chain_list)
+    return str(chain_list)
 
 
 def test_deploy(
