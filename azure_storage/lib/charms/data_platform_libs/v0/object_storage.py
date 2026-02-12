@@ -1624,14 +1624,18 @@ class StorageRequirerData(Data, Generic[BackendType]):
         Returns:
             dict[str, str]: Connection info (may be empty if relation/app does not exist).
         """
+        info = {}
         if not relation:
             relation = next(iter(self.relations), None)
         if relation and relation.app:
-            info = self.fetch_relation_data([relation.id])[relation.id]
+            for key, value in self.fetch_relation_data([relation.id])[relation.id].items():
+                try:
+                    info[key] = json.loads(value)
+                except (json.decoder.JSONDecodeError, TypeError):
+                    info[key] = value
             info.pop(SCHEMA_VERSION_FIELD, None)
-            return info # type: ignore
-        return {} # type: ignore
-
+        return info # type: ignore
+                
 
 class StorageRequirerEventHandlers(EventHandlers):
     """Bind the requirer lifecycle to the relation's events.
