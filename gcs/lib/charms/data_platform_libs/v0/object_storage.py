@@ -545,114 +545,6 @@ class SecretCache:
 # Relation Data base/abstract ancestors (i.e. parent classes)
 ################################################################################
 
-
-class DataDict(UserDict):
-    """Python Standard Library 'dict' - like representation of Relation Data."""
-
-    def __init__(self, relation_data: "Data", relation_id: int):
-        self.relation_data = relation_data
-        self.relation_id = relation_id
-
-    @property
-    def data(self) -> Dict[str, str]:  # type: ignore[override]
-        """Return the full content of the Abstract Relation Data dictionary."""
-        result = self.relation_data.fetch_my_relation_data([self.relation_id])
-        try:
-            result_remote = self.relation_data.fetch_relation_data([self.relation_id])
-        except NotImplementedError:
-            result_remote = {self.relation_id: {}}
-        if result:
-            result_remote[self.relation_id].update(result[self.relation_id])
-        return result_remote.get(self.relation_id, {})
-
-    def __setitem__(self, key: str, item: str) -> None:
-        """Set an item of the Abstract Relation Data dictionary."""
-        self.relation_data.update_relation_data(self.relation_id, {key: item})
-
-    def __getitem__(self, key: str) -> str:
-        """Get an item of the Abstract Relation Data dictionary."""
-        result = None
-
-        # Avoiding "leader_only" error when cross-charm non-leader unit, not to report useless error
-        if (
-            not hasattr(self.relation_data.fetch_my_relation_field, "leader_only")
-            or self.relation_data.component != self.relation_data.local_app
-            or self.relation_data.local_unit.is_leader()
-        ):
-            result = self.relation_data.fetch_my_relation_field(self.relation_id, key)
-
-        if not result:
-            try:
-                result = self.relation_data.fetch_relation_field(self.relation_id, key)
-            except NotImplementedError:
-                pass
-
-        if not result:
-            raise KeyError
-        return result
-
-    def __eq__(self, d: object) -> bool:
-        """Equality."""
-        return self.data == d
-
-    def __repr__(self) -> str:
-        """String representation Abstract Relation Data dictionary."""
-        return repr(self.data)
-
-    def __len__(self) -> int:
-        """Length of the Abstract Relation Data dictionary."""
-        return len(self.data)
-
-    def __delitem__(self, key: str) -> None:
-        """Delete an item of the Abstract Relation Data dictionary."""
-        self.relation_data.delete_relation_data(self.relation_id, [key])
-
-    def has_key(self, key: str) -> bool:
-        """Does the key exist in the Abstract Relation Data dictionary?"""
-        return key in self.data
-
-    def update(self, items: Dict[str, str]) -> None:  # type: ignore[override]
-        """Update the Abstract Relation Data dictionary."""
-        self.relation_data.update_relation_data(self.relation_id, items)
-
-    def keys(self) -> KeysView[str]:
-        """Keys of the Abstract Relation Data dictionary."""
-        return self.data.keys()
-
-    def values(self) -> ValuesView[str]:
-        """Values of the Abstract Relation Data dictionary."""
-        return self.data.values()
-
-    def items(self) -> ItemsView[str, str]:
-        """Items of the Abstract Relation Data dictionary."""
-        return self.data.items()
-
-    def pop(self, item: str, *args: str) -> str:  # type: ignore[override]
-        """Pop an item of the Abstract Relation Data dictionary."""
-        result = self.relation_data.fetch_my_relation_field(self.relation_id, item)
-        if not result:
-            raise KeyError(f"Item {item} doesn't exist.")
-        self.relation_data.delete_relation_data(self.relation_id, [item])
-        return result
-
-    def __contains__(self, item: object) -> bool:
-        """Does the Abstract Relation Data dictionary contain item?"""
-        return item in self.data.values()
-
-    def __iter__(self):
-        """Iterate through the Abstract Relation Data dictionary."""
-        return iter(self.data)
-
-    def get(self, key: str, default: Optional[str] = None) -> Optional[str]:  # type: ignore[override]
-        """Safely get an item of the Abstract Relation Data dictionary."""
-        try:
-            if result := self[key]:
-                return result
-        except KeyError:
-            return default
-        return default
-
-
 class Data(ABC):
     """Base relation data manipulation (abstract) class."""
 
@@ -1174,10 +1066,6 @@ class Data(ABC):
 
     # Public interface methods
     # Handling Relation Fields seamlessly, regardless if in databag or a Juju Secret
-
-    def as_dict(self, relation_id: int) -> UserDict:
-        """Dict behavior representation of the Abstract Data."""
-        return DataDict(self, relation_id)
 
     def get_relation(self, relation_name, relation_id) -> Relation:
         """Safe way of retrieving a relation."""
