@@ -105,6 +105,7 @@ from enum import Enum
 from typing import (
     Callable,
     Dict,
+    Generic,
     ItemsView,
     Iterable,
     KeysView,
@@ -114,9 +115,12 @@ from typing import (
     Set,
     Tuple,
     TypeAlias,
+    TypeVar,
+    TypedDict,
     Union,
     ValuesView,
     cast,
+    overload,
 )  # using py38-style typing
 
 from ops import (
@@ -1403,6 +1407,70 @@ _CONTRACTS: dict[StorageBackend, _Contract] = {
     ),
 }
 
+# Marker classes for backend types
+class S3:
+    """Marker class for S3 backend type."""
+
+
+class GCS:
+    """Marker class for GCS backend type."""
+
+
+class AzureStorage:
+    """Marker class for Azure backend type."""
+
+
+
+
+# TypedDict definitions for storage connection info
+
+S3Info = TypedDict(
+    "S3Info",
+    {
+        "access-key": str,
+        "secret-key": str,
+        "region": str,
+        "storage-class": str,
+        "attributes": str,
+        "bucket": str,
+        "endpoint": str,
+        "path": str,
+        "s3-api-version": str,
+        "s3-uri-style": str,
+        "tls-ca-chain": str,
+        "delete-older-than-days": str,
+    },
+    total=False,
+)
+
+GcsInfo = TypedDict(
+    "GcsInfo",
+    {
+        "bucket": str,
+        "secret-key": str,
+        "storage-class": str,
+        "path": str,
+    },
+    total=False,
+)
+
+AzureStorageInfo = TypedDict(
+    "AzureStorageInfo",
+    {
+        "container": str,
+        "storage-account": str,
+        "secret-key": str,
+        "connection-protocol": str, 
+        "path": str,
+        "endpoint": str,
+        "resource-group": str,
+    },
+    total=False,
+)
+
+# TypeVar for generic backend types
+BackendType = TypeVar("BackendType", bound=Union[S3, GCS, AzureStorage])
+
 
 class ObjectStorageEvent(RelationEvent):
     """Common event class for object storage related events."""
@@ -1469,7 +1537,7 @@ class StorageRequirerEvents(CharmEvents):
     storage_connection_info_gone = EventSource(StorageConnectionInfoGoneEvent)
 
 
-class StorageRequirerData(Data):
+class StorageRequirerData(Data, Generic[BackendType]):
     """Helper for managing requirer-side storage connection data and secrets.
 
     This class encapsulates reading/writing relation data, tracking which
@@ -1529,6 +1597,41 @@ class StorageRequirerData(Data):
         if provided_secrets:
             self._local_secret_fields = provided_secrets
 
+    @overload
+    def get_storage_connection_info(
+        self: StorageRequirerData[S3], relation: Relation | None = None
+    ) -> S3Info: ...
+
+    @overload
+    def get_storage_connection_info(
+        self: StorageRequirerData[GCS], relation: Relation | None = None
+    ) -> GcsInfo: ...
+
+    @overload
+    def get_storage_connection_info(
+        self: StorageRequirerData[AzureStorage], relation: Relation | None = None
+    ) -> AzureStorageInfo: ...
+
+    def get_storage_connection_info(self, relation: Relation | None = None): # type: ignore
+        """Assemble the storage connection info for a relation.
+
+        Combines the provider-published relation data and any readable secrets
+        to produce a flat dictionary usable by the requirer.
+
+        Args:
+            relation: Relation object to read from.
+
+        Returns:
+            dict[str, str]: Connection info (may be empty if relation/app does not exist).
+        """
+        if not relation:
+            relation = next(iter(self.relations), None)
+        if relation and relation.app:
+            info = self.fetch_relation_data([relation.id])[relation.id]
+            info.pop(SCHEMA_VERSION_FIELD, None)
+            return info # type: ignore
+        return {} # type: ignore
+
 
 class StorageRequirerEventHandlers(EventHandlers):
     """Bind the requirer lifecycle to the relation's events.
@@ -1577,13 +1680,13 @@ class StorageRequirerEventHandlers(EventHandlers):
         return list(self.charm.model.relations.get(self.relation_name, []))
 
     def _all_required_info_present(self, relation: Relation) -> bool:
-        info = self.get_storage_connection_info(relation)
+        info = cast(StorageRequirerData, self.relation_data).get_storage_connection_info(relation)
         if self.contract:
             return all(k in info for k in self.contract.required_info)
         return False
 
     def _missing_fields(self, relation: Relation) -> list[str]:
-        info = self.get_storage_connection_info(relation)
+        info = cast(StorageRequirerData, self.relation_data).get_storage_connection_info(relation)
         missing = []
         if self.contract:
             for k in self.contract.required_info:
@@ -1714,26 +1817,6 @@ class StorageRequirerEventHandlers(EventHandlers):
         payload = {k: v for k, v in self.overrides.items() if v is not None}
         payload[SCHEMA_VERSION_FIELD] = str(SCHEMA_VERSION)
         self.relation_data.update_relation_data(event.relation.id, payload)
-
-    def get_storage_connection_info(self, relation: Relation | None = None) -> dict[str, str]:
-        """Assemble the storage connection info for a relation.
-
-        Combines the provider-published relation data and any readable secrets
-        to produce a flat dictionary usable by the requirer.
-
-        Args:
-            relation: Relation object to read from.
-
-        Returns:
-            dict[str, str]: Connection info (may be empty if relation/app does not exist).
-        """
-        if not relation:
-            relation = next(iter(self.relation_data.relations), None)
-        if relation and relation.app:
-            info = self.relation_data.fetch_relation_data([relation.id])[relation.id]
-            info.pop(SCHEMA_VERSION_FIELD, None)
-            return info
-        return {}
 
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
         """Validate fields on relation-changed and emit requirer events."""
@@ -1931,7 +2014,7 @@ class StorageProviderEventHandlers(EventHandlers):
 #
 
 
-class S3Requirer(StorageRequirerData, StorageRequirerEventHandlers):
+class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the S3 backend.
 
     Args:
@@ -2056,7 +2139,7 @@ class S3Provider(StorageProviderData, StorageProviderEventHandlers):
 #
 
 
-class GcsStorageRequires(StorageRequirerData, StorageRequirerEventHandlers):
+class GcsStorageRequires(StorageRequirerData[GCS], StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the GCS backend.
 
     Args:
@@ -2129,7 +2212,7 @@ class GcsStorageProviderEventHandlers(StorageProviderEventHandlers):
 # Azure Storage related classes
 # 
 
-class AzureStorageRequirer(StorageRequirerData, StorageRequirerEventHandlers):
+class AzureStorageRequirer(StorageRequirerData[AzureStorage], StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the Azure Storage backend.
 
     Args:
@@ -2245,4 +2328,3 @@ class AzureStorageProvider(StorageProviderData, StorageProviderEventHandlers):
                 )
                 data[relation_id].pop("bucket", None)
         return data
-
