@@ -14,6 +14,7 @@ import logging
 import re
 from typing import Annotated, Literal
 
+from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
 from charms.data_platform_libs.v0.object_storage import S3Info
 from pydantic import BeforeValidator, Field, field_validator
@@ -110,3 +111,13 @@ class CharmConfig(BaseConfigModel):
 
         chain_list = parse_ca_chain(decoded_value)
         return json.dumps(chain_list)
+
+    @field_validator("endpoint")
+    @classmethod
+    def validate_endpoint(cls, value: str) -> str | None:
+        """Validate the `endpoint` config option."""
+        if value is None:
+            return None
+        if not is_valid_uri(value):
+            raise ValueError("The given endpoint is not a valid URI")
+        return value

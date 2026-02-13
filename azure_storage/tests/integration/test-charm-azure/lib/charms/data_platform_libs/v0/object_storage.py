@@ -2057,7 +2057,7 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
         if self.is_provider_schema_v0(
             event.relation
-        ) and not self.relation_data.fetch_my_relation_field(event.relation.id, "bucket"):
+        ) and self.charm.unit.is_leader() and not self.relation_data.fetch_my_relation_field(event.relation.id, "bucket"):
             # The following line exists here due to compatibility for v1 requirer to work with v0 provider
             # The v0 provider will still wait for `bucket` to appear in the databag, and if it does not exist,
             # the provider will simply not write any data to the databag.
