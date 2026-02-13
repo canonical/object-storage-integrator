@@ -136,3 +136,12 @@ def test_values_credentials() -> None:
     valid_values = ["secret:1a2b3c4d5e6f7g8h9i0j"]
     check_invalid_values("credentials", erroneus_values)
     check_valid_values("credentials", valid_values)
+
+
+def test_values_endpoints() -> None:
+    """Check valid and invalid endpoints."""
+    # Given
+    erroneus_values = ["invalid-uri"]
+    valid_values = ["http://valid-uri.com", "https://valid-uri.com"]
+    check_invalid_values("endpoint", erroneus_values)
+    check_valid_values("endpoint", valid_values)
