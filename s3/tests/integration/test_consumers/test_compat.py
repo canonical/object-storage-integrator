@@ -1,5 +1,4 @@
 import jubilant
-import pytest
 
 from .helpers import (
     CharmSpec,
@@ -10,7 +9,6 @@ from .helpers import (
     remove_charm_relations,
     restore_backup,
 )
-from .matrix import TEST_MATRIX
 
 
 def perform_sanity_checks(juju: jubilant.Juju, provider: CharmSpec, requirer: CharmSpec):
@@ -31,17 +29,22 @@ def perform_sanity_checks(juju: jubilant.Juju, provider: CharmSpec, requirer: Ch
     restore_backup(juju, requirer, backup_id)
 
 
-@pytest.mark.parametrize("provider_charm, requirer_charm", TEST_MATRIX, indirect=True)
-def test_compat(juju: jubilant.Juju, provider_charm: CharmSpec, requirer_charm: CharmSpec):
+def test_compat(
+    juju: jubilant.Juju,
+    provider_charm_v0: CharmSpec,
+    provider_charm_v1: CharmSpec,
+    requirer_charm_v0: CharmSpec,
+    requirer_charm_v1: CharmSpec,
+):
     """Test charm compatibility across versions."""
     # Deploy applications
-    deploy_and_configure_charm(juju, provider_charm)
-    deploy_and_configure_charm(juju, requirer_charm)
+    deploy_and_configure_charm(juju, provider_charm_v1)
+    deploy_and_configure_charm(juju, requirer_charm_v0)
 
     # Integrate applications
-    integrate_charms(juju, provider_charm, requirer_charm)
+    integrate_charms(juju, provider_charm_v1, requirer_charm_v0)
     # Do sanity checks on the requirer charm
-    perform_sanity_checks(juju, provider_charm, requirer_charm)
+    perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v0)
 
     # Remove charm relation
-    remove_charm_relations(juju, provider_charm, requirer_charm)
+    remove_charm_relations(juju, provider_charm_v1, requirer_charm_v0)

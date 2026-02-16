@@ -1,0 +1,7 @@
+summary: test_compat_postgresql_16_edge
+environment:
+  TEST_MODULE: test_consumers/test_compat.py
+  SUBSTRATE: microk8s
+execute: |
+  cd "$SPREAD_PATH/s3"
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm postgresql-k8s --channel-v0 16/edge --trust

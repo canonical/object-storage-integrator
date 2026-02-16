@@ -1,12 +1,52 @@
-import dataclasses
 import random
 import string
+from pathlib import Path
 
 import jubilant
 import pytest
 
 from ..domain import S3ConnectionInfo
 from .helpers import CharmSpec
+
+
+def pytest_addoption(parser):
+    group = parser.getgroup("charm options", "Charm selection and configuration options")
+    group.addoption(
+        "--charm",
+        action="store",
+        required=True,
+        help="Name of the charm to test (required)",
+    )
+    group.addoption(
+        "--channel-v0",
+        action="store",
+        required=True,
+        help="Channel for v0 charm (required)",
+    )
+    group.addoption(
+        "--revision-v0",
+        action="store",
+        default=None,
+        help="Revision for v0 charm (default: None)",
+    )
+    group.addoption(
+        "--channel-v1",
+        action="store",
+        required=True,
+        help="Channel for v1 charm (required)",
+    )
+    group.addoption(
+        "--revision-v1",
+        action="store",
+        default=None,
+        help="Revision for v1 charm (default: None)",
+    )
+    group.addoption(
+        "--trust",
+        action="store_true",
+        default=False,
+        help="Whether to use --trust when deploying charms (default: False)",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -30,14 +70,17 @@ def bucket_name() -> str:
 
 
 @pytest.fixture
-def provider_charm(
-    request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str
+def provider_charm_v1(
+    request: pytest.FixtureRequest,
+    s3_charm: Path,
+    s3_root_user: S3ConnectionInfo,
+    bucket_name: str,
 ) -> CharmSpec:
-    spec: CharmSpec = request.param
-    return dataclasses.replace(
-        spec,
+    return CharmSpec(
+        charm=s3_charm,
+        app="s3-integrator-v1",
+        channel="2/edge",
         config={
-            **spec.config,
             "bucket": bucket_name,
             "endpoint": s3_root_user.endpoint,
             "region": s3_root_user.region,
@@ -46,26 +89,64 @@ def provider_charm(
             "path": "custompath/",
         },
         secret_config={
-            **spec.secret_config,
             "credentials": {
                 "access-key": s3_root_user.access_key,
                 "secret-key": s3_root_user.secret_key,
             },
-        }
-        if not spec.channel.startswith("1/")
-        else {},
-        action_config={
-            **spec.action_config,
-            "sync-s3-credentials": {
-                "access-key": s3_root_user.access_key,
-                "secret-key": s3_root_user.secret_key,
-            },
-        }
-        if spec.channel.startswith("1/")
-        else {},
+        },
     )
 
 
 @pytest.fixture
-def requirer_charm(request: pytest.FixtureRequest) -> CharmSpec:
-    return request.param
+def provider_charm_v0(
+    request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str
+) -> CharmSpec:
+    return CharmSpec(
+        charm="s3-integrator",
+        app="s3-integrator-v0",
+        channel="1/stable",
+        config={
+            "bucket": bucket_name,
+            "endpoint": s3_root_user.endpoint,
+            "region": s3_root_user.region,
+            "tls-ca-chain": s3_root_user.tls_ca_chain,
+            "s3-uri-style": "path",
+            "path": "custompath/",
+        },
+        action_config={
+            "sync-s3-credentials": {
+                "access-key": s3_root_user.access_key,
+                "secret-key": s3_root_user.secret_key,
+            },
+        },
+    )
+
+
+@pytest.fixture
+def requirer_charm_v0(request: pytest.FixtureRequest) -> CharmSpec:
+    channel = request.config.getoption("--channel-v0")
+    revision = request.config.getoption("--revision-v0")
+    trust = request.config.getoption("--trust")
+    charm = request.config.getoption("--charm")
+    return CharmSpec(
+        charm=charm,
+        app=f"{charm}-v0",
+        channel=channel,
+        trust=trust,
+        revision=int(revision) if revision else None,
+    )
+
+
+@pytest.fixture
+def requirer_charm_v1(request: pytest.FixtureRequest) -> CharmSpec:
+    charm = request.config.getoption("--charm")
+    channel = request.config.getoption("--channel-v1")
+    revision = request.config.getoption("--revision-v1")
+    trust = request.config.getoption("--trust")
+    return CharmSpec(
+        charm=charm,
+        app=f"{charm}-v1",
+        channel=channel,
+        trust=trust,
+        revision=int(revision) if revision else None,
+    )

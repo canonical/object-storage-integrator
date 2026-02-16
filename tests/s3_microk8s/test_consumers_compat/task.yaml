@@ -1,7 +1,0 @@
-summary: test_consumers_compat
-environment:
-  TEST_MODULE: test_consumers/test_compat.py
-  SUBSTRATE: microk8s
-execute: |
-  cd "$SPREAD_PATH/s3"
-  tox run -e integration -- "tests/integration/$TEST_MODULE" -x
