@@ -7,6 +7,7 @@ import base64
 import json
 import logging
 import os
+from platform import machine
 import re
 import shutil
 import tempfile
@@ -208,3 +209,20 @@ def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
     if not chain_list:
         raise ValueError("No certificate found in chain file")
     return str(chain_list)
+
+
+def get_platform() -> str:
+    """Detect the current platform architecture."""
+    platforms = {
+        "x86_64": "amd64",
+        "aarch64": "arm64",
+    }
+    return platforms.get(machine(), "amd64")
+
+
+def get_s3_charm_path() -> Path:
+    """Get the path to the packed s3-integrator charm for the current platform."""
+    platform = get_platform()
+    if not (path := next(iter(Path.cwd().glob(f"*-{platform}.charm")), None)):
+        raise FileNotFoundError("Could not find packed s3-integrator charm.")
+    return path

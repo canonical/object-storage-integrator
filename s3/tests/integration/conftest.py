@@ -14,8 +14,14 @@ from typing import Iterable
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import create_bucket, create_iam_user, delete_bucket, local_tmp_folder
+from .domain import S3ConnectionInfo
+from .helpers import (
+    create_bucket,
+    create_iam_user,
+    delete_bucket,
+    get_s3_charm_path,
+    local_tmp_folder,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("jubilant.wait").setLevel(logging.WARNING)
@@ -43,8 +49,7 @@ def platform() -> str:
 @pytest.fixture
 def s3_charm(platform: str) -> Path:
     """Path to the packed s3-integrator charm."""
-    if not (path := next(iter(Path.cwd().glob(f"*-{platform}.charm")), None)):
-        raise FileNotFoundError("Could not find packed s3-integrator charm.")
+    path = get_s3_charm_path()
     logger.info(f"Using s3-integrator charm at: {path}")
     return path
 
