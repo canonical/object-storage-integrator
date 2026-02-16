@@ -1,4 +1,4 @@
-summary: test_consumers
+summary: test_consumers_compat
 environment:
   TEST_MODULE: test_consumers/test_compat.py
   SUBSTRATE: vm

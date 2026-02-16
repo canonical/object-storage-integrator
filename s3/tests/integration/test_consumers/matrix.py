@@ -1,10 +1,9 @@
 import os
-from pathlib import Path
 
 import pytest
 
-from .helpers import CharmSpec
 from ..helpers import get_s3_charm_path
+from .helpers import CharmSpec
 
 # S3 Integrator charm built from current code
 S3_INTEGRATOR_V1 = CharmSpec(
@@ -28,6 +27,12 @@ MONGODB_8_VM = CharmSpec(
     app="mongodbv0",
     channel="8/stable",
 )
+OPENSEARCH_2_VM = CharmSpec(
+    charm="opensearch",
+    app="opensearchv0",
+    channel="2/stable",
+)
+
 
 # K8s charms
 POSTGRESQL_14_K8S = CharmSpec(
@@ -56,58 +61,42 @@ MONGODB_8_K8S = CharmSpec(
 )
 
 
-def _get_substrate() -> str:
-    """Get the substrate from environment variable (set by spread task.yaml)."""
-    return os.environ.get("SUBSTRATE", "microk8s")
+VM_TEST_MATRIX = [
+    pytest.param(S3_INTEGRATOR_V1, charm)
+    for charm in [
+        POSTGRESQL_14_VM,
+        # https://github.com/canonical/mysql-operators/issues/92
+        # TODO: use AWS S3 for MySQL test
+        # MYSQL_8_VM,
+        MONGODB_8_VM,
+        OPENSEARCH_2_VM,
+    ]
+]
+
+K8S_TEST_MATRIX = [
+    pytest.param(
+        S3_INTEGRATOR_V1,
+        charm,
+    )
+    for charm in [
+        POSTGRESQL_14_K8S,
+        POSTGRESQL_16_K8S,
+        # https://github.com/canonical/mysql-operators/issues/92
+        # TODO: use AWS S3 for MySQL test
+        # MYSQL_8_K8S,
+        MONGODB_8_K8S,
+    ]
+]
 
 
-def build_test_matrix(s3_charm_path: Path):
+def build_test_matrix():
     """Build test matrix based on substrate environment variable."""
-    substrate = _get_substrate()
+    substrate = os.environ.get("SUBSTRATE", "microk8s")
 
     if substrate == "vm":
-        return [
-            pytest.param(
-                S3_INTEGRATOR_V1,
-                POSTGRESQL_14_VM,
-                id="s3v1-postgres14-vm",
-            ),
-            # Mysql test fails because it doesn't support custom CA
-            # pytest.param(
-            #     S3_INTEGRATOR_V1,
-            #     MYSQL_8_VM,
-            #     id="s3v1-mysql8-vm",
-            # ),
-            pytest.param(
-                S3_INTEGRATOR_V1,
-                MONGODB_8_VM,
-                id="s3v1-mongodb8-vm",
-            ),
-        ]
+        return VM_TEST_MATRIX
     else:  # microk8s
-        return [
-            pytest.param(
-                S3_INTEGRATOR_V1,
-                POSTGRESQL_14_K8S,
-                id="s3v1-postgres14-k8s",
-            ),
-            pytest.param(
-                S3_INTEGRATOR_V1,
-                POSTGRESQL_16_K8S,
-                id="s3v1-postgres16-k8s",
-            ),
-            # Mysql test fails because it doesn't support custom CA
-            # pytest.param(
-            #     S3_INTEGRATOR_V1,
-            #     MYSQL_8_K8S,
-            #     id="s3v1-mysql8-k8s",
-            # ),
-            pytest.param(
-                S3_INTEGRATOR_V1,
-                MONGODB_8_K8S,
-                id="s3v1-mongodb8-k8s",
-            ),
-        ]
+        return K8S_TEST_MATRIX
 
 
 TEST_MATRIX = build_test_matrix()

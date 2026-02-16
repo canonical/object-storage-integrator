@@ -2,13 +2,14 @@ import dataclasses
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
 
+from ..domain import S3ConnectionInfo
 from .helpers import CharmSpec
 
 
 @pytest.fixture(scope="function")
 def juju(request: pytest.FixtureRequest):
+    """A Juju fixture for a functional scope."""
     keep_models = bool(request.config.getoption("--keep-models"))
 
     with jubilant.temp_model(keep=keep_models) as juju:
@@ -35,6 +36,7 @@ def provider_charm(
             "region": s3_root_user.region,
             "tls-ca-chain": s3_root_user.tls_ca_chain,
             "s3-uri-style": "path",
+            "path": "custompath/",
         },
         secret_config={
             **spec.secret_config,
@@ -43,7 +45,7 @@ def provider_charm(
                 "secret-key": s3_root_user.secret_key,
             },
         }
-        if spec.channel.startswith("2/")
+        if not spec.channel.startswith("1/")
         else {},
         action_config={
             **spec.action_config,

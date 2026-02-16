@@ -14,6 +14,7 @@ from typing import Iterable
 
 import jubilant
 import pytest
+
 from .domain import S3ConnectionInfo
 from .helpers import (
     create_bucket,
