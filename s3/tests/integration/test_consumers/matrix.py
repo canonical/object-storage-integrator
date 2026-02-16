@@ -10,6 +10,12 @@ S3_INTEGRATOR_V1 = CharmSpec(
     charm=str(get_s3_charm_path()),
     app="s3v1",
 )
+S3_INTEGRATOR_V0 = CharmSpec(
+    charm="s3-integrator",
+    app="s3v0",
+    channel="1/stable",
+)
+
 
 # VM charms
 POSTGRESQL_14_VM = CharmSpec(
@@ -61,42 +67,33 @@ MONGODB_8_K8S = CharmSpec(
 )
 
 
-VM_TEST_MATRIX = [
-    pytest.param(S3_INTEGRATOR_V1, charm)
-    for charm in [
-        POSTGRESQL_14_VM,
-        # https://github.com/canonical/mysql-operators/issues/92
-        # TODO: use AWS S3 for MySQL test
-        # MYSQL_8_VM,
-        MONGODB_8_VM,
-        OPENSEARCH_2_VM,
-    ]
+REQUIRER_V0_CHARMS_VM = [
+    POSTGRESQL_14_VM,
+    # https://github.com/canonical/mysql-operators/issues/92
+    # TODO: use AWS S3 for MySQL test
+    # MYSQL_8_VM,
+    MONGODB_8_VM,
+    OPENSEARCH_2_VM,
 ]
 
-K8S_TEST_MATRIX = [
-    pytest.param(
-        S3_INTEGRATOR_V1,
-        charm,
-    )
-    for charm in [
-        POSTGRESQL_14_K8S,
-        POSTGRESQL_16_K8S,
-        # https://github.com/canonical/mysql-operators/issues/92
-        # TODO: use AWS S3 for MySQL test
-        # MYSQL_8_K8S,
-        MONGODB_8_K8S,
-    ]
+REQUIRER_V0_CHARMS_K8S = [
+    POSTGRESQL_14_K8S,
+    POSTGRESQL_16_K8S,
+    # https://github.com/canonical/mysql-operators/issues/92
+    # TODO: use AWS S3 for MySQL test
+    # MYSQL_8_K8S,
+    MONGODB_8_K8S,
 ]
+
+
+VM_TEST_MATRIX = [pytest.param(S3_INTEGRATOR_V1, charm) for charm in REQUIRER_V0_CHARMS_VM]
+K8S_TEST_MATRIX = [pytest.param(S3_INTEGRATOR_V1, charm) for charm in REQUIRER_V0_CHARMS_K8S]
 
 
 def build_test_matrix():
     """Build test matrix based on substrate environment variable."""
     substrate = os.environ.get("SUBSTRATE", "microk8s")
-
-    if substrate == "vm":
-        return VM_TEST_MATRIX
-    else:  # microk8s
-        return K8S_TEST_MATRIX
+    return VM_TEST_MATRIX if substrate == "vm" else K8S_TEST_MATRIX
 
 
 TEST_MATRIX = build_test_matrix()

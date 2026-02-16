@@ -8,8 +8,9 @@ from pathlib import Path
 
 import jubilant
 import pytest
-from conftest import S3ConnectionInfo
-from helpers import b64_to_ca_chain_json_dumps, create_bucket, delete_bucket, get_bucket
+
+from .domain import S3ConnectionInfo
+from .helpers import b64_to_ca_chain_json_dumps, create_bucket, delete_bucket, get_bucket
 
 S3 = "s3"
 CONSUMER = "consumer"
