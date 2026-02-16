@@ -1,4 +1,6 @@
 import dataclasses
+import random
+import string
 
 import jubilant
 import pytest
@@ -20,6 +22,11 @@ def juju(request: pytest.FixtureRequest):
         if request.session.testsfailed:
             log = juju.debug_log(limit=30)
             print(log, end="")
+
+
+@pytest.fixture(scope="function")
+def bucket_name() -> str:
+    return f"s3-integrator-{''.join(random.sample(string.ascii_lowercase, 6))}"
 
 
 @pytest.fixture
