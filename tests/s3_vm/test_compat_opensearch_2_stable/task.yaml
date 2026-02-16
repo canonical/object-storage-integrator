@@ -1,0 +1,7 @@
+summary: test_compat_opensearch_2_stable
+environment:
+  TEST_MODULE: test_consumers/test_compat.py
+  SUBSTRATE: vm
+execute: |
+  cd "$SPREAD_PATH/s3"
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm opensearch --channel-v0 2/stable --channel-v1 2/stable

@@ -43,6 +43,7 @@ def test_compat(
 
     # Integrate applications
     integrate_charms(juju, provider_charm_v1, requirer_charm_v0)
+
     # Do sanity checks on the requirer charm
     perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v0)
 

@@ -71,7 +71,6 @@ def bucket_name() -> str:
 
 @pytest.fixture
 def provider_charm_v1(
-    request: pytest.FixtureRequest,
     s3_charm: Path,
     s3_root_user: S3ConnectionInfo,
     bucket_name: str,
