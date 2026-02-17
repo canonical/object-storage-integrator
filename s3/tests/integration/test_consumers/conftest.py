@@ -62,6 +62,12 @@ def pytest_addoption(parser):
         default=False,
         help="Whether to enable TLS for the requirer charm (default: False)",
     )
+    parser.addoption(
+        "--upgrade",
+        action="store_true",
+        default=False,
+        help="Whether to test upgrade scenario for the requirer charm (default: False)",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -88,6 +94,11 @@ def juju(request: pytest.FixtureRequest):
 @pytest.fixture(scope="function")
 def bucket_name() -> str:
     return f"s3-integrator-{''.join(random.sample(string.ascii_lowercase, 6))}"
+
+
+@pytest.fixture(scope="function")
+def should_test_upgrade(request: pytest.FixtureRequest) -> bool:
+    return bool(request.config.getoption("--upgrade"))
 
 
 @pytest.fixture

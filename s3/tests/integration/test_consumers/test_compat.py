@@ -9,25 +9,28 @@ from .helpers import (
     list_backups,
     remove_charm_relations,
     restore_backup,
+    upgrade_charm,
 )
 
 
-def perform_sanity_checks(juju: jubilant.Juju, provider: CharmSpec, requirer: CharmSpec):
-    """Perform sanity checks after integration."""
-    # List backups and expect none initially
-    backups = list_backups(juju, requirer)
-    assert len(backups) == 0, f"Expected no backups, but found: {backups}"
+def backup_operations(juju: jubilant.Juju, database_charm: CharmSpec, restore: bool = False):
+    """Test backup and restore operations on the requirer charm."""
+    # List backups before creating new one
+    backups_before = list_backups(juju, database_charm)
 
     # Create backup and expect it to succeed
-    create_backup(juju, requirer)
+    create_backup(juju, database_charm)
 
     # List backups again and expect to find the newly created backup
-    backups = list_backups(juju, requirer)
-    assert len(backups) == 1, f"Expected 1 backup after creation, but found: {backups}"
+    backups_after = list_backups(juju, database_charm)
+    assert len(backups_after) == len(backups_before) + 1, (
+        f"Expected {len(backups_before) + 1} backup after creation, but found: {backups_after}"
+    )
 
-    # Restore the backup and expect it to succeed
-    backup_id = backups[0]
-    restore_backup(juju, requirer, backup_id)
+    if restore:
+        # Restore the backup and expect it to succeed
+        backup_id = backups_after[0]
+        restore_backup(juju, database_charm, backup_id)
 
 
 def verify_cross_compatibility(juju, provider: CharmSpec, requirer: CharmSpec):
@@ -40,20 +43,57 @@ def verify_cross_compatibility(juju, provider: CharmSpec, requirer: CharmSpec):
     integrate_charms(juju, provider, requirer)
 
     # Do sanity checks on the requirer charm
-    perform_sanity_checks(juju, provider, requirer)
+    backup_operations(juju, requirer, restore=True)
 
     # Remove charm relation
     remove_charm_relations(juju, provider, requirer)
+
+
+def verify_upgrade_scenario(
+    juju, provider0: CharmSpec, requirer0: CharmSpec, provider1: CharmSpec, requirer1: CharmSpec
+):
+    """Test the upgrade scenario for requirer using v0 to using v1."""
+    # Deploy applications on v0
+    deploy_and_configure_charm(juju, provider0)
+    deploy_and_configure_charm(juju, requirer0)
+
+    # Integrate applications on v0
+    integrate_charms(juju, provider0, requirer0)
+    backup_operations(juju, requirer0)
+
+    # Deploy s3-integrator-v1 charm (with same set of config as v0)
+    provider1.config = provider0.config
+    deploy_and_configure_charm(juju, provider1)
+
+    remove_charm_relations(juju, provider0, requirer0)
+    integrate_charms(juju, provider1, requirer0)
+    backup_operations(juju, requirer0)
+
+    # Upgrade requirer charm to newer lib version
+    requirer1.app = requirer0.app
+    upgrade_charm(juju, requirer0, requirer1)
+    backup_operations(juju, requirer1)
+
+    # Remove S3 relation and add it again
+    remove_charm_relations(juju, provider1, requirer1)
+    integrate_charms(juju, provider1, requirer1)
+    backup_operations(juju, requirer1, restore=True)
 
 
 def test_provider_v1_compat_with_requirer_v1(
     juju: jubilant.Juju,
     s3_integrator_v1: CharmSpec,
     requirer_charm_v1: CharmSpec | None,
+    should_test_upgrade: bool,
 ):
     """Test the requirer v1 charm with provider v1 charm."""
     if not requirer_charm_v1:
         pytest.skip("No requirer-v1 charm specified, skipping test.")
+    if should_test_upgrade:
+        pytest.skip(
+            "Upgrade tests are enabled, skipping provider-v1 <> requirer-v1 test,"
+            " as it is covered in the upgrade scenario test."
+        )
     verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v1)
 
 
@@ -61,10 +101,16 @@ def test_provider_v1_compat_with_requirer_v0(
     juju: jubilant.Juju,
     s3_integrator_v1: CharmSpec,
     requirer_charm_v0: CharmSpec | None,
+    should_test_upgrade: bool,
 ):
     """Test the requirer v0 charm with provider v1 charm."""
     if not requirer_charm_v0:
         pytest.skip("No requirer-v0 charm specified, skipping test.")
+    if should_test_upgrade:
+        pytest.skip(
+            "Upgrade tests are enabled, skipping provider-v1 <> requirer-v0 test,"
+            " as it is covered in the upgrade scenario test."
+        )
     verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v0)
 
 
@@ -77,3 +123,23 @@ def test_provider_v0_compat_with_requirer_v1(
     if not requirer_charm_v1:
         pytest.skip("No requirer-v1 charm specified, skipping test.")
     verify_cross_compatibility(juju, s3_integrator_v0, requirer_charm_v1)
+
+
+def test_upgrade_scenario(
+    juju: jubilant.Juju,
+    s3_integrator_v0: CharmSpec,
+    s3_integrator_v1: CharmSpec,
+    requirer_charm_v0: CharmSpec | None,
+    requirer_charm_v1: CharmSpec | None,
+    should_test_upgrade: bool,
+):
+    """Test the requirer v1 charm with provider v0 charm."""
+    if not should_test_upgrade:
+        pytest.skip("Upgrade scenario not enabled, skipping test.")
+    if not (requirer_charm_v1 and requirer_charm_v0):
+        pytest.skip(
+            "Both requirer-v0 and requirer-v1 charms must be specified for upgrade scenario, skipping test."
+        )
+    verify_upgrade_scenario(
+        juju, s3_integrator_v0, requirer_charm_v0, s3_integrator_v1, requirer_charm_v1
+    )

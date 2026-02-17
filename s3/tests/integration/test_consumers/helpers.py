@@ -128,4 +128,4 @@ def upgrade_charm(juju: jubilant.Juju, old_charm: CharmSpec, new_charm: CharmSpe
         revision=new_charm.revision,
         trust=new_charm.trust,
     )
-    wait_active_idle(juju, delay=15)
+    wait_active_idle(juju, delay=60)
