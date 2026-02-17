@@ -43,6 +43,7 @@ def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
         trust=charm.trust,
         num_units=charm.num_units,
     )
+    juju.wait(jubilant.all_agents_idle, delay=5)
     charm_config = charm.config
     for config_name, secret_content in charm.secret_config.items():
         secret_uri = juju.add_secret(

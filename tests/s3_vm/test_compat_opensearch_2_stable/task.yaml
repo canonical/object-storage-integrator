@@ -4,4 +4,21 @@ environment:
   SUBSTRATE: vm
 execute: |
   cd "$SPREAD_PATH/s3"
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm opensearch --channel-v0 2/stable --channel-v1 2/stable
+  sudo tee -a /etc/sysctl.conf > /dev/null <<EOT
+  vm.max_map_count=262144
+  vm.swappiness=0
+  net.ipv4.tcp_retries2=5
+  fs.file-max=1048576
+  EOT
+  cat <<EOF > cloudinit-userdata.yaml
+  cloudinit-userdata: |
+    postruncmd:
+      - [ 'echo', 'vm.max_map_count=262144', '>>', '/etc/sysctl.conf' ]
+      - [ 'echo', 'vm.swappiness=0', '>>', '/etc/sysctl.conf' ]
+      - [ 'echo', 'net.ipv4.tcp_retries2=5', '>>', '/etc/sysctl.conf' ]
+      - [ 'echo', 'fs.file-max=1048576', '>>', '/etc/sysctl.conf' ]
+      - [ 'sysctl', '-p' ]
+  EOF
+  juju add-model test-opensearch
+  juju model-config --file=./cloudinit-userdata.yaml
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --model test-opensearch --charm opensearch --channel-v0 2/stable --channel-v1 2/stable

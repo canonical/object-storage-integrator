@@ -47,18 +47,30 @@ def pytest_addoption(parser):
         default=False,
         help="Whether to use --trust when deploying charms (default: False)",
     )
+    parser.addoption(
+        "--model",
+        action="store",
+        default=None,
+        help="Specify the model to use for testing",
+    )
 
 
 @pytest.fixture(scope="function")
 def juju(request: pytest.FixtureRequest):
-    """A Juju fixture for a functional scope."""
     keep_models = bool(request.config.getoption("--keep-models"))
-
-    with jubilant.temp_model(keep=keep_models) as juju:
+    model_name = request.config.getoption("--model")
+    if model_name is None:
+        with jubilant.temp_model(keep=keep_models) as juju:
+            juju.wait_timeout = 10 * 60
+            yield juju  # run the test
+            if request.session.testsfailed:
+                log = juju.debug_log(limit=30)
+                print(log, end="")
+    else:
+        juju = jubilant.Juju()
+        juju.set_model(str(model_name))
         juju.wait_timeout = 10 * 60
-
-        yield juju  # run the test
-
+        yield juju
         if request.session.testsfailed:
             log = juju.debug_log(limit=30)
             print(log, end="")
