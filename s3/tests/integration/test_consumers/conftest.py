@@ -4,9 +4,12 @@ from pathlib import Path
 
 import jubilant
 import pytest
+import logging
 
 from ..domain import S3ConnectionInfo
 from .helpers import CharmSpec
+
+logger = logging.getLogger(__name__)
 
 
 def pytest_addoption(parser):
@@ -20,8 +23,8 @@ def pytest_addoption(parser):
     group.addoption(
         "--channel-v0",
         action="store",
-        required=True,
-        help="Channel for v0 charm (required)",
+        default=None,
+        help="Channel for v0 charm (default: None)",
     )
     group.addoption(
         "--revision-v0",
@@ -32,8 +35,8 @@ def pytest_addoption(parser):
     group.addoption(
         "--channel-v1",
         action="store",
-        required=True,
-        help="Channel for v1 charm (required)",
+        default=None,
+        help="Channel for v1 charm (default: None)",
     )
     group.addoption(
         "--revision-v1",
@@ -82,7 +85,7 @@ def bucket_name() -> str:
 
 
 @pytest.fixture
-def provider_charm_v1(
+def s3_integrator_v1(
     s3_charm: Path, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
 ) -> CharmSpec:
     return CharmSpec(
@@ -109,7 +112,7 @@ def provider_charm_v1(
 
 
 @pytest.fixture
-def provider_charm_v0(
+def s3_integrator_v0(
     request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
 ) -> CharmSpec:
     return CharmSpec(
@@ -137,11 +140,14 @@ def provider_charm_v0(
 
 
 @pytest.fixture
-def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpec:
+def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpec | None:
     channel = request.config.getoption("--channel-v0")
     revision = request.config.getoption("--revision-v0")
     trust = request.config.getoption("--trust")
     charm = request.config.getoption("--charm")
+    if not channel and not revision:
+        logger.info("No spec provided for requirer-v0 charm.")
+        return None
     return CharmSpec(
         charm=charm,
         app=f"{charm}-v0",
@@ -155,11 +161,14 @@ def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpe
 
 
 @pytest.fixture
-def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpec:
+def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpec | None:
     charm = request.config.getoption("--charm")
     channel = request.config.getoption("--channel-v1")
     revision = request.config.getoption("--revision-v1")
     trust = request.config.getoption("--trust")
+    if not channel and not revision:
+        logger.info("No spec provided for requirer-v1 charm.")
+        return None
     return CharmSpec(
         charm=charm,
         app=f"{charm}-v1",

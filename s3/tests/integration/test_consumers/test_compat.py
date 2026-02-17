@@ -1,4 +1,7 @@
 import jubilant
+import pytest
+
+from s3.tests.integration.test_consumers.conftest import requirer_charm_v0, s3_integrator_v1
 
 from .helpers import (
     CharmSpec,
@@ -29,57 +32,50 @@ def perform_sanity_checks(juju: jubilant.Juju, provider: CharmSpec, requirer: Ch
     restore_backup(juju, requirer, backup_id)
 
 
-def test_compat(
-    juju: jubilant.Juju,
-    provider_charm_v0: CharmSpec,
-    provider_charm_v1: CharmSpec,
-    requirer_charm_v0: CharmSpec,
-    requirer_charm_v1: CharmSpec,
-):
-    """Test charm compatibility across versions."""
+def verify_cross_compatibility(juju, provider: CharmSpec, requirer: CharmSpec):
+    """Test intercompatibility between provider and requirer charms."""
     # Deploy applications
-    deploy_and_configure_charm(juju, provider_charm_v1)
-    deploy_and_configure_charm(juju, requirer_charm_v0)
+    deploy_and_configure_charm(juju, provider)
+    deploy_and_configure_charm(juju, requirer)
 
     # Integrate applications
-    integrate_charms(juju, provider_charm_v1, requirer_charm_v0)
+    integrate_charms(juju, provider, requirer)
 
     # Do sanity checks on the requirer charm
-    perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v0)
+    perform_sanity_checks(juju, provider, requirer)
 
     # Remove charm relation
-    remove_charm_relations(juju, provider_charm_v1, requirer_charm_v0)
+    remove_charm_relations(juju, provider, requirer)
 
 
-# def test_upgrade(
-#     juju: jubilant.Juju,
-#     provider_charm_v0: CharmSpec,
-#     provider_charm_v1: CharmSpec,
-#     requirer_charm_v0: CharmSpec,
-#     requirer_charm_v1: CharmSpec,
-# ):
-#     """Test charm compatibility across versions."""
-#     # Deploy applications on v0
-#     deploy_and_configure_charm(juju, provider_charm_v0)
-#     deploy_and_configure_charm(juju, requirer_charm_v0)
+def test_provider_v1_compat_with_requirer_v1(
+    juju: jubilant.Juju,
+    s3_integrator_v1: CharmSpec,
+    requirer_charm_v1: CharmSpec | None,
+):
+    """Test the requirer v1 charm with provider v1 charm."""
+    if not requirer_charm_v1:
+        pytest.skip("No requirer-v1 charm specified, skipping test.")
+    verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v1)
 
-#     # Integrate applications on v0
-#     integrate_charms(juju, provider_charm_v0, requirer_charm_v0)
 
-#     # Perform sanity checks
-#     perform_sanity_checks(juju, provider_charm_v0, requirer_charm_v0)
+def test_provider_v1_compat_with_requirer_v0(
+    juju: jubilant.Juju,
+    s3_integrator_v1: CharmSpec,
+    requirer_charm_v0: CharmSpec | None,
+):
+    """Test the requirer v0 charm with provider v1 charm."""
+    if not requirer_charm_v0:
+        pytest.skip("No requirer-v0 charm specified, skipping test.")
+    verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v0)
 
-#     # Upgrade provider charm to v1
-#     upgrade_charm(juju, provider_charm_v0, provider_charm_v1)
 
-#     # Perform sanity checks after provider upgrade
-#     perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v0)
-
-#     # Upgrade requirer charm to v1
-#     upgrade_charm(juju, requirer_charm_v0, requirer_charm_v1)
-
-#     # Perform sanity checks after requirer upgrade
-#     perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v1)
-
-#     # Remove charm relation
-#     remove_charm_relations(juju, provider_charm_v1, requirer_charm_v1)
+def test_provider_v0_compat_with_requirer_v1(
+    juju: jubilant.Juju,
+    s3_integrator_v0: CharmSpec,
+    requirer_charm_v1: CharmSpec | None,
+):
+    """Test the requirer v1 charm with provider v0 charm."""
+    if not requirer_charm_v1:
+        pytest.skip("No requirer-v1 charm specified, skipping test.")
+    verify_cross_compatibility(juju, s3_integrator_v0, requirer_charm_v1)
