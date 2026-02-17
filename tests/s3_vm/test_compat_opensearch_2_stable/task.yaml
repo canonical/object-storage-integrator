@@ -10,6 +10,7 @@ execute: |
   net.ipv4.tcp_retries2=5
   fs.file-max=1048576
   EOT
+  sudo sysctl -p
   cat <<EOF > cloudinit-userdata.yaml
   cloudinit-userdata: |
     postruncmd:
