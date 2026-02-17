@@ -89,13 +89,13 @@ jobs:
     strategy:
       matrix:
         path:
-          - azure_storage/
-          - azure_storage/tests/integration/test-charm-azure
+          # - azure_storage/
+          # - azure_storage/tests/integration/test-charm-azure
           - s3/
           - s3/tests/integration/test-charm-s3
           - s3/tests/integration/test-charm-s3-v0
-          - gcs/
-          - gcs/tests/integration/requirer-charm
+          # - gcs/
+          # - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.0.2
     with:
@@ -114,6 +114,7 @@ jobs:
 
   release-to-test-branch:
     name: Release charm to test branch
+    if: false # Temporarily disable until we have the test branch setup and ready
     strategy:
       matrix:
         charm:
