@@ -68,7 +68,7 @@ def juju(request: pytest.FixtureRequest):
                 print(log, end="")
     else:
         juju = jubilant.Juju()
-        juju.set_model(str(model_name))
+        juju.model = str(model_name)
         juju.wait_timeout = 10 * 60
         yield juju
         if request.session.testsfailed:
