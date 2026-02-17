@@ -123,9 +123,6 @@ jobs:
           sudo lxc image copy ubuntu:3e7ef486d7a6 local:
           sudo lxc image alias create "juju/ubuntu@22.04/arm64" 3e7ef486d7a6
 
-      - name: Setup upterm session
-        uses: owenthereal/action-upterm@v1
-
       - name: Run spread job
         timeout-minutes: 180
         id: spread
