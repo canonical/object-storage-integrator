@@ -1,10 +1,10 @@
+import logging
 import random
 import string
 from pathlib import Path
 
 import jubilant
 import pytest
-import logging
 
 from ..domain import S3ConnectionInfo
 from .helpers import CharmSpec
@@ -55,6 +55,12 @@ def pytest_addoption(parser):
         action="store",
         default=None,
         help="Specify the model to use for testing",
+    )
+    parser.addoption(
+        "--tls",
+        action="store_true",
+        default=False,
+        help="Whether to enable TLS for the requirer charm (default: False)",
     )
 
 
@@ -145,6 +151,7 @@ def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpe
     revision = request.config.getoption("--revision-v0")
     trust = request.config.getoption("--trust")
     charm = request.config.getoption("--charm")
+    use_tls = bool(request.config.getoption("--tls"))
     if not channel and not revision:
         logger.info("No spec provided for requirer-v0 charm.")
         return None
@@ -157,6 +164,7 @@ def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpe
         constraints={
             "arch": platform,
         },
+        tls=use_tls,
     )
 
 
@@ -166,6 +174,7 @@ def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpe
     channel = request.config.getoption("--channel-v1")
     revision = request.config.getoption("--revision-v1")
     trust = request.config.getoption("--trust")
+    use_tls = bool(request.config.getoption("--tls"))
     if not channel and not revision:
         logger.info("No spec provided for requirer-v1 charm.")
         return None
@@ -178,4 +187,5 @@ def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpe
         constraints={
             "arch": platform,
         },
+        tls=use_tls,
     )

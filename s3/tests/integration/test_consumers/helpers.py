@@ -16,6 +16,7 @@ class CharmSpec:
     secret_config: dict[str, dict[str, str]] = dataclasses.field(default_factory=dict)
     action_config: dict[str, dict[str, str]] = dataclasses.field(default_factory=dict)
     constraints: dict[str, str] = dataclasses.field(default_factory=dict)
+    tls: bool = False
 
     def __str__(self):
         """Provide a human-readable string representation."""
@@ -59,6 +60,22 @@ def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
     for action_name, params in charm.action_config.items():
         juju.wait(jubilant.all_agents_idle, delay=5)
         juju.run(f"{charm.app}/0", action_name, params)
+
+    if charm.tls:
+        certificates = CharmSpec(
+            charm="self-signed-certificates",
+            app="certificates",
+            channel="1/stable",
+        )
+        juju.deploy(
+            charm=certificates.charm,
+            app=certificates.app,
+            channel=certificates.channel,
+        )
+        wait_active_idle(juju)
+        juju.integrate(certificates.app, f"{charm.app}:certificates")
+        wait_active_idle(juju, delay=10)
+
     wait_active_idle(juju)
 
 

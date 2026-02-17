@@ -1,8 +1,6 @@
 import jubilant
 import pytest
 
-from s3.tests.integration.test_consumers.conftest import requirer_charm_v0, s3_integrator_v1
-
 from .helpers import (
     CharmSpec,
     create_backup,
