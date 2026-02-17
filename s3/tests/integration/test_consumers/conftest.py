@@ -78,7 +78,6 @@ def provider_charm_v1(
     return CharmSpec(
         charm=s3_charm,
         app="s3-integrator-v1",
-        channel="2/edge",
         config={
             "bucket": bucket_name,
             "endpoint": s3_root_user.endpoint,

@@ -49,3 +49,37 @@ def test_compat(
 
     # Remove charm relation
     remove_charm_relations(juju, provider_charm_v1, requirer_charm_v0)
+
+
+# def test_upgrade(
+#     juju: jubilant.Juju,
+#     provider_charm_v0: CharmSpec,
+#     provider_charm_v1: CharmSpec,
+#     requirer_charm_v0: CharmSpec,
+#     requirer_charm_v1: CharmSpec,
+# ):
+#     """Test charm compatibility across versions."""
+#     # Deploy applications on v0
+#     deploy_and_configure_charm(juju, provider_charm_v0)
+#     deploy_and_configure_charm(juju, requirer_charm_v0)
+
+#     # Integrate applications on v0
+#     integrate_charms(juju, provider_charm_v0, requirer_charm_v0)
+
+#     # Perform sanity checks
+#     perform_sanity_checks(juju, provider_charm_v0, requirer_charm_v0)
+
+#     # Upgrade provider charm to v1
+#     upgrade_charm(juju, provider_charm_v0, provider_charm_v1)
+
+#     # Perform sanity checks after provider upgrade
+#     perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v0)
+
+#     # Upgrade requirer charm to v1
+#     upgrade_charm(juju, requirer_charm_v0, requirer_charm_v1)
+
+#     # Perform sanity checks after requirer upgrade
+#     perform_sanity_checks(juju, provider_charm_v1, requirer_charm_v1)
+
+#     # Remove charm relation
+#     remove_charm_relations(juju, provider_charm_v1, requirer_charm_v1)

@@ -98,3 +98,14 @@ def restore_backup(juju: jubilant.Juju, database: CharmSpec, backup_id: str):
     print(action.results)
     # assert action.results["restore-status"] == "restore started", f"Unexpected restore status: {action.results['restore-status']}"
     wait_active_idle(juju)
+
+
+def upgrade_charm(juju: jubilant.Juju, old_charm: CharmSpec, new_charm: CharmSpec):
+    """Upgrade a charm from old spec to new spec."""
+    juju.refresh(
+        app=old_charm.app,
+        channel=new_charm.channel,
+        revision=new_charm.revision,
+        trust=new_charm.trust,
+    )
+    wait_active_idle(juju, delay=15)
