@@ -72,7 +72,7 @@ def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
             app=certificates.app,
             channel=certificates.channel,
         )
-        wait_active_idle(juju)
+        juju.wait(jubilant.all_agents_idle, delay=5)
         juju.integrate(certificates.app, f"{charm.app}:certificates")
         wait_active_idle(juju, delay=10)
 
