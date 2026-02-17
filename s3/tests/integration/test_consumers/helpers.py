@@ -43,6 +43,7 @@ def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
         revision=charm.revision,
         trust=charm.trust,
         num_units=charm.num_units,
+        constraints=charm.constraints,
     )
     juju.wait(jubilant.all_agents_idle, delay=5)
     charm_config = charm.config
