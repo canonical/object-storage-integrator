@@ -83,9 +83,7 @@ def bucket_name() -> str:
 
 @pytest.fixture
 def provider_charm_v1(
-    s3_charm: Path,
-    s3_root_user: S3ConnectionInfo,
-    bucket_name: str,
+    s3_charm: Path, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
 ) -> CharmSpec:
     return CharmSpec(
         charm=s3_charm,
@@ -104,12 +102,15 @@ def provider_charm_v1(
                 "secret-key": s3_root_user.secret_key,
             },
         },
+        constraints={
+            "arch": platform,
+        },
     )
 
 
 @pytest.fixture
 def provider_charm_v0(
-    request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str
+    request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
 ) -> CharmSpec:
     return CharmSpec(
         charm="s3-integrator",
@@ -129,11 +130,14 @@ def provider_charm_v0(
                 "secret-key": s3_root_user.secret_key,
             },
         },
+        constraints={
+            "arch": platform,
+        },
     )
 
 
 @pytest.fixture
-def requirer_charm_v0(request: pytest.FixtureRequest) -> CharmSpec:
+def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpec:
     channel = request.config.getoption("--channel-v0")
     revision = request.config.getoption("--revision-v0")
     trust = request.config.getoption("--trust")
@@ -144,11 +148,14 @@ def requirer_charm_v0(request: pytest.FixtureRequest) -> CharmSpec:
         channel=channel,
         trust=trust,
         revision=int(revision) if revision else None,
+        constraints={
+            "arch": platform,
+        },
     )
 
 
 @pytest.fixture
-def requirer_charm_v1(request: pytest.FixtureRequest) -> CharmSpec:
+def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpec:
     charm = request.config.getoption("--charm")
     channel = request.config.getoption("--channel-v1")
     revision = request.config.getoption("--revision-v1")
@@ -159,4 +166,7 @@ def requirer_charm_v1(request: pytest.FixtureRequest) -> CharmSpec:
         channel=channel,
         trust=trust,
         revision=int(revision) if revision else None,
+        constraints={
+            "arch": platform,
+        },
     )

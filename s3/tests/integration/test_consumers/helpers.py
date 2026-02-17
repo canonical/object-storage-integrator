@@ -8,13 +8,14 @@ import jubilant
 class CharmSpec:
     charm: str
     app: str
-    channel: str = "stable"
+    channel: str | None = None
     trust: bool = False
     num_units: int = 1
     revision: int | None = None
     config: dict = dataclasses.field(default_factory=dict)
     secret_config: dict[str, dict[str, str]] = dataclasses.field(default_factory=dict)
     action_config: dict[str, dict[str, str]] = dataclasses.field(default_factory=dict)
+    constraints: dict[str, str] = dataclasses.field(default_factory=dict)
 
     def __str__(self):
         """Provide a human-readable string representation."""
