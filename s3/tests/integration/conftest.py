@@ -14,6 +14,7 @@ from typing import Iterable
 
 import jubilant
 import pytest
+from tenacity import Retrying, stop_after_attempt, wait_fixed, retry_if_exception_type
 
 from .domain import S3ConnectionInfo
 from .helpers import (
@@ -235,21 +236,28 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
         )
 
         logger.info("Creating user account...")
-        output = subprocess.run(
-            [
-                "sudo",
-                "microceph.radosgw-admin",
-                "account",
-                "create",
-                "--account-name",
-                "root-account",
-                "--email",
-                "test@example.com",
-            ],
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-        ).stdout
+        for attempt in Retrying(
+            stop=stop_after_attempt(10),  # try up to 10 times
+            wait=wait_fixed(3),  # wait 3 seconds between tries
+            retry=retry_if_exception_type(subprocess.CalledProcessError),
+            reraise=True,
+        ):
+            with attempt:
+                output = subprocess.run(
+                    [
+                        "sudo",
+                        "microceph.radosgw-admin",
+                        "account",
+                        "create",
+                        "--account-name",
+                        "root-account",
+                        "--email",
+                        "test@example.com",
+                    ],
+                    capture_output=True,
+                    check=True,
+                    encoding="utf-8",
+                ).stdout
         root_account_id = json.loads(output)["id"]
 
         logger.info("Creating root IAM user...")

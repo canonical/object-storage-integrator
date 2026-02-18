@@ -106,8 +106,6 @@ def create_backup(juju: jubilant.Juju, database: CharmSpec) -> str:
     """Create a backup using the requirer charm's action and return the backup ID."""
     action = juju.run(f"{database.app}/0", "create-backup")
     assert action.return_code == 0, f"create-backup action failed: {action.stderr}"
-    print(action.results)
-    # assert action.results["backup-status"] == "backup created", f"Unexpected backup status: {action.results['backup-status']}"
     wait_active_idle(juju)
 
 
@@ -115,9 +113,7 @@ def restore_backup(juju: jubilant.Juju, database: CharmSpec, backup_id: str):
     """Restore a backup using the requirer charm's action."""
     action = juju.run(f"{database.app}/0", "restore", {"backup-id": backup_id})
     assert action.return_code == 0, f"restore-backup action failed: {action.stderr}"
-    print(action.results)
-    # assert action.results["restore-status"] == "restore started", f"Unexpected restore status: {action.results['restore-status']}"
-    wait_active_idle(juju)
+    wait_active_idle(juju, delay=10)
 
 
 def upgrade_charm(juju: jubilant.Juju, old_charm: CharmSpec, new_charm: CharmSpec):
