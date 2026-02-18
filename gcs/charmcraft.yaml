@@ -35,11 +35,12 @@ parts:
     source: .
     after:
       - poetry-deps
-    poetry-export-extra-args: ['--only', 'main,charm-libs']
     build-environment:
       - POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON: "true"
       - POETRY_VIRTUALENVS_IN_PROJECT: "true"
+    poetry-export-extra-args: ["--only", "main,charm-libs", "--without-hashes"] # TODO: Remove `--without-hashes`
     build-packages:
+      - git # Needed to install Python dependencies from git+https:// URLs TODO: Remove this when removing --without-hashes
       - build-essential
       - libffi-dev
       - libssl-dev
