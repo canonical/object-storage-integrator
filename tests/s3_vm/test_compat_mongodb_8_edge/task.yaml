@@ -4,4 +4,6 @@ environment:
   SUBSTRATE: vm
 execute: |
   cd "$SPREAD_PATH/s3"
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm mongodb --channel-v0 8/edge
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
+                            --charm mongodb \
+                            --channel-v0 8/edge

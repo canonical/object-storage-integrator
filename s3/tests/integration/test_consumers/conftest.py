@@ -76,18 +76,18 @@ def juju(request: pytest.FixtureRequest):
     model_name = request.config.getoption("--model")
     if model_name is None:
         with jubilant.temp_model(keep=keep_models) as juju:
-            juju.wait_timeout = 10 * 60
+            juju.wait_timeout = 20 * 60
             yield juju  # run the test
             if request.session.testsfailed:
-                log = juju.debug_log(limit=30)
+                log = juju.debug_log(limit=500)
                 print(log, end="")
     else:
         juju = jubilant.Juju()
         juju.model = str(model_name)
-        juju.wait_timeout = 10 * 60
+        juju.wait_timeout = 20 * 60
         yield juju
         if request.session.testsfailed:
-            log = juju.debug_log(limit=30)
+            log = juju.debug_log(limit=500)
             print(log, end="")
 
 

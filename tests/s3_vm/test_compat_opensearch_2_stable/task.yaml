@@ -22,4 +22,7 @@ execute: |
   EOF
   juju add-model test-opensearch
   juju model-config --file=./cloudinit-userdata.yaml
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --model test-opensearch --charm opensearch --channel-v0 2/stable --tls
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --model test-opensearch \
+                            --charm opensearch \
+                            --channel-v0 2/stable \
+                            --tls

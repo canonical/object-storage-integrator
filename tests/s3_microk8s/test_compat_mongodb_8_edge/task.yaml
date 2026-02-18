@@ -4,4 +4,7 @@ environment:
   SUBSTRATE: microk8s
 execute: |
   cd "$SPREAD_PATH/s3"
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm mongodb-k8s --channel-v0 8/edge --trust
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
+                            --charm mongodb-k8s \
+                            --channel-v0 8/edge \
+                            --trust

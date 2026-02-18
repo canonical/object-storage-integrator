@@ -4,4 +4,7 @@ environment:
   SUBSTRATE: vm
 execute: |
   cd "$SPREAD_PATH/s3"
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --charm postgresql --channel-v0 16/edge --trust
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
+                            --charm postgresql \
+                            --channel-v0 16/edge \
+                            --trust 
