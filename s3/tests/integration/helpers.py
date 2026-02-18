@@ -4,6 +4,7 @@
 # See LICENSE file for licensing details.
 
 import base64
+import dataclasses
 import json
 import logging
 import os

@@ -297,8 +297,8 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
             access_key=key_id,
             secret_key=secret_key,
             tls_ca_chain=ca_crt_base64,
-            # region="us-east-1",
-            region="",
+            region="us-east-1",
+            # region="",
         )
 
         subprocess.run(["sudo", "snap", "remove", "microceph", "--purge"], check=True)
