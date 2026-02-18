@@ -7,6 +7,7 @@ import base64
 import json
 import logging
 import os
+import re
 import shutil
 import tempfile
 from contextlib import contextmanager
@@ -192,3 +193,18 @@ def local_tmp_folder(name: str = "tmp"):
     yield tmp_folder
 
     shutil.rmtree(tmp_folder)
+
+
+def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
+    """Validate the `tls-ca-chain` and return it as a string."""
+    if not ca_chain:
+        return ""
+    decoded_value = base64.b64decode(ca_chain).decode("utf-8")
+    chain_list = re.findall(
+        pattern="(?=-----BEGIN CERTIFICATE-----)(.*?)(?<=-----END CERTIFICATE-----)",
+        string=decoded_value,
+        flags=re.DOTALL,
+    )
+    if not chain_list:
+        raise ValueError("No certificate found in chain file")
+    return str(chain_list)

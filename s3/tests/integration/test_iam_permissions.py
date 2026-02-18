@@ -3,16 +3,13 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import base64
-import json
 import logging
-import re
 from pathlib import Path
 
 import jubilant
 import pytest
 from conftest import S3ConnectionInfo
-from helpers import create_bucket, delete_bucket, get_bucket
+from helpers import b64_to_ca_chain_json_dumps, create_bucket, delete_bucket, get_bucket
 
 S3 = "s3"
 CONSUMER = "consumer"
@@ -55,21 +52,6 @@ def denied_path():
 @pytest.fixture(scope="module")
 def bucket_to_create():
     return "foo-bucket"
-
-
-def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
-    """Validate the `tls-ca-chain` config option."""
-    if not ca_chain:
-        return ""
-    decoded_value = base64.b64decode(ca_chain).decode("utf-8")
-    chain_list = re.findall(
-        pattern="(?=-----BEGIN CERTIFICATE-----)(.*?)(?<=-----END CERTIFICATE-----)",
-        string=decoded_value,
-        flags=re.DOTALL,
-    )
-    if not chain_list:
-        raise ValueError("No certificate found in chain file")
-    return json.dumps(chain_list)
 
 
 def test_deploy_s3_integrator(

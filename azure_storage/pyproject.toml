@@ -7,7 +7,7 @@ requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-ops = {version = ">=3.5.0", extras = ["testing"]}
+ops = "^3.5.0"
 tenacity = "^9.1.2"
 
 [tool.poetry.group.charm-libs.dependencies]
@@ -30,6 +30,7 @@ codespell = "^2.4.1"
 coverage = { extras = ["toml"], version = "^7.13.0" }
 pytest = "^8.4.2"
 pytest-asyncio = "*"
+ops = { version = ">=3.5.0", extras = ["testing"] }
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.2"

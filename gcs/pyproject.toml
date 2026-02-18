@@ -7,7 +7,7 @@ requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-ops = {version = ">=3.5.0", extras = ["testing"]}
+ops = "^3.5.0"
 tenacity = "^9.1.2"
 pydantic = "^2.12.5"
 google-cloud-storage = "^3.7.0"
@@ -36,6 +36,7 @@ codespell = "^2.4.1"
 coverage = { extras = ["toml"], version = "^7.13.0" }
 pytest = "^8.4.2"
 pytest-asyncio = "*"
+ops = { version = ">=3.5.0", extras = ["testing"] }
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.2"
@@ -68,7 +69,7 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 99
-extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/test-charm-gcs"]
+extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/requirer-charm"]
 target-version = "py311"
 src = ["src", "tests"]
 

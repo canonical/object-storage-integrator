@@ -3,7 +3,7 @@
 
 import dataclasses
 
-from charms.data_platform_libs.v0.data_interfaces import PrematureDataAccessError
+from charms.data_platform_libs.v0.object_storage import PrematureDataAccessError
 from ops.testing import Relation, Secret
 
 from events.provider import GCStorageProviderEvents
@@ -31,6 +31,7 @@ def test_relation_when_requirer_overrides_values_then_relation_databag_includes_
             "bucket": "override-b",
             "path": "ov/p",
             "storage-class": "ARCHIVE",
+            "version": "1",
         },
     )
     state = dataclasses.replace(
@@ -67,6 +68,7 @@ def test_provider_when_relation_joined_and_requested_secrets_in_databag_then_pro
             "bucket": "",
             "path": "",
             "storage-class": "",
+            "version": "1",
         },
     )
     state = dataclasses.replace(
@@ -137,7 +139,7 @@ def test_provider_when_premature_data_access_error_then_event_is_deferred_and_no
 
     monkeypatch.setattr(GCStorageProviderEvents, "publish_to_relation", _raise_premature)
 
-    out = ctx.run(ctx.on.relation_changed(rel), state)
+    out = ctx.run(ctx.on.config_changed(), state)
 
     rel_out = out.get_relations(REL)[0]
     app_data = rel_out.local_app_data
