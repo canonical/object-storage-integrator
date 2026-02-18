@@ -68,8 +68,7 @@ class ApplicationCharm(CharmBase):
         self.unit.status = ActiveStatus()
 
     def _on_storage_connection_info_changed(self, e: CredentialsChangedEvent):
-        credentials = self.s3_requirer.get_s3_connection_info()
-        logger.info(f"S3 credentials changed...")
+        logger.info("S3 credentials changed...")
 
     def _on_storage_connection_info_gone(self, _: CredentialsGoneEvent):
         logger.info("S3 credentials gone...")
