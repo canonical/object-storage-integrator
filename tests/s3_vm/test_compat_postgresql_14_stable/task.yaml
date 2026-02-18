@@ -1,0 +1,9 @@
+summary: test_compat_postgresql_14_stable
+environment:
+  TEST_MODULE: test_consumers/test_compat.py
+  SUBSTRATE: vm
+execute: |
+  cd "$SPREAD_PATH/s3"
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
+                            --charm postgresql \
+                            --channel-v0 14/stable

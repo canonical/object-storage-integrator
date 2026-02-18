@@ -53,14 +53,6 @@ jobs:
               else:
                   architecture = "amd64"
 
-              if "test_compat" not in task:
-                  # temporarily skip other tests 
-                  continue
-
-              if architecture == "arm64" and "opensearch" in task:
-                  # Skip arm64 test for opensearch
-                  continue
-
               # Example: "test_charm.py:juju36 | amd64"
               name = f"{task}:{variant} | {architecture}"
               # ":" character not valid in GitHub Actions artifact

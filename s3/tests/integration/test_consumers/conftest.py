@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def pytest_addoption(parser):
+    """Add command-line options for charm configuration and test parameters."""
     group = parser.getgroup("charm options", "Charm selection and configuration options")
     group.addoption(
         "--charm",
@@ -56,17 +57,17 @@ def pytest_addoption(parser):
         default=False,
         help="Whether to use --trust when deploying charms (default: False)",
     )
+    group.addoption(
+        "--tls",
+        action="store_true",
+        default=False,
+        help="Whether to enable TLS for the requirer charm (default: False)",
+    )
     parser.addoption(
         "--model",
         action="store",
         default=None,
         help="Specify the model to use for testing",
-    )
-    parser.addoption(
-        "--tls",
-        action="store_true",
-        default=False,
-        help="Whether to enable TLS for the requirer charm (default: False)",
     )
     parser.addoption(
         "--upgrade",
@@ -78,6 +79,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="function")
 def juju(request: pytest.FixtureRequest):
+    """Juju fixture with function scope."""
     keep_models = bool(request.config.getoption("--keep-models"))
     model_name = request.config.getoption("--model")
     if model_name is None:
