@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 import dataclasses
 import re
 
@@ -6,6 +11,8 @@ import jubilant
 
 @dataclasses.dataclass
 class CharmSpec:
+    """Specification class for a charm for deploying and configuring a charm in tests."""
+
     charm: str
     app: str
     base: str | None = None
@@ -21,7 +28,7 @@ class CharmSpec:
 
     def __str__(self):
         """Provide a human-readable string representation."""
-        return f"{self.charm}-{self.channel.replace('/', '-')}"
+        return f"{self.charm}-{self.channel.replace('/', '-')}" if self.channel else self.charm
 
     def __repr__(self):
         """Provide a concise representation for debugging."""
