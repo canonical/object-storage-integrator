@@ -6,6 +6,7 @@ execute: |
   cd "$SPREAD_PATH/s3"
   tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
                             --charm postgresql-k8s \
+                            --base ubuntu@24.04 \
                             --channel-v0 16/edge \
                             --channel-v1 16/edge/pr-1280 \
                             --trust \

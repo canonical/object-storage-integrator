@@ -21,6 +21,12 @@ def pytest_addoption(parser):
         help="Name of the charm to test (required)",
     )
     group.addoption(
+        "--base",
+        action="store",
+        default=None,
+        help="Base of the charm to test (required)",
+    )
+    group.addoption(
         "--channel-v0",
         action="store",
         default=None,
@@ -162,12 +168,14 @@ def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpe
     revision = request.config.getoption("--revision-v0")
     trust = request.config.getoption("--trust")
     charm = request.config.getoption("--charm")
+    base = request.config.getoption("--base")
     use_tls = bool(request.config.getoption("--tls"))
     if not channel and not revision:
         logger.info("No spec provided for requirer-v0 charm.")
         return None
     return CharmSpec(
         charm=charm,
+        base=base,
         app=f"{charm}-v0",
         channel=channel,
         trust=trust,
@@ -182,6 +190,7 @@ def requirer_charm_v0(request: pytest.FixtureRequest, platform: str) -> CharmSpe
 @pytest.fixture
 def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpec | None:
     charm = request.config.getoption("--charm")
+    base = request.config.getoption("--base")
     channel = request.config.getoption("--channel-v1")
     revision = request.config.getoption("--revision-v1")
     trust = request.config.getoption("--trust")
@@ -191,6 +200,7 @@ def requirer_charm_v1(request: pytest.FixtureRequest, platform: str) -> CharmSpe
         return None
     return CharmSpec(
         charm=charm,
+        base=base,
         app=f"{charm}-v1",
         channel=channel,
         trust=trust,

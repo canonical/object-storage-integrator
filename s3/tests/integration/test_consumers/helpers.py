@@ -8,6 +8,7 @@ import jubilant
 class CharmSpec:
     charm: str
     app: str
+    base: str | None = None
     channel: str | None = None
     trust: bool = False
     num_units: int = 1
@@ -39,6 +40,7 @@ def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
     """Deploy a charm from given spec."""
     juju.deploy(
         charm=charm.charm,
+        base=charm.base,
         app=charm.app,
         channel=charm.channel,
         revision=charm.revision,
