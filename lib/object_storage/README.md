@@ -12,7 +12,7 @@ emit on demand.
 Example:
 ```python
 
-from charms.data_platform_libs.v0.object_storage import (
+from object_storage import (
     StorageConnectionInfoRequestedEvent,
     S3Provider,
 )

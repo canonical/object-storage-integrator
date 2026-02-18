@@ -88,7 +88,6 @@ python_version = "3.12"
 exclude = [
   "lib",
   "tests/integration/test-charm-s3/lib",
-  "tests/integration/test-charm-s3/src/s3_lib.py",
 ]
 follow_imports = "silent"
 
@@ -96,6 +95,7 @@ follow_imports = "silent"
 module = [
   "charms.data_platform_libs.*",
   "data_platform_helpers.*",
+  "object_storage.*",
 ]
 ignore_missing_imports = true
 

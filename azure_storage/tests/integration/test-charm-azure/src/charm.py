@@ -10,7 +10,7 @@ the azure storage requires-provides relation.
 
 import logging
 
-from charms.data_platform_libs.v0.object_storage import (
+from object_storage import (
     AzureStorageRequirer,
     StorageConnectionInfoChangedEvent,
     StorageConnectionInfoGoneEvent,
