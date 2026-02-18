@@ -616,8 +616,13 @@ class StorageRequirerEventHandlers(RequirerEventHandlers):
                 event.secret.label,
             )
             return
+
+        if relation.name != self.relation_name:
+            logger.info("Ignoring secret-changed from endpoint %s (expected %s)", relation.name, self.relation_name)
+            return
+
         if relation.app == self.charm.app:
-            logging.info("Secret changed event ignored for Secret Owner")
+            logger.info("Secret changed event ignored for Secret Owner")
             return
 
         remote_unit = None

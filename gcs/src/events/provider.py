@@ -94,8 +94,6 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
             return
         self._clear_status()
         base = self._build_payload()
-        self.logger.info("base_payload %s", base)
-
         payload = self._merge_requirer_override(relation, base)
         self.gcs_provider.relation_data.update_relation_data(relation.id, payload)
         self.logger.info("Published GCS payload to relation %s", relation.id)
