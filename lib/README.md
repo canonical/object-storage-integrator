@@ -3,11 +3,18 @@ A lightweight library for communicating between Cloud storages provider and requ
 This library implements a common object-storage contract and the relation/event plumbing to publish
 and consume storage connection info.
 
+The following object storage providers are currently supported:
+1. AWS S3 (and S3 compliant providers)
+2. Azure Blob Storage / Azure Data Lake Storage (ADLS)
+3. Google Cloud Storage (GCS)
 
-### Provider charm
+### Example Usage for S3 Provider and Requirer
 
-A provider publishes the payload when the requirer asks for it. It is needed to wire the handlers and
-emit on demand.
+When two charms are related over an object storage relation interface, the one providing the object storage
+credentials is termed as Provider and the one that consumes those credentials is termed as Requirer. A provider 
+publishes the payload when the requirer asks for it.
+
+The following is a sample Provider charm code, that provides S3 bucket and credentials. 
 
 Example:
 ```python
@@ -45,16 +52,17 @@ if __name__ == "__main__":
     main(ExampleProviderCharm)
 ```
 
-### Requirer charm
 
-A requirer consumes the published fields.
-
-An example of requirer charm using S3 storage is the following:
+A requirer consumes the published fields. An example of requirer charm using S3 storage is the following:
 
 Example:
 ```python
 
-from s3_lib import S3Requirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+from object_storage import (
+    S3Requirer, 
+    StorageConnectionInfoChangedEvent, 
+    StorageConnectionInfoGoneEvent,
+)
 
 class ExampleRequirerCharm(CharmBase):
 
@@ -86,3 +94,4 @@ class ExampleRequirerCharm(CharmBase):
  if __name__ == "__main__":
     main(ExampleRequirerCharm)
 ```
+
