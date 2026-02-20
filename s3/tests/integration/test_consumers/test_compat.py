@@ -18,10 +18,20 @@ from .helpers import (
 )
 
 
-def backup_operations(juju: jubilant.Juju, database_charm: CharmSpec, restore: bool = False):
+def backup_operations(
+    juju: jubilant.Juju,
+    database_charm: CharmSpec,
+    restore: bool = False,
+    assert_backup_ids: list[str] | None = None,
+) -> str:
     """Test backup and restore operations on the requirer charm."""
     # List backups before creating new one
     backups_before = list_backups(juju, database_charm)
+    if assert_backup_ids:
+        for assert_backup_id in assert_backup_ids:
+            assert assert_backup_id in backups_before, (
+                f"Expected backup ID {assert_backup_id} not found in existing backups: {backups_before}"
+            )
 
     # Create backup and expect it to succeed
     create_backup(juju, database_charm)
@@ -32,10 +42,11 @@ def backup_operations(juju: jubilant.Juju, database_charm: CharmSpec, restore: b
         f"Expected {len(backups_before) + 1} backup after creation, but found: {backups_after}"
     )
 
+    backup_id = backups_after[0]
     if restore:
         # Restore the backup and expect it to succeed
-        backup_id = backups_after[0]
         restore_backup(juju, database_charm, backup_id)
+    return backup_id
 
 
 def verify_cross_compatibility(juju, provider: CharmSpec, requirer: CharmSpec):
@@ -64,7 +75,7 @@ def verify_upgrade_scenario(
 
     # Integrate applications on v0
     integrate_charms(juju, provider0, requirer0)
-    backup_operations(juju, requirer0)
+    backup_s3v0 = backup_operations(juju, requirer0)
 
     # Deploy s3-integrator-v1 charm (with same set of config as v0)
     provider1.config = provider0.config
@@ -72,17 +83,19 @@ def verify_upgrade_scenario(
 
     remove_charm_relations(juju, provider0, requirer0)
     integrate_charms(juju, provider1, requirer0)
-    backup_operations(juju, requirer0)
+    backup_s3v1 = backup_operations(juju, requirer0, assert_backup_ids=[backup_s3v0])
 
     # Upgrade requirer charm to newer lib version
     requirer1.app = requirer0.app
     upgrade_charm(juju, requirer0, requirer1)
-    backup_operations(juju, requirer1)
+    backup_reqv1 = backup_operations(juju, requirer1, assert_backup_ids=[backup_s3v0, backup_s3v1])
 
     # Remove S3 relation and add it again
     remove_charm_relations(juju, provider1, requirer1)
     integrate_charms(juju, provider1, requirer1)
-    backup_operations(juju, requirer1, restore=True)
+    backup_operations(
+        juju, requirer1, assert_backup_ids=[backup_s3v0, backup_s3v1, backup_reqv1], restore=True
+    )
 
 
 def test_provider_v1_compat_with_requirer_v1(

@@ -12,7 +12,6 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from platform import machine
 
 import boto3
 import jubilant
