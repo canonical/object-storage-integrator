@@ -2,9 +2,9 @@
 # See LICENSE file for licensing details.
 
 [project]
-name = "object-storage"
+name = "object-storage-charmlib"
 version = "0.1.0"
-description = "Common interface lib for providers and requirers of object storage relations"
+description = "Common charm lib for providers and requirers of object storage relation interfaces"
 
 requires-python = ">=3.8"
 dependencies = [
