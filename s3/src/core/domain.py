@@ -16,7 +16,7 @@ from typing import Annotated, Literal
 
 from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
-from charms.data_platform_libs.v0.object_storage import S3Info
+from object_storage import S3Info
 from pydantic import BeforeValidator, Field, field_validator
 
 SECRET_REGEX = re.compile("secret:[a-z0-9]{20}")
