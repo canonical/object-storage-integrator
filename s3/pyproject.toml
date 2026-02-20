@@ -11,7 +11,7 @@ ops = ">=3.5.0"
 # TODO: Move into charm-libs groups after canonical/data-platform-libs#201 is merged
 pydantic = "^2.12.5"
 tenacity = "^9.1.2"
-boto3 = ">=1.42.13"
+boto3 = ">=1.42.51"
 data-platform-helpers = "^0.1.7"
 object_storage = { git = "https://github.com/canonical/object-storage-integrator.git", subdirectory = "lib", branch = "lib-as-python-package" }
 

@@ -16,7 +16,8 @@ from pathlib import Path
 import boto3
 import jubilant
 from botocore.exceptions import ClientError, ConnectTimeoutError, ParamValidationError, SSLError
-from domain import S3ConnectionInfo
+
+from .domain import S3ConnectionInfo
 
 logger = logging.getLogger(__name__)
 
