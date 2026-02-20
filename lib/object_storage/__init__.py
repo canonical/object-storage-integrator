@@ -5,17 +5,12 @@
 
 """Module that exports the public API of the object storage integrators."""
 
-# Import provider and requirer classes
 from object_storage.azure_storage import AzureStorageProvider, AzureStorageRequirer
-
-# Import base interface classes
 from object_storage.events import (
     StorageConnectionInfoChangedEvent,
     StorageConnectionInfoGoneEvent,
     StorageConnectionInfoRequestedEvent,
 )
-
-# Import exceptions
 from object_storage.exceptions import (
     PrematureDataAccessError,
 )
@@ -26,7 +21,6 @@ from object_storage.gcs import (
 )
 from object_storage.s3 import S3Provider, S3Requirer
 
-# Define what gets exported when using "from object_storage import *"
 __all__ = [
     # S3 classes
     "S3Provider",
