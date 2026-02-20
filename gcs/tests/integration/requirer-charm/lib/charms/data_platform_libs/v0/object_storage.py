@@ -2004,7 +2004,7 @@ class StorageProviderEventHandlers(EventHandlers):
             data: Connection info to set for the relation.
         """
         # Replace null values with empty strings, as Juju databag does not allow null values.
-        data = {k: (v if v is not None else "") for k, v in data.items()}
+        data = {k: (str(v) if v is not None else "") for k, v in data.items()}
         return self.relation_data.update_relation_data(
             relation_id=relation_id, data=data
         )

@@ -54,7 +54,6 @@ class ApplicationCharm(CharmBase):
             self._on_storage_connection_info_gone,
         )
 
-        self.framework.observe(self.on.update_status, self._on_update_status)
         self.framework.observe(self.on.get_s3_connection_info_action, self._on_get_s3_connection_info_action)
 
 
@@ -78,7 +77,7 @@ class ApplicationCharm(CharmBase):
 
     def _on_storage_connection_info_changed(self, e: StorageConnectionInfoChangedEvent):
         credentials = self.s3_requirer.get_storage_connection_info()
-        logger.info(f"S3 credentials changed. New credentials: {credentials}")
+        logger.info(f"S3 credentials have changed...")
 
     def _on_storage_connection_info_gone(self, _: StorageConnectionInfoGoneEvent):
         logger.info("S3 credentials gone...")
@@ -87,9 +86,6 @@ class ApplicationCharm(CharmBase):
     def _on_get_s3_connection_info_action(self, event: ActionEvent) -> None:
         event.set_results(self.s3_requirer.get_storage_connection_info())
 
-    def _on_update_status(self, _):
-        s3_info = self.s3_requirer.get_storage_connection_info()
-        logger.info(f"S3 client info: {s3_info}")
 
 
 if __name__ == "__main__":

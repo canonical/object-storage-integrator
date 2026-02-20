@@ -8,8 +8,9 @@ from pathlib import Path
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import b64_to_ca_chain_json_dumps, delete_bucket, get_bucket
+
+from .domain import S3ConnectionInfo
+from .helpers import b64_to_ca_chain_json_dumps, delete_bucket, get_bucket
 
 REQUIRER_V0 = "requirer-v0"
 REQUIRER_V1 = "requirer-v1"
