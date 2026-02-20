@@ -19,33 +19,6 @@ on:
         value: ${{ jobs.build.outputs.artifact-prefix }}
 
 jobs:
-  # TODO: Remove this job once we have a common object storage lib upstream
-  # This job exists here for us to be able to catch regressions in our lib code,
-  # which we are copying at different places for now, until we have a common lib upstream.
-  lib-checks:
-    name: Check for object_storage lib code consistency across charms
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy: 
-      matrix:
-        charm:
-          - name: test-charm-s3
-            libpath: s3/tests/integration/test-charm-s3/lib/charms/data_platform_libs/v0/object_storage.py
-          - name: gcs-integrator
-            libpath: gcs/lib/charms/data_platform_libs/v0/object_storage.py
-          - name: requirer-charm # gcs-integrator test charm
-            libpath: gcs/tests/integration/requirer-charm/lib/charms/data_platform_libs/v0/object_storage.py
-          - name: azure-storage-integrator
-            libpath: azure_storage/lib/charms/data_platform_libs/v0/object_storage.py
-          - name: test-charm-azure
-            libpath: azure_storage/tests/integration/test-charm-azure/lib/charms/data_platform_libs/v0/object_storage.py
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Run lib consistency checks
-        run: |
-          SOURCE_OF_TRUTH=s3/lib/charms/data_platform_libs/v0/object_storage.py
-          cmp ${{ matrix.charm.libpath }} $SOURCE_OF_TRUTH || (echo "Lib code in ${ matrix.charm.name } is not consistent with source of truth!" && exit 1)
 
   lint:
     name: Lint ${{ matrix.backend }}
@@ -124,7 +97,6 @@ jobs:
           - path: gcs/
             track: 1
     needs:
-      - lib-checks
       - lint
       - unit-test
       - build

@@ -9,6 +9,7 @@ requires-poetry = ">=2.0.0"
 python = "^3.10"
 ops = "^3.5.0"
 tenacity = "^9.1.2"
+object_storage = { path = "../lib", develop = true }
 
 [tool.poetry.group.charm-libs.dependencies]
 cosl = "^0.0.51"

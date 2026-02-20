@@ -9,6 +9,7 @@ python = ">=3.10,<3.14"
 ops = "^2.14.0"
 tenacity = "^9.1.2"
 pydantic = "^2.11.3"
+object_storage = { git = "https://github.com/canonical/object-storage-integrator.git", subdirectory = "lib", branch = "lib-as-python-package" }
 
 [build-system]
 requires = ["poetry-core>=1.8.0"]
