@@ -6,9 +6,9 @@ name = "object-storage"
 version = "0.1.0"
 description = "Common interface lib for providers and requirers of object storage relations"
 
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 dependencies = [
-    "ops>=3.5.0"
+    "ops>=2.0.0"
 ]
 
 [dependency-groups]
@@ -18,7 +18,6 @@ format = [
 lint = [
     "ruff>=0.14.10",
     "codespell>=2.4.1",
-    "mypy>=1.19.1; python_version >= '3.9'"
 ]
 
 [tool.poetry.group.format]
@@ -52,11 +51,6 @@ extend-ignore = [
 ignore = ["E501", "D107"]
 per-file-ignores = { "__init__.py" = ["D104"] }
 mccabe.max-complexity = 10
-
-
-[tool.mypy]
-python_version = "3.10"
-follow_imports = "silent"
 
 
 [build-system]

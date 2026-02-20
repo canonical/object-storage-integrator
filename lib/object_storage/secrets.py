@@ -1,7 +1,7 @@
 """Helper functions to interact with Juju Secrets."""
 
 import logging
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from ops import (
     Application,
@@ -33,10 +33,6 @@ class SecretGroupsAggregate(str):
     """Secret groups with option to extend with additional constants."""
 
     def __init__(self):
-        self.USER = SecretGroup("user")
-        self.TLS = SecretGroup("tls")
-        self.MTLS = SecretGroup("mtls")
-        self.ENTITY = SecretGroup("entity")
         self.EXTRA = SecretGroup("extra")
 
     def __setattr__(self, name, value):
@@ -72,7 +68,6 @@ class CachedSecret:
         component: Union[Application, Unit],
         label: str,
         secret_uri: Optional[str] = None,
-        legacy_labels: List[str] = [],
     ):
         self._secret_meta: Optional[Secret] = None
         self._secret_content: Dict[str, str] = {}
@@ -80,7 +75,6 @@ class CachedSecret:
         self.label = label
         self._model = model
         self.component = component
-        self.legacy_labels = legacy_labels
         self.current_label = None
 
     @property
@@ -185,14 +179,10 @@ class SecretCache:
         self.component = component
         self._secrets: Dict[str, CachedSecret] = {}
 
-    def get(
-        self, label: str, uri: Optional[str] = None, legacy_labels: List[str] = []
-    ) -> Optional[CachedSecret]:
+    def get(self, label: str, uri: Optional[str] = None) -> Optional[CachedSecret]:
         """Getting a secret from Juju Secret store or cache."""
         if not self._secrets.get(label):
-            secret = CachedSecret(
-                self._model, self.component, label, uri, legacy_labels=legacy_labels
-            )
+            secret = CachedSecret(self._model, self.component, label, uri)
             if secret.meta:
                 self._secrets[label] = secret
         return self._secrets.get(label)
