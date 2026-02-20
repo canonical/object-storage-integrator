@@ -21,7 +21,6 @@ from .helpers import (
     create_bucket,
     create_iam_user,
     delete_bucket,
-    get_s3_charm_path,
     local_tmp_folder,
 )
 
@@ -51,7 +50,8 @@ def platform() -> str:
 @pytest.fixture
 def s3_charm(platform: str) -> Path:
     """Path to the packed s3-integrator charm."""
-    path = get_s3_charm_path()
+    if not (path := next(iter(Path.cwd().glob(f"*-{platform}.charm")), None)):
+        raise FileNotFoundError("Could not find packed s3-integrator charm.")
     logger.info(f"Using s3-integrator charm at: {path}")
     return path
 
@@ -65,7 +65,7 @@ def test_charm(platform: str) -> Path:
         )
     ):
         raise FileNotFoundError("Could not find packed test charm.")
-
+    logger.info(f"Using test charm at: {path}")
     return path
 
 
@@ -78,7 +78,7 @@ def test_charm_s3_v0(platform: str) -> Path:
         )
     ):
         raise FileNotFoundError("Could not find packed test charm (with S3 lib v0).")
-
+    logger.info(f"Using test charm (with S3 lib v0) at: {path}")
     return path
 
 
