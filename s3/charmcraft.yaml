@@ -48,8 +48,7 @@ parts:
     #   (https://github.com/canonical/charmcraft/blob/9ff19c328e23b50cc06f04e8a5ad4835740badf4/charmcraft/parts/plugins/_poetry.py#L95
     #   https://github.com/canonical/craft-parts/blob/afb0d652eb330b6aaad4f40fbd6e5357d358de47/craft_parts/plugins/base.py#L270)
     plugin: poetry
-    source: ..
-    source-subdir: s3
+    source: .
     after:
       - poetry-deps
     poetry-export-extra-args: ["--only", "main,charm-libs", "--without-hashes"] # TODO: Remove `--without-hashes`

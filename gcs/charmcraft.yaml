@@ -32,8 +32,7 @@ parts:
   # Main build using Poetry
   charm-poetry:
     plugin: poetry
-    source: ..
-    source-subdir: gcs
+    source: .
     after:
       - poetry-deps
     build-environment:
