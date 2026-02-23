@@ -2,6 +2,15 @@
 # See LICENSE file for licensing details.
 
 type: charm
+name: s3-integrator
+summary: A provider charm for s3 credentials.
+description: |
+  S3 Integrator is an integrator charm for providing S3 credentials to
+  consumer charms which seek to access shared S3 data. Store the
+  credentials centrally in the integrator charm and relate consumer
+  charms as needed.
+
+  This charm supports both bare-metal/virtual-machines and K8s.
 platforms:
   ubuntu@24.04:amd64:
   ubuntu@24.04:arm64:
