@@ -1283,6 +1283,23 @@ signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
 
 [[package]]
+name = "object-storage"
+version = "0.1.0"
+description = "Common interface lib for providers and requirers of object storage relations"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/canonical/object-storage-integrator.git"
+reference = "lib-as-python-package"
+resolved_reference = "1963eba29d1aca169966784324091feea6a121fe"
+subdirectory = "lib"
+
+[[package]]
 name = "opentelemetry-api"
 version = "1.39.1"
 description = "OpenTelemetry Python API"
@@ -2346,4 +2363,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "44be337f78aa8934f307a10532f48c2d0674ef8c023d1941671db77aee515759"
+content-hash = "ee0af093653d828736dc3f83ae66f568517a33c9d18e19cfc6bae648ad865fe6"

@@ -1,7 +1,11 @@
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-summary: test_compat_postgresql_14_stable
+# We test against of 14/edge instead of 14/stable because
+# of this bug in 14/stable:
+# https://github.com/canonical/postgresql-operator/issues/1461
+
+summary: test_compat_postgresql_14_edge
 environment:
   TEST_MODULE: test_consumers/test_compat.py
   SUBSTRATE: vm
@@ -9,4 +13,4 @@ execute: |
   cd "$SPREAD_PATH/s3"
   tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
                             --charm postgresql \
-                            --channel-v0 14/stable
+                            --channel-v0 14/edge
