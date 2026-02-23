@@ -3,7 +3,7 @@
 
 import dataclasses
 
-from charms.data_platform_libs.v0.object_storage import PrematureDataAccessError
+from object_storage import PrematureDataAccessError
 from ops.testing import Relation, Secret
 
 from events.provider import GCStorageProviderEvents

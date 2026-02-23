@@ -7,7 +7,7 @@
 from functools import wraps
 from typing import TYPE_CHECKING, Callable
 
-from charms.data_platform_libs.v0.object_storage import PrematureDataAccessError
+from object_storage import PrematureDataAccessError
 from ops import EventBase, Object
 
 from utils.logging import WithLogging
