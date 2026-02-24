@@ -10,15 +10,15 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "lib/v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  # ci-tests:
-  #   needs:
-  #     - lib-check
-  #   name: Tests
-  #   uses: ./.github/workflows/ci.yaml
-  #   secrets: inherit
+  ci-tests:
+    needs:
+      - lib-check
+    name: Tests
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
 
 
   publish_checks:
@@ -63,7 +63,7 @@ jobs:
         run: |
           VERSION=${{ steps.package_metadata.outputs.version }}
           BRANCH=${{ env.BRANCH }}
-          if [[ "$BRANCH" != "v$VERSION" ]]; then exit 1; fi
+          if [[ "$BRANCH" != "lib/v$VERSION" ]]; then exit 1; fi
 
     outputs:
       package_name: ${{ steps.package_metadata.outputs.name }}
