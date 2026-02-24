@@ -100,9 +100,10 @@ jobs:
         working-directory: lib
         run: |
           VERSION=$(poetry version -s)
-          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
-          VERSION="${VERSION}.dev${GITHUB_RUN_NUMBER}.${SHORT_SHA}"
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(echo $GITHUB_SHA | head -c 7)
+          DEC_SHA=$((16#$SHORT_SHA))  # convert hex to decimal
+          DEV_VERSION="${VERSION}.dev${GITHUB_RUN_NUMBER}${DEC_SHA}"
+          echo "VERSION=$DEV_VERSION" >> $GITHUB_OUTPUT
       - name: Build package
         working-directory: lib
         run: |
