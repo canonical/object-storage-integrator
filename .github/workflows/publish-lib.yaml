@@ -95,8 +95,8 @@ jobs:
           path: lib/dist/
 
 
-  upload-test-pypi:
-    name: Publish to Test PyPI
+  publish-to-pypi:
+    name: Publish to PyPI
     needs: [publish_checks, build]
     runs-on: ubuntu-latest
     steps:
@@ -105,12 +105,10 @@ jobs:
         with:
           name: distfiles
           path: dist/
-      - name: Publish to Test PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
     permissions:
       id-token: write # Needed for trusted publishing (https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/)
     environment:
-      name: testpypi
-      url: https://test.pypi.org/p/object-storage-charmlib
+      name: pypi
+      url: https://pypi.org/p/object-storage-charmlib
