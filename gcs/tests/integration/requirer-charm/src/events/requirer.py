@@ -4,7 +4,7 @@
 import logging
 from typing import Dict, Optional
 
-from charms.data_platform_libs.v0.object_storage import (
+from object_storage import (
     GcsStorageRequires,
 )
 from ops.charm import CharmBase

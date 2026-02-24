@@ -14,8 +14,15 @@ from typing import Iterable
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import create_bucket, create_iam_user, delete_bucket, local_tmp_folder
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from .domain import S3ConnectionInfo
+from .helpers import (
+    create_bucket,
+    create_iam_user,
+    delete_bucket,
+    local_tmp_folder,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("jubilant.wait").setLevel(logging.WARNING)
@@ -58,7 +65,7 @@ def test_charm(platform: str) -> Path:
         )
     ):
         raise FileNotFoundError("Could not find packed test charm.")
-
+    logger.info(f"Using test charm at: {path}")
     return path
 
 
@@ -71,7 +78,7 @@ def test_charm_s3_v0(platform: str) -> Path:
         )
     ):
         raise FileNotFoundError("Could not find packed test charm (with S3 lib v0).")
-
+    logger.info(f"Using test charm (with S3 lib v0) at: {path}")
     return path
 
 
@@ -85,7 +92,7 @@ def juju(request: pytest.FixtureRequest):
         yield juju  # run the test
 
         if request.session.testsfailed:
-            log = juju.debug_log(limit=30)
+            log = juju.debug_log(limit=500)
             print(log, end="")
 
 
@@ -102,6 +109,17 @@ def certs_path() -> Iterable[Path]:
     """A temporary directory to store certificates and keys."""
     with local_tmp_folder("temp-certs") as tmp_folder:
         yield tmp_folder
+
+
+@retry(stop=stop_after_attempt(20), wait=wait_fixed(3), reraise=True)
+def wait_for_rgw_ready():
+    """Wait for RADOS Gateway to be ready by checking if account list command succeeds."""
+    subprocess.run(
+        ["sudo", "microceph.radosgw-admin", "account", "list"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    )
 
 
 @pytest.fixture(scope="module")
@@ -227,6 +245,7 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
             ],
             check=True,
         )
+        wait_for_rgw_ready()
 
         logger.info("Creating user account...")
         output = subprocess.run(
@@ -283,7 +302,7 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
             access_key=key_id,
             secret_key=secret_key,
             tls_ca_chain=ca_crt_base64,
-            region="us-east-1",
+            region="default",
         )
 
         subprocess.run(["sudo", "snap", "remove", "microceph", "--purge"], check=True)

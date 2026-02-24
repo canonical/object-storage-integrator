@@ -12,29 +12,13 @@ import binascii
 import json
 import logging
 import re
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, Literal
 
+from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
+from object_storage import S3Info
 from pydantic import BeforeValidator, Field, field_validator
 
-S3ConnectionInfo = TypedDict(
-    "S3ConnectionInfo",
-    {
-        "access-key": str,
-        "secret-key": str,
-        "region": str,
-        "storage-class": str,
-        "attributes": str,
-        "bucket": str,
-        "endpoint": str,
-        "path": str,
-        "s3-api-version": str,
-        "s3-uri-style": str,
-        "tls-ca-chain": str,
-        "delete-older-than-days": str,
-    },
-    total=False,
-)
 SECRET_REGEX = re.compile("secret:[a-z0-9]{20}")
 # Should cover most of the naming rules
 # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html#general-purpose-bucket-names
@@ -42,6 +26,8 @@ SECRET_REGEX = re.compile("secret:[a-z0-9]{20}")
 BUCKET_REGEX = re.compile(r"(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$|^$")
 
 logger = logging.getLogger(__name__)
+
+S3ConnectionInfo = S3Info
 
 
 def nullify_empty_string(in_str: str) -> str | None:
@@ -125,3 +111,13 @@ class CharmConfig(BaseConfigModel):
 
         chain_list = parse_ca_chain(decoded_value)
         return json.dumps(chain_list)
+
+    @field_validator("endpoint")
+    @classmethod
+    def validate_endpoint(cls, value: str) -> str | None:
+        """Validate the `endpoint` config option."""
+        if value is None:
+            return None
+        if not is_valid_uri(value):
+            raise ValueError("The given endpoint is not a valid URI")
+        return value

@@ -3,16 +3,14 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import base64
-import json
 import logging
-import re
 from pathlib import Path
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import delete_bucket, get_bucket
+
+from .domain import S3ConnectionInfo
+from .helpers import b64_to_ca_chain_json_dumps, delete_bucket, get_bucket
 
 REQUIRER_V0 = "requirer-v0"
 REQUIRER_V1 = "requirer-v1"
@@ -21,7 +19,7 @@ S3_INTEGRATOR_V1 = "s3-integrator-v1"
 
 SECRET_LABEL = "s3-creds-secret-provider"
 INVALID_BUCKET = "random?invali!dname"
-S3_LIB_VERSION_FIELD = "lib-version"
+S3_SCHEMA_VERSION_FIELD = "version"
 
 
 logger = logging.getLogger(__name__)
@@ -39,21 +37,6 @@ def relation_bucket_name(s3_root_user):
     bucket_name = "s3-integrator-relation-bucket"
     yield bucket_name
     delete_bucket(s3_info=s3_root_user, bucket_name=bucket_name)
-
-
-def b64_to_ca_chain_json_dumps(ca_chain: str) -> str:
-    """Validate the `tls-ca-chain` config option."""
-    if not ca_chain:
-        return ""
-    decoded_value = base64.b64decode(ca_chain).decode("utf-8")
-    chain_list = re.findall(
-        pattern="(?=-----BEGIN CERTIFICATE-----)(.*?)(?<=-----END CERTIFICATE-----)",
-        string=decoded_value,
-        flags=re.DOTALL,
-    )
-    if not chain_list:
-        raise ValueError("No certificate found in chain file")
-    return json.dumps(chain_list)
 
 
 def test_deploy_provider_v1(
@@ -108,7 +91,7 @@ def test_integrate_provider_v1_requirer_v0(
         lambda status: jubilant.all_active(status) and jubilant.all_agents_idle(status), delay=5
     )
     result = juju.run(f"{REQUIRER_V0}/0", "get-s3-connection-info").results
-    result.pop(S3_LIB_VERSION_FIELD, None)
+    result.pop(S3_SCHEMA_VERSION_FIELD, None)
     result.pop("data", None)
 
     # In this case, the consumer should be provided with the connection info with bucket from config option
@@ -178,7 +161,7 @@ def test_integrate_provider_v0_requirer_v1(
         delay=5,
     )
     result = juju.run(f"{REQUIRER_V1}/0", "get-s3-connection-info").results
-    result.pop(S3_LIB_VERSION_FIELD, None)
+    result.pop(S3_SCHEMA_VERSION_FIELD, None)
     result.pop("data", None)
 
     assert result == {

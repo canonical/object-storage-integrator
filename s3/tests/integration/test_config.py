@@ -8,8 +8,9 @@ from pathlib import Path
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import delete_bucket, get_bucket
+
+from .domain import S3ConnectionInfo
+from .helpers import delete_bucket, get_bucket
 
 S3 = "s3-integrator"
 SECRET_LABEL = "s3-creds-secret-config"
