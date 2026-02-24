@@ -85,6 +85,42 @@ jobs:
     with:
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
 
+  publish-lib-to-test-pypi:
+    name: Publish lib to Test PyPI for easy development
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Determine version
+        id: version
+        working-directory: lib
+        run: |
+          VERSION=$(poetry version -s)
+          SHORT_SHA=$(echo $GITHUB_SHA | head -c 7)
+          DEC_SHA=$((16#$SHORT_SHA))  # convert hex to decimal
+          DEV_VERSION="${VERSION}.dev${GITHUB_RUN_NUMBER}${DEC_SHA}"
+          echo "VERSION=$DEV_VERSION" >> $GITHUB_OUTPUT
+      - name: Build package
+        working-directory: lib
+        run: |
+          poetry version ${{ steps.version.outputs.VERSION }}
+          poetry build
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: lib/dist/
+    permissions:
+      id-token: write # Needed for trusted publishing (https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/)
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/object-storage-charmlib
+
+
   release-to-test-branch:
     name: Release charm to test branch
     strategy:

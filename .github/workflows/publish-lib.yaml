@@ -1,0 +1,114 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: Publish object-storage-charmlib to PyPI
+
+env:
+  BRANCH: ${{ github.ref_name }}
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "lib/v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  ci-tests:
+    needs:
+      - lib-check
+    name: Tests
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+
+
+  publish_checks:
+    name: Checks before package build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+    steps:
+      - id: checkout
+        name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BRANCH }}
+          fetch-depth: 0
+      - id: setup_python
+        name: Setup Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.8"
+          architecture: x64
+      - name: Install poetry
+        run: pipx install poetry
+      - id: install_environment
+        name: Set up build environment
+        working-directory: lib
+        run: |
+          poetry install
+
+      - id: package_metadata
+        name: Fetch package metadata
+        working-directory: lib
+        run: |
+          NAME=$(poetry version | awk '{print $1}')
+          VERSION=$(poetry version | awk '{print $2}')
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - id: version_vs_tag_check
+        name: Check if tag version matches project version
+        working-directory: lib
+        run: |
+          VERSION=${{ steps.package_metadata.outputs.version }}
+          BRANCH=${{ env.BRANCH }}
+          if [[ "$BRANCH" != "lib/v$VERSION" ]]; then exit 1; fi
+
+    outputs:
+      package_name: ${{ steps.package_metadata.outputs.name }}
+      package_version: ${{ steps.package_metadata.outputs.version }}
+
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.build.outputs.VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Check for tag and build package
+        id: build
+        working-directory: lib
+        run: |
+          VERSION=$(poetry version -s)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          poetry build
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: distfiles
+          path: lib/dist/
+
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    needs: [publish_checks, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v7
+        with:
+          name: distfiles
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+    permissions:
+      id-token: write # Needed for trusted publishing (https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/)
+    environment:
+      name: pypi
+      url: https://pypi.org/p/object-storage-charmlib
