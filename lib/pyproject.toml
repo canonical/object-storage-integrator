@@ -7,11 +7,6 @@ version = "0.0.1"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
 
 requires-python = ">=3.8"
-
-packages = [
-    { include = "object_storage" }
-]
-
 dependencies = [
     "ops>=2.0.0"
 ]
@@ -63,4 +58,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
+packages = [
+    { include = "object_storage" }
+]
 include = ["object_storage/py.typed"]
