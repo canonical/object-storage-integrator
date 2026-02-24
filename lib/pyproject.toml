@@ -3,7 +3,7 @@
 
 [project]
 name = "object-storage-charmlib"
-version = "0.1.0"
+version = "0.0.1"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
 
 requires-python = ">=3.8"
