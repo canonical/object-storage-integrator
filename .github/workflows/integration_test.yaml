@@ -52,6 +52,11 @@ jobs:
                   architecture = "arm64"
               else:
                   architecture = "amd64"
+
+              if architecture == "arm64" and "opensearch" in task:
+                  # Skip arm64 for opensearch because not supported
+                  continue
+
               # Example: "test_charm.py:juju36 | amd64"
               name = f"{task}:{variant} | {architecture}"
               # ":" character not valid in GitHub Actions artifact

@@ -1,0 +1,61 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+[project]
+name = "object-storage-charmlib"
+version = "0.1.0"
+description = "Common charm lib for providers and requirers of object storage relation interfaces"
+
+requires-python = ">=3.8"
+dependencies = [
+    "ops>=2.0.0"
+]
+
+[dependency-groups]
+format = [
+    "ruff>=0.14.10"
+]
+lint = [
+    "ruff>=0.14.10",
+    "codespell>=2.4.1",
+]
+
+[tool.poetry.group.format]
+optional = true
+
+[tool.poetry.group.lint]
+optional = true
+
+[tool.ruff]
+line-length = 99
+extend-exclude = ["__pycache__", "*.egg_info"]
+target-version = "py38"
+src = ["object_storage"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "C", "N", "D", "I001"]
+extend-ignore = [
+  "D203",
+  "D204",
+  "D213",
+  "D215",
+  "D400",
+  "D401",
+  "D404",
+  "D406",
+  "D407",
+  "D408",
+  "D409",
+  "D413",
+]
+ignore = ["E501", "D107"]
+per-file-ignores = { "__init__.py" = ["D104"] }
+mccabe.max-complexity = 10
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+include = ["object_storage/py.typed"]

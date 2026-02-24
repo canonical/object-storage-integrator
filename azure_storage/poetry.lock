@@ -484,7 +484,7 @@ files = [
 ]
 
 [package.dependencies]
-lightkube = ">=v0.15.4"
+lightkube = ">=0.15.4"
 ops = "*"
 pydantic = "*"
 pyyaml = "*"
@@ -890,7 +890,7 @@ version = "8.7.0"
 description = "Read metadata from Python packages"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "charm-libs"]
+groups = ["main", "charm-libs", "unit"]
 files = [
     {file = "importlib_metadata-8.7.0-py3-none-any.whl", hash = "sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd"},
     {file = "importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000"},
@@ -1070,7 +1070,7 @@ files = [
 ]
 
 [package.dependencies]
-certifi = ">=14.05.14"
+certifi = ">=14.5.14"
 google-auth = ">=1.0.1"
 oauthlib = ">=3.2.2"
 python-dateutil = ">=2.5.3"
@@ -1283,12 +1283,29 @@ signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
 
 [[package]]
+name = "object-storage"
+version = "0.1.0"
+description = "Common interface lib for providers and requirers of object storage relations"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/canonical/object-storage-integrator.git"
+reference = "lib-as-python-package"
+resolved_reference = "1963eba29d1aca169966784324091feea6a121fe"
+subdirectory = "lib"
+
+[[package]]
 name = "opentelemetry-api"
 version = "1.39.1"
 description = "OpenTelemetry Python API"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "charm-libs"]
+groups = ["main", "charm-libs", "unit"]
 files = [
     {file = "opentelemetry_api-1.39.1-py3-none-any.whl", hash = "sha256:2edd8463432a7f8443edce90972169b195e7d6a05500cd29e6d13898187c9950"},
     {file = "opentelemetry_api-1.39.1.tar.gz", hash = "sha256:fbde8c80e1b937a2c61f20347e91c0c18a1940cecf012d62e65a7caf08967c9c"},
@@ -1300,40 +1317,40 @@ typing-extensions = ">=4.5.0"
 
 [[package]]
 name = "ops"
-version = "3.5.0"
+version = "3.5.1"
 description = "The Python library behind great charms"
 optional = false
 python-versions = ">=3.10"
-groups = ["main", "charm-libs"]
+groups = ["main", "charm-libs", "unit"]
 files = [
-    {file = "ops-3.5.0-py3-none-any.whl", hash = "sha256:07b1d1dbc0f3ca59534d5fe5020a66ee95c528f2430e004922350274509420c6"},
-    {file = "ops-3.5.0.tar.gz", hash = "sha256:e3427889054285bd2711a3a297a77218384eacaf0d1001590ee4437cca115577"},
+    {file = "ops-3.5.1-py3-none-any.whl", hash = "sha256:890dd7bf33d1381afeed0e484d02c7bb13ad3945dcc7b723e8d73e4bba0ff94c"},
+    {file = "ops-3.5.1.tar.gz", hash = "sha256:376ef51d35d45b376795196851550e209565e922e58af8ac491cf23bc8b46498"},
 ]
 
 [package.dependencies]
 opentelemetry-api = ">=1.0,<2.0"
-ops-scenario = {version = "8.5.0", optional = true, markers = "extra == \"testing\""}
+ops-scenario = {version = "8.5.1", optional = true, markers = "extra == \"testing\""}
 PyYAML = "==6.*"
 websocket-client = "==1.*"
 
 [package.extras]
-testing = ["ops-scenario (==8.5.0)"]
-tracing = ["ops-tracing (==3.5.0)"]
+testing = ["ops-scenario (==8.5.1)"]
+tracing = ["ops-tracing (==3.5.1)"]
 
 [[package]]
 name = "ops-scenario"
-version = "8.5.0"
+version = "8.5.1"
 description = "Python library providing a state-transition testing API for Operator Framework charms."
 optional = false
 python-versions = ">=3.10"
-groups = ["main"]
+groups = ["unit"]
 files = [
-    {file = "ops_scenario-8.5.0-py3-none-any.whl", hash = "sha256:eb19764a4f1ecc493cfb0a4bfb1c55b4a5808679882a687473838416cd3b9bd2"},
-    {file = "ops_scenario-8.5.0.tar.gz", hash = "sha256:66e8ce8ee17e9eec50e899da7cdb8988e30765b9ed51e2aec90faea70e0a3053"},
+    {file = "ops_scenario-8.5.1-py3-none-any.whl", hash = "sha256:909be01c223726019659b5454b4792c38b1d6ed5e8835d1d71794d6202b0f0ec"},
+    {file = "ops_scenario-8.5.1.tar.gz", hash = "sha256:9b9a3cd67b5704f58d17952ca9327d11391a3b3ce7daea26d040458165e1117f"},
 ]
 
 [package.dependencies]
-ops = "3.5.0"
+ops = "3.5.1"
 PyYAML = ">=6.0.1"
 typing_extensions = ">=4.9.0"
 
@@ -1863,7 +1880,7 @@ version = "6.0.3"
 description = "YAML parser and emitter for Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "charm-libs", "integration"]
+groups = ["main", "charm-libs", "integration", "unit"]
 files = [
     {file = "PyYAML-6.0.3-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:c2514fceb77bc5e7a2f7adfaa1feb2fb311607c9cb518dbc378688ec73d8292f"},
     {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9c57bb8c96f6d1808c030b1687b9b5fb476abaa47f0db9c0101f5e9f394e97f4"},
@@ -2165,7 +2182,6 @@ files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
 ]
-markers = {unit = "python_version == \"3.10\""}
 
 [[package]]
 name = "typing-inspect"
@@ -2234,7 +2250,7 @@ version = "1.9.0"
 description = "WebSocket client for Python with low level API options"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "charm-libs", "integration"]
+groups = ["main", "charm-libs", "integration", "unit"]
 files = [
     {file = "websocket_client-1.9.0-py3-none-any.whl", hash = "sha256:af248a825037ef591efbf6ed20cc5faa03d3b47b9e5a2230a529eeee1c1fc3ef"},
     {file = "websocket_client-1.9.0.tar.gz", hash = "sha256:9e813624b6eb619999a97dc7958469217c3176312b3a16a4bd1bc7e08a46ec98"},
@@ -2330,7 +2346,7 @@ version = "3.23.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "charm-libs"]
+groups = ["main", "charm-libs", "unit"]
 files = [
     {file = "zipp-3.23.0-py3-none-any.whl", hash = "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"},
     {file = "zipp-3.23.0.tar.gz", hash = "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"},
@@ -2347,4 +2363,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "7379f460cf5d06a366c5f85fca866c628119bfdc0cb087b82b33bc54f3c2998f"
+content-hash = "ee0af093653d828736dc3f83ae66f568517a33c9d18e19cfc6bae648ad865fe6"
