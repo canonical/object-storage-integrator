@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import json
 import logging
 import re
 from typing import Annotated, List, Literal
@@ -99,7 +100,7 @@ class CharmConfig(BaseConfigModel):
 
     @field_validator("tls_ca_chain")
     @classmethod
-    def validate_tls_ca_chain(cls, value: str) -> List[str] | None:
+    def validate_tls_ca_chain(cls, value: str) -> str | None:
         """Validate the `tls-ca-chain` config option."""
         if value is None:
             return None
@@ -109,7 +110,7 @@ class CharmConfig(BaseConfigModel):
             raise ValueError("The given TLS CA chain is not a valid base64 encoded string")
 
         chain_list = parse_ca_chain(decoded_value)
-        return chain_list
+        return json.dumps(chain_list)
 
     @field_validator("endpoint")
     @classmethod
