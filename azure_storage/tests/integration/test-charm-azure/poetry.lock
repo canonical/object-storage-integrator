@@ -41,7 +41,7 @@ ops = ">=2.0.0"
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
 reference = "fix/missing-imports"
-resolved_reference = "0adcb5e70815c97abb3987322dcfcb666bccd8b4"
+resolved_reference = "04e587f67cf049c54ba3c0adf29715520b8bcc51"
 subdirectory = "lib"
 
 [[package]]
