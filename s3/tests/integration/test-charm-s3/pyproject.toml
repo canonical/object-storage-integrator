@@ -8,6 +8,6 @@ requires-poetry = ">=2.0.0"
 [tool.poetry.dependencies]
 python = "^3.10"
 ops = ">=2.18.0"
-object_storage = { git = "https://github.com/canonical/object-storage-integrator.git", subdirectory = "lib", branch = "lib-as-python-package" }
+object-storage-charmlib = { git = "https://github.com/canonical/object-storage-integrator.git", subdirectory = "lib", branch = "fix/missing-imports" }
 
 [tool.poetry.group.charm-libs.dependencies]

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
@@ -147,7 +147,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                     continue
                 relation_data = relation_data | {"bucket": relation_bucket_value}
 
-            self.s3_provider.set_storage_connection_info(relation_id, relation_data)
+            self.s3_provider.set_storage_connection_info(relation_id, cast(dict, relation_data))
 
         self._handle_status(missing_buckets, invalid_buckets)
 
