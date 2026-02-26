@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import ipaddress
+import json
 import os
 import tempfile
 from collections.abc import Generator
@@ -86,7 +87,8 @@ class S3Manager(WithLogging):
         extra_args: dict[str, object] = {}
 
         if self.conn_info.get("tls-ca-chain"):
-            ca_chain_pem: str = "\n".join(self.conn_info["tls-ca-chain"])
+            ca_chain: list[str] = json.loads(self.conn_info["tls-ca-chain"])
+            ca_chain_pem: str = "\n".join(ca_chain)
             tmp = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".pem")
             tmp.write(ca_chain_pem)
             tmp.flush()

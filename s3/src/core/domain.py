@@ -12,7 +12,7 @@ import binascii
 import json
 import logging
 import re
-from typing import Annotated, List, Literal
+from typing import Annotated, Literal
 
 from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
