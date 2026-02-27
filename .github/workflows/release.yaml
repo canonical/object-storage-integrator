@@ -11,8 +11,6 @@ on:
 jobs:
 
   ci-tests:
-    needs:
-      - lib-check
     name: Tests
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
@@ -29,7 +27,6 @@ jobs:
           - path: gcs/
             track: 1
     needs:
-      - lib-check
       - ci-tests
     uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v40.0.2
     with:
