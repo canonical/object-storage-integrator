@@ -523,20 +523,23 @@ files = [
 ]
 
 [[package]]
-name = "object-storage"
+name = "object-storage-charmlib"
 version = "0.1.0"
-description = "Common interface lib for providers and requirers of object storage relations"
+description = "Common charm lib for providers and requirers of object storage relation interfaces"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = []
 develop = false
 
+[package.dependencies]
+ops = ">=2.0.0"
+
 [package.source]
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "lib-as-python-package"
-resolved_reference = "1963eba29d1aca169966784324091feea6a121fe"
+reference = "HEAD"
+resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
 subdirectory = "lib"
 
 [[package]]
@@ -1658,4 +1661,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "428526379f868c58ab2620856d5b3d451be6e739bc36fbc764fdf58e52eb538f"
+content-hash = "ba070d6d40c6114744a263a556bfe78ec2c07a935e014e4bcdf1d54a8b7f1bd9"
