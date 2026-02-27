@@ -6,14 +6,14 @@
 
 from typing import TYPE_CHECKING, Dict
 
-from charms.data_platform_libs.v0.object_storage import (
+from data_platform_helpers.advanced_statuses.models import StatusObject
+from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
+from data_platform_helpers.advanced_statuses.types import Scope
+from object_storage import (
     GcsStorageProviderEventHandlers,
     StorageConnectionInfoGoneEvent,
     StorageConnectionInfoRequestedEvent,
 )
-from data_platform_helpers.advanced_statuses.models import StatusObject
-from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
-from data_platform_helpers.advanced_statuses.types import Scope
 from ops import Relation
 
 from constants import ALLOWED_OVERRIDES, GCS_RELATION_NAME
@@ -35,7 +35,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         self.charm = charm
         self.state = context
 
-        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm)
+        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm, GCS_RELATION_NAME)
 
         self.framework.observe(
             self.gcs_provider.on.storage_connection_info_requested,
