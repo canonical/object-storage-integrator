@@ -5,14 +5,11 @@
 """Azure Storage Provider related event handlers."""
 
 import ops
-from charms.data_platform_libs.v0.azure_storage import AzureStorageProviderData
 from ops import CharmBase
 from ops.charm import ConfigChangedEvent, StartEvent
 
-from constants import AZURE_RELATION_NAME, LEGACY_AZURE_RELATION_NAME
 from core.context import Context
 from events.base import BaseEventHandler, compute_status, defer_on_premature_data_access_error
-from managers.azure_storage import AzureStorageManager
 from utils.logging import WithLogging
 
 
@@ -25,32 +22,10 @@ class GeneralEvents(BaseEventHandler, WithLogging):
         self.charm = charm
         self.context = context
 
-        self.azure_provider_data = AzureStorageProviderData(self.charm.model, AZURE_RELATION_NAME)
-        self.azure_storage_manager = AzureStorageManager(self.azure_provider_data)
-
-        # DEPRECATED: This code is here only for backward compatibility.
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_provider_data = AzureStorageProviderData(
-            self.charm.model, LEGACY_AZURE_RELATION_NAME
-        )
-        self.legacy_azure_storage_manager = AzureStorageManager(self.legacy_azure_provider_data)
-        self.framework.observe(
-            self.charm.on[LEGACY_AZURE_RELATION_NAME].relation_joined, self._log_deprecation_notice
-        )
-
         self.framework.observe(self.charm.on.start, self._on_start)
         self.framework.observe(self.charm.on.update_status, self._on_update_status)
         self.framework.observe(self.charm.on.config_changed, self._on_config_changed)
         self.framework.observe(self.charm.on.secret_changed, self._on_secret_changed)
-
-    def _log_deprecation_notice(self, *args) -> None:
-        """Log a deprecation notice for legacy interface.
-
-        TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        """
-        self.logger.warning(
-            "The interface 'azure' has been deprecated. Please use 'azure_storage' interface instead."
-        )
 
     @compute_status
     def _on_start(self, _: StartEvent) -> None:
@@ -71,10 +46,14 @@ class GeneralEvents(BaseEventHandler, WithLogging):
             return
 
         self.logger.debug(f"Config changed... Current configuration: {self.charm.config}")
-        self.azure_storage_manager.update(self.context.azure_storage)
+        self.charm.azure_storage_provider_events.azure_storage_manager.update(
+            self.context.azure_storage
+        )
 
         # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_storage_manager.update(self.context.azure_storage)
+        self.charm.azure_storage_provider_events.legacy_azure_storage_manager.update(
+            self.context.azure_storage
+        )
 
     @compute_status
     @defer_on_premature_data_access_error
@@ -96,7 +75,11 @@ class GeneralEvents(BaseEventHandler, WithLogging):
         if self.charm.config.get("credentials") != secret.id:
             return
 
-        self.azure_storage_manager.update(self.context.azure_storage)
+        self.charm.azure_storage_provider_events.azure_storage_manager.update(
+            self.context.azure_storage
+        )
 
         # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_storage_manager.update(self.context.azure_storage)
+        self.charm.azure_storage_provider_events.legacy_azure_storage_manager.update(
+            self.context.azure_storage
+        )
