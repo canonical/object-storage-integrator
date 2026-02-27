@@ -16,8 +16,8 @@ ops = ">=2.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "fix/missing-imports"
-resolved_reference = "04e587f67cf049c54ba3c0adf29715520b8bcc51"
+reference = "HEAD"
+resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
 subdirectory = "lib"
 
 [[package]]
@@ -123,4 +123,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "df2b5ea5c65f9cc1e565f4f2072635dad99b4328feeb1a1faa7f489a62f2b80f"
+content-hash = "b6178ca57659cbcc39544726d5580b0997d4960db3fb81bd2942ff162c969b32"

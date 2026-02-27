@@ -52,8 +52,8 @@ ops = ">=2.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "fix/missing-imports"
-resolved_reference = "04e587f67cf049c54ba3c0adf29715520b8bcc51"
+reference = "HEAD"
+resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
 subdirectory = "lib"
 
 [[package]]
@@ -374,4 +374,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "637a90d84cfe050d64eb1f7d385684cff46a99bf60a7779e08a1ddd50190594e"
+content-hash = "30c2d882dc09ab95392c56d2fabad1312a6203d4ec3df080fb82c353dcc0679a"
