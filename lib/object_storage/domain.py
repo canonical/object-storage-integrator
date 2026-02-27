@@ -60,7 +60,7 @@ S3Info = TypedDict(
         "path": str,
         "s3-api-version": str,
         "s3-uri-style": str,
-        "tls-ca-chain": str,
+        "tls-ca-chain": List[str],
         "delete-older-than-days": str,
     },
     total=False,
