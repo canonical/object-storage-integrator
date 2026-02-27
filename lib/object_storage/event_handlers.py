@@ -7,9 +7,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from abc import abstractmethod
 from typing import (
+    Any,
     Dict,
     Iterable,
     Optional,
@@ -422,9 +424,7 @@ class StorageProviderEventHandlers(EventHandlers):
             relation=event.relation, app=event.app, unit=event.unit
         )
 
-    def set_storage_connection_info(
-        self, relation_id: str, data: Dict[str, Optional[str]]
-    ) -> None:
+    def set_storage_connection_info(self, relation_id: str, data: Dict[str, Any]) -> None:
         """Set the storage connection info for a relation.
 
         Args:
@@ -433,4 +433,6 @@ class StorageProviderEventHandlers(EventHandlers):
         """
         # Replace null values with empty strings, as Juju databag does not allow null values.
         data = {k: (v if v is not None else "") for k, v in data.items()}
+        if data.get("tls-ca-chain"):
+            data["tls-ca-chain"] = json.dumps(data["tls-ca-chain"])
         return self.relation_data.update_relation_data(relation_id=relation_id, data=data)
