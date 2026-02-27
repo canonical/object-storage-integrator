@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import TYPE_CHECKING, cast
 
@@ -147,6 +148,8 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                     continue
                 relation_data = relation_data | {"bucket": relation_bucket_value}
 
+            if relation_data.get("tls-ca-chain"):
+                relation_data["tls-ca-chain"] = json.dumps(relation_data["tls-ca-chain"])
             self.s3_provider.set_storage_connection_info(relation_id, cast(dict, relation_data))
 
         self._handle_status(missing_buckets, invalid_buckets)

@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import ipaddress
-import json
 import os
 import tempfile
 from collections.abc import Generator
@@ -35,6 +34,11 @@ if TYPE_CHECKING:
     from types_boto3_s3.service_resource import Bucket, S3ServiceResource
 else:
     S3ServiceResource = Any
+
+
+BOTO_CONNECT_TIMEOUT = 5
+BOTO_READ_TIMEOUT = 10
+BOTO_RETRY_CONFIG = {"mode": "standard"}
 
 
 class S3BucketError(Exception):
@@ -87,8 +91,7 @@ class S3Manager(WithLogging):
         extra_args: dict[str, object] = {}
 
         if self.conn_info.get("tls-ca-chain"):
-            ca_chain: list[str] = json.loads(self.conn_info["tls-ca-chain"])
-            ca_chain_pem: str = "\n".join(ca_chain)
+            ca_chain_pem: str = "\n".join(self.conn_info["tls-ca-chain"])
             tmp = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".pem")
             tmp.write(ca_chain_pem)
             tmp.flush()
@@ -100,7 +103,11 @@ class S3Manager(WithLogging):
         if self.conn_info.get("region"):
             extra_args["region_name"] = self.conn_info.get("region")
 
-        config = None
+        config = Config(
+            connect_timeout=BOTO_CONNECT_TIMEOUT,
+            read_timeout=BOTO_READ_TIMEOUT,
+            retries=BOTO_RETRY_CONFIG,  # type: ignore[arg-type]
+        )
 
         # Set up proxy configuration only if the endpoint is not in no_proxy list
         if not self.skip_proxy(self.conn_info.get("endpoint", "")):
@@ -110,7 +117,12 @@ class S3Manager(WithLogging):
             if os.environ.get("JUJU_CHARM_HTTP_PROXY"):
                 proxy_config["http"] = os.environ["JUJU_CHARM_HTTP_PROXY"]
             if proxy_config:
-                config = Config(proxies=proxy_config)
+                config = Config(
+                    connect_timeout=BOTO_CONNECT_TIMEOUT,
+                    read_timeout=BOTO_READ_TIMEOUT,
+                    retries=BOTO_RETRY_CONFIG,  # type: ignore[arg-type]
+                    proxies=proxy_config,
+                )
         session: Session = boto3.Session(
             aws_access_key_id=self.conn_info.get("access-key"),
             aws_secret_access_key=self.conn_info.get("secret-key"),
