@@ -87,6 +87,7 @@ jobs:
 
   release-to-test-branch:
     name: Release charm to test branch
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         charm:
