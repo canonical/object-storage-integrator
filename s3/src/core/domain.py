@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import base64
 import binascii
-import json
 import logging
 import re
-from typing import Annotated, Literal
+from typing import Annotated, List, Literal
 
 from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
@@ -100,7 +99,7 @@ class CharmConfig(BaseConfigModel):
 
     @field_validator("tls_ca_chain")
     @classmethod
-    def validate_tls_ca_chain(cls, value: str) -> str | None:
+    def validate_tls_ca_chain(cls, value: str) -> List[str] | None:
         """Validate the `tls-ca-chain` config option."""
         if value is None:
             return None
@@ -110,7 +109,7 @@ class CharmConfig(BaseConfigModel):
             raise ValueError("The given TLS CA chain is not a valid base64 encoded string")
 
         chain_list = parse_ca_chain(decoded_value)
-        return json.dumps(chain_list)
+        return chain_list
 
     @field_validator("endpoint")
     @classmethod
