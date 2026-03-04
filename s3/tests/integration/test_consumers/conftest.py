@@ -30,7 +30,7 @@ def pytest_addoption(parser):
         "--base",
         action="store",
         default=None,
-        help="Base of the charm to test (required)",
+        help="Base of the charm to test (default: None)",
     )
     group.addoption(
         "--channel-v0",
