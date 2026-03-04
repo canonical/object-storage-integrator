@@ -7,8 +7,9 @@ environment:
   SUBSTRATE: microk8s
 execute: |
   cd "$SPREAD_PATH/s3"
-  tox run -e integration -- -x "tests/integration/$TEST_MODULE" \
+  tox run -e integration -- -x "tests/integration/$TEST_MODULE" --trust \
                             --charm mysql-k8s \
+                            --base ubuntu@22.04 \
                             --channel-v1 8.0/edge/pr88
-                            # --channel-v0 8.0/edge 
+                            # --channel-v0 8.4/edge 
                             # --upgrade TODO: Enable this scenario when https://github.com/canonical/mysql-operators/issues/92 is resolved.
