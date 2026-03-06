@@ -70,7 +70,7 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.1.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v42.0.1
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: false
@@ -101,7 +101,7 @@ jobs:
       - lint
       - unit-test
       - build
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v40.0.2
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v42.0.1
     with:
       track: ${{ matrix.charm.track }}
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
