@@ -28,7 +28,7 @@ class GcsRequirerEvents(Object):
         self.charm = charm
         self.relation_name = relation_name
         self.storage = GCSRequirer(
-            charm, relation_name, overrides=self.overrides_from_config()
+            charm, relation_name, requests=self.requests_from_config()
         )
         self.framework.observe(
             self.storage.on.storage_connection_info_changed, self._on_conn_info_changed
@@ -40,7 +40,7 @@ class GcsRequirerEvents(Object):
         self.framework.observe(self.charm.on.config_changed, self._on_config_changed)
 
     def _on_config_changed(self, _):
-        self.storage.set_overrides(self.overrides_from_config(), push=True)
+        self.storage.set_overrides(self.requests_from_config(), push=True)
         self.refresh_status()
 
     def _on_conn_info_changed(self, event):
@@ -72,7 +72,7 @@ class GcsRequirerEvents(Object):
         else:
             self.charm.unit.status = WaitingStatus("waiting for GCS credentials")
 
-    def overrides_from_config(self) -> Dict[str, str]:
+    def requests_from_config(self) -> Dict[str, str]:
         c = self.charm.config
         bucket = (c.get("bucket") or "").strip()
 
