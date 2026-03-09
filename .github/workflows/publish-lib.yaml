@@ -6,6 +6,8 @@ name: Publish object-storage-charmlib to PyPI
 
 env:
   BRANCH: ${{ github.ref_name }}
+permissions:
+  contents: read
 
 on:
   push:
