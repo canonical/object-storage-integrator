@@ -423,16 +423,3 @@ class StorageProviderEventHandlers(EventHandlers):
         self.on.storage_connection_info_requested.emit(
             relation=event.relation, app=event.app, unit=event.unit
         )
-
-    def set_storage_connection_info(self, relation_id: str, data: Dict[str, Any]) -> None:
-        """Set the storage connection info for a relation.
-
-        Args:
-            relation_id: ID of relation to set storage connection info for.
-            data: Connection info to set for the relation.
-        """
-        # Replace null values with empty strings, as Juju databag does not allow null values.
-        data = {k: (v if v is not None else "") for k, v in data.items()}
-        if data.get("tls-ca-chain"):
-            data["tls-ca-chain"] = json.dumps(data["tls-ca-chain"])
-        return self.relation_data.update_relation_data(relation_id=relation_id, data=data)
