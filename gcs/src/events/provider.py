@@ -10,7 +10,7 @@ from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
 from data_platform_helpers.advanced_statuses.types import Scope
 from object_storage import (
-    GcsStorageProviderEventHandlers,
+    GCSProvider,
     StorageConnectionInfoGoneEvent,
     StorageConnectionInfoRequestedEvent,
 )
@@ -35,7 +35,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         self.charm = charm
         self.state = context
 
-        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm, GCS_RELATION_NAME)
+        self.gcs_provider = GCSProvider(self.charm, GCS_RELATION_NAME)
 
         self.framework.observe(
             self.gcs_provider.on.storage_connection_info_requested,
