@@ -7,3 +7,5 @@ This repository is the monorepo for the various object storage integrator charms
 4. [Object Storage Charmlib](./lib/README.md) -- a charmlib used by the aforementioned integrator charms, and also used by the consumer charms that want to relate to the aforementioned integrator charms.
 
 Please refer to the README in respective component subdirectories for the documentation on the specific component.
+
+For older implementation of `s3-integrator` from track `1/`, please refer to https://github.com/canonical/s3-integrator.

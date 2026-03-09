@@ -1,7 +1,7 @@
 # Object-Storage-integrator
 [![Charmhub](https://charmhub.io/azure-storage-integrator/badge.svg)](https://charmhub.io/azure-storage-integrator)
-[![Release](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml)
-[![Tests](https://github.com/canonical/object-storage-integrators/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrators/actions/workflows/ci.yaml)
+[![Release](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
+[![Tests](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml)
 
 ## Description
 

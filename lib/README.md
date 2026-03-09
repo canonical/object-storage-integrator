@@ -1,6 +1,6 @@
-A lightweight library for communicating between Cloud storages provider and requirer charms.
+# Object Storage Charmlib
 
-This library implements a common object-storage contract and the relation/event plumbing to publish
+The `object-storage-charmlib` is a Python charm interface library for communication between object storage integrator charms and the requirer charms that relate with it. This library implements a common object-storage contract and the relation/event plumbing to publish
 and consume storage connection info.
 
 The following object storage providers are currently supported:
@@ -8,15 +8,15 @@ The following object storage providers are currently supported:
 2. Azure Blob Storage / Azure Data Lake Storage (ADLS)
 3. Google Cloud Storage (GCS)
 
-### Example Usage for S3 Provider and Requirer
-
 When two charms are related over an object storage relation interface, the one providing the object storage
 credentials is termed as Provider and the one that consumes those credentials is termed as Requirer. A provider 
 publishes the payload when the requirer asks for it.
 
-The following is a sample Provider charm code, that provides S3 bucket and credentials. 
+## Usage: S3Provider
+The `S3Provider` class can be used by the provider charm (eg, `s3-integrator`) to share S3 bucket and connection information to the requirer charm (eg, `postgresql`).
 
-Example:
+The provider needs to instantiate the `S3Provider` class, and then listen to `storage_connection_info_requested` custom event. When handling the request, the provider needs to set the S3 storage connection information using the function `set_storage_connection_info` in the `S3Provider` class.
+
 ```python
 
 from object_storage import (
@@ -43,14 +43,24 @@ class ExampleProviderCharm(CharmBase):
         bucket_name = self.charm.config.get("bucket")
         access_key, secret_key = prepare_keys(self.charm.config.get("credentials"))
 
-        self.s3_provider.update_relation_data(
-            {"bucket": bucket_name, "access-key": access_key, "secret-key": secret_key}
+        self.s3_provider.set_storage_connection_info(
+            relation_id=event.relation.id,
+            data={"bucket": bucket_name, "access-key": access_key, "secret-key": secret_key}
         )
 
 
 if __name__ == "__main__":
     main(ExampleProviderCharm)
 ```
+
+
+## Usage: S3Requirer
+The `S3Provider` class can be used by the provider charm (eg, `s3-integrator`) to share S3 bucket and connection information to the requirer charm (eg, `postgresql`).
+
+The provider needs to instantiate the `S3Provider` class, and then listen to `storage_connection_info_requested` custom event. When handling the request, the provider needs to set the S3 storage connection information using the function `set_storage_connection_info` in the `S3Provider` class.
+
+
+
 
 
 A requirer consumes the published fields. An example of requirer charm using S3 storage is the following:

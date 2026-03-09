@@ -16,9 +16,8 @@ from object_storage.exceptions import (
     PrematureDataAccessError,
 )
 from object_storage.gcs import (
-    GcsStorageProviderData,
-    GcsStorageProviderEventHandlers,
-    GcsStorageRequires,
+    GCSRequirer,
+    GCSProvider
 )
 from object_storage.s3 import S3Provider, S3Requirer
 
@@ -33,9 +32,8 @@ __all__ = [
     "AzureStorageRequirer",
     # GCS classes
     "GcsInfo",
-    "GcsStorageRequires",
-    "GcsStorageProviderData",
-    "GcsStorageProviderEventHandlers",
+    "GCSProvider",
+    "GCSRequirer",
     # Events
     "StorageConnectionInfoRequestedEvent",
     "StorageConnectionInfoChangedEvent",
