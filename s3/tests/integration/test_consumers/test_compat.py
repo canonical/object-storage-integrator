@@ -112,6 +112,7 @@ def test_provider_v1_compat_with_requirer_v1(
             "Upgrade tests are enabled, skipping provider-v1 <> requirer-v1 test,"
             " as it is covered in the upgrade scenario test."
         )
+    assert requirer_charm_v1 is not None
     verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v1)
 
 
@@ -129,6 +130,7 @@ def test_provider_v1_compat_with_requirer_v0(
             "Upgrade tests are enabled, skipping provider-v1 <> requirer-v0 test,"
             " as it is covered in the upgrade scenario test."
         )
+    assert requirer_charm_v0 is not None
     verify_cross_compatibility(juju, s3_integrator_v1, requirer_charm_v0)
 
 
@@ -140,6 +142,7 @@ def test_provider_v0_compat_with_requirer_v1(
     """Test the requirer v1 charm with provider v0 charm."""
     if not requirer_charm_v1:
         pytest.skip("No requirer-v1 charm specified, skipping test.")
+    assert requirer_charm_v1 is not None
     verify_cross_compatibility(juju, s3_integrator_v0, requirer_charm_v1)
 
 
@@ -158,6 +161,8 @@ def test_upgrade_scenario(
         pytest.skip(
             "Both requirer-v0 and requirer-v1 charms must be specified for upgrade scenario, skipping test."
         )
+    assert requirer_charm_v0 is not None
+    assert requirer_charm_v1 is not None
     verify_upgrade_scenario(
         juju, s3_integrator_v0, requirer_charm_v0, s3_integrator_v1, requirer_charm_v1
     )

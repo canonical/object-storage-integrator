@@ -4,8 +4,6 @@
 # See LICENSE file for licensing details.
 
 import logging
-import random
-import string
 from pathlib import Path
 
 import jubilant
@@ -13,6 +11,7 @@ import pytest
 
 from ..domain import S3ConnectionInfo
 from .helpers import CharmSpec
+from ..helpers import create_bucket, delete_bucket
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +104,12 @@ def juju(request: pytest.FixtureRequest):
 
 
 @pytest.fixture(scope="function")
-def bucket_name() -> str:
-    return f"s3-integrator-{''.join(random.sample(string.ascii_lowercase, 6))}"
+def pre_created_bucket(s3_root_user, bucket_name):
+    bucket = create_bucket(s3_root_user, bucket_name)
+    assert bucket is not None
+    yield bucket.name
+    deleted = delete_bucket(s3_root_user, bucket_name)
+    assert deleted
 
 
 @pytest.fixture(scope="function")
@@ -116,13 +119,13 @@ def should_test_upgrade(request: pytest.FixtureRequest) -> bool:
 
 @pytest.fixture
 def s3_integrator_v1(
-    s3_charm: Path, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
+    s3_charm: Path, s3_root_user: S3ConnectionInfo, pre_created_bucket: str, platform: str
 ) -> CharmSpec:
     return CharmSpec(
         charm=s3_charm,
         app="s3-integrator-v1",
         config={
-            "bucket": bucket_name,
+            "bucket": pre_created_bucket,
             "endpoint": s3_root_user.endpoint,
             "region": s3_root_user.region,
             "tls-ca-chain": s3_root_user.tls_ca_chain,
@@ -143,14 +146,17 @@ def s3_integrator_v1(
 
 @pytest.fixture
 def s3_integrator_v0(
-    request: pytest.FixtureRequest, s3_root_user: S3ConnectionInfo, bucket_name: str, platform: str
+    request: pytest.FixtureRequest,
+    s3_root_user: S3ConnectionInfo,
+    pre_created_bucket: str,
+    platform: str,
 ) -> CharmSpec:
     return CharmSpec(
         charm="s3-integrator",
         app="s3-integrator-v0",
         channel="1/stable",
         config={
-            "bucket": bucket_name,
+            "bucket": pre_created_bucket,
             "endpoint": s3_root_user.endpoint,
             "region": s3_root_user.region,
             "tls-ca-chain": s3_root_user.tls_ca_chain,
