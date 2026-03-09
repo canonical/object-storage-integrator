@@ -28,19 +28,19 @@ class GCSRequirer(StorageRequirerData[GCS], StorageRequirerEventHandlers):
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        overrides: Optional requirer-side overrides to write on join/push.
+        requests: Optional requirer-side requests to write on join/push.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        overrides: dict[str, str] | None = None,
+        bucket: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=GCS_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"bucket": bucket})
 
 
 class GCSProvider(StorageProviderData, StorageProviderEventHandlers):

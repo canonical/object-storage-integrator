@@ -29,7 +29,8 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        overrides: Optional requirer-side overrides to write on join/push.
+        bucket: Optional requirer-side request for a particular bucket.
+        path: Optional requirer-side request for a particular path.
     """
 
     def __init__(
@@ -38,12 +39,12 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
         relation_name: str,
         bucket: str = "",
         path: str = "",
-    ):
+    ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=S3_STORAGE_CONTRACT
         )
         StorageRequirerEventHandlers.__init__(
-            self, charm, self, overrides={"bucket": bucket, "path": path}
+            self, charm, self, requests={"bucket": bucket, "path": path}
         )
 
     def is_provider_schema_v0(self, relation: Relation) -> bool:

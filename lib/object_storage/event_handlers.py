@@ -132,7 +132,7 @@ class StorageRequirerEventHandlers(EventHandlers):
     Args:
         charm (CharmBase): The charm being configured.
         relation_data (StorageRequirerData): Helper for relation data and secrets.
-        overrides (Dict): The key-value pairs that being overridden in the relation data.
+        requests (Dict): The key-value pairs that being overridden in the relation data.
     """
 
     on = StorageRequirerEvents()  # pyright: ignore[reportAssignmentType]
@@ -141,7 +141,7 @@ class StorageRequirerEventHandlers(EventHandlers):
         self,
         charm: CharmBase,
         relation_data: StorageRequirerData,
-        overrides: dict[str, str] | None = None,
+        requests: dict[str, str] | None = None,
     ):
         """Initialize the requirer event handlers.
 
@@ -151,7 +151,7 @@ class StorageRequirerEventHandlers(EventHandlers):
         Args:
             charm (CharmBase): The parent charm instance.
             relation_data (StorageRequirerData): Requirer-side relation data helper.
-            overrides (Dict): The key-value pairs that being overridden in the relation data.
+            requests (Dict): The key-value pairs that being overridden in the relation data.
         """
         super().__init__(charm, relation_data)
 
@@ -160,8 +160,7 @@ class StorageRequirerEventHandlers(EventHandlers):
         self.local_app = self.charm.model.app
         self.local_unit = self.charm.unit
         self.contract = relation_data.contract
-        self.overrides = overrides
-        self._last_overrides: dict[str, str] = {}
+        self.requests = requests
 
     def _active_relations(self) -> list[Relation]:
         return list(self.charm.model.relations.get(self.relation_name, []))
@@ -207,57 +206,27 @@ class StorageRequirerEventHandlers(EventHandlers):
 
         self.relation_data._register_secrets_to_relation(event.relation, secret_keys)
 
-    def set_overrides(
-        self,
-        overrides: dict[str, str] | None,
-        *,
-        push: bool = True,
-        relation_id: int | None = None,
-    ) -> None:
-        """Update default overrides for all relations using push True.
+    def update_requests(self, relation_id: int | None = None, **requests) -> None:
+        """Update requests for a specific relation or all active relations.
 
         Args:
-          overrides: New overrides (None means {}).
-          push: If True, also write to existing relation(s) now.
-          relation_id: Limit pushing to a specific relation id.
-        """
-        new_overrides = (overrides or {}).copy()
-        if new_overrides == self._last_overrides == self.overrides:
-            return
-        self.overrides = new_overrides
-
-        if not push:
-            return
-
-        if relation_id is not None:
-            self.write_overrides(new_overrides, relation_id=relation_id)
-        else:
-            for rel in self._active_relations():
-                self.write_overrides(new_overrides, relation_id=rel.id)
-
-        self._last_overrides = new_overrides.copy()
-
-    def write_overrides(
-        self,
-        overrides: dict[str, str],
-        relation_id: int | None = None,
-    ) -> None:
-        """Write/merge override keys into the requirer app databag.
-
-        Only the leader writes. ``None`` values are ignored.
-
-        Args:
-            overrides (dict[str, str]): Keys/values to merge into app databag.
             relation_id (int | None): Specific relation id to target; if omitted,
                 applies to all active relations for this endpoint.
+            **requests: Key-value pairs to update in the requests.
         """
-        if not overrides:
+        if not requests:
             return
         if not self.charm.unit.is_leader():
             return
+        rel_ids_to_update = []
+        if relation_id is not None:
+            rel_ids_to_update.append(relation_id)
+        else:
+            rel_ids_to_update += [rel.id for rel in self._active_relations()]
 
-        payload = {k: v for k, v in overrides.items() if v is not None}
-        self.relation_data.update_relation_data(relation_id, payload)
+        payload = {k: v for k, v in requests.items() if v is not None}
+        for rel_id in rel_ids_to_update:
+            self.relation_data.update_relation_data(rel_id, payload)
 
     def _on_relation_created_event(self, event: RelationCreatedEvent) -> None:
         """Event emitted when the relation is created."""
@@ -296,12 +265,12 @@ class StorageRequirerEventHandlers(EventHandlers):
             )
 
     def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
-        """Handle relation-joined, apply optional requirer-side overrides."""
+        """Handle relation-joined, apply optional requirer-side requests."""
         logger.info(f"Storage relation ({event.relation.name}) joined...")
-        if not self.overrides or not self.charm.unit.is_leader():
+        if not self.requests or not self.charm.unit.is_leader():
             return
 
-        payload = {k: v for k, v in self.overrides.items() if v is not None}
+        payload = {k: v for k, v in self.requests.items() if v is not None}
         payload[SCHEMA_VERSION_FIELD] = str(SCHEMA_VERSION)
         self.relation_data.update_relation_data(event.relation.id, payload)
 

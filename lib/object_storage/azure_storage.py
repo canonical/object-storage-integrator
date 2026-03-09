@@ -43,9 +43,7 @@ class AzureStorageRequirer(StorageRequirerData[AzureStorage], StorageRequirerEve
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=AZURE_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(
-            self, charm, self, overrides={"container": container}
-        )
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"container": container})
 
     def is_provider_schema_v0(self, relation: Relation) -> bool:
         """Check if the Azure storage provider is using schema v0."""
