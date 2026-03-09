@@ -876,7 +876,9 @@ class StorageProviderData(Data):
             data: Connection info to set for the relation.
         """
         # Replace null values with empty strings, as Juju databag does not allow null values.
-        data = {k: (str(v) if v is not None else "") for k, v in data.items()}
+        data = {k: (v if v is not None else "") for k, v in data.items()}
         if data.get("tls-ca-chain"):
             data["tls-ca-chain"] = json.dumps(data["tls-ca-chain"])
-        return self.relation_data.update_relation_data(relation_id=relation_id, data=data)
+        if data.get("delete-older-than-days"):
+            data["delete-older-than-days"] = str(data["delete-older-than-days"])
+        return self.update_relation_data(relation_id=relation_id, data=data)
