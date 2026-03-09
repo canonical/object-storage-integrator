@@ -52,8 +52,8 @@ ops = ">=2.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "HEAD"
-resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
+reference = "lib/gcs-update"
+resolved_reference = "39382c4549d6929cd9650d02ebdafc4846fada26"
 subdirectory = "lib"
 
 [[package]]
@@ -374,4 +374,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "30c2d882dc09ab95392c56d2fabad1312a6203d4ec3df080fb82c353dcc0679a"
+content-hash = "b19b8bbcb9662a77f1dac16aa2a18d8f1da58500e763e5554ab4e9e7277831a2"
