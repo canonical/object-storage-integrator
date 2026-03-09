@@ -10,6 +10,6 @@ execute: |
   tox run -e integration -- -x "tests/integration/$TEST_MODULE" --trust \
                             --charm mysql-k8s \
                             --base ubuntu@24.04 \
-                            --channel-v1 8.4/edge/pr-88
-                            --channel-v0 8.4/edge/pr-105
+                            --channel-v1 8.4/edge/pr-88 \
+                            --channel-v0 8.4/edge/pr-105 \
                             --upgrade
