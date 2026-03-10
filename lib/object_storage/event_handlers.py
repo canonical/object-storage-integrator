@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from typing import (
+    Dict,
     Iterable,
     Optional,
     cast,
@@ -206,13 +207,15 @@ class StorageRequirerEventHandlers(EventHandlers):
 
         self.relation_data._register_secrets_to_relation(event.relation, secret_keys)
 
-    def update_requests(self, relation_id: int | None = None, **requests) -> None:
+    def update_requests(
+        self, relation_id: int | None = None, requests: Dict[str, str] | None = None
+    ) -> None:
         """Update requests for a specific relation or all active relations.
 
         Args:
             relation_id (int | None): Specific relation id to target; if omitted,
                 applies to all active relations for this endpoint.
-            **requests: Key-value pairs to update in the requests.
+            requests (Dict[str, str] | None): Key-value pairs to update in the requests.
         """
         if not requests:
             return

@@ -1,6 +1,7 @@
 """Module containing S3 specific relation classes."""
 
 import logging
+from typing import Dict
 
 from ops import CharmBase, Relation, RelationChangedEvent
 
@@ -29,23 +30,21 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        bucket: Optional requirer-side request for a particular bucket.
-        path: Optional requirer-side request for a particular path.
+        requests: Optional requests from the requirer charm, may include requests such as:
+            bucket: a specific bucket name requested by the requirer charm
+            path: a specific path requested by the requirer charm
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        bucket: str = "",
-        path: str = "",
+        requests: Dict[str, str],
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=S3_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(
-            self, charm, self, requests={"bucket": bucket, "path": path}
-        )
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests=requests)
 
     def is_provider_schema_v0(self, relation: Relation) -> bool:
         """Check if the S3 provider is using schema v0."""
