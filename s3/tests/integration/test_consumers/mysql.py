@@ -1,5 +1,6 @@
 import json
 import logging
+
 from jubilant import Juju
 from tenacity import (
     retry,

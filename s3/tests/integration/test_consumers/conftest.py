@@ -9,9 +9,9 @@ from pathlib import Path
 import jubilant
 import pytest
 
-from ..domain import S3ConnectionInfo
-from .helpers import CharmSpec
-from ..helpers import create_bucket, delete_bucket
+from tests.integration.domain import S3ConnectionInfo
+from tests.integration.helpers import create_bucket, delete_bucket
+from tests.integration.test_consumers.helpers import CharmSpec
 
 logger = logging.getLogger(__name__)
 
