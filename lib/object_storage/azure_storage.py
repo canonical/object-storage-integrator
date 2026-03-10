@@ -39,7 +39,7 @@ class AzureStorageRequirer(StorageRequirerData[AzureStorage], StorageRequirerEve
         self,
         charm: CharmBase,
         relation_name: str,
-        requests: Dict[str, str],
+        requests: Dict[str, str] | None = None,
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=AZURE_STORAGE_CONTRACT

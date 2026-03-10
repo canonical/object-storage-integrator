@@ -39,7 +39,7 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
         self,
         charm: CharmBase,
         relation_name: str,
-        requests: Dict[str, str],
+        requests: Dict[str, str] | None = None,
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=S3_STORAGE_CONTRACT
