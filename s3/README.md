@@ -27,12 +27,12 @@ This is an operator charm providing an integrator for connecting to S3.
 
 1. First off all, deploy the `s3-integrator` charm as:
    ```
-   juju deploy s3-integrator --channel=<CHANNEL>
+   juju deploy s3-integrator --channel=2/edge
    ```
 
 2. Configure the S3 Integrator charm as:
    ```
-   juju config s3-integrator bucket=mybucket
+   juju config s3-integrator bucket=mybucket path=mypath endpoint=http://my-endpoint
    ```
 
 3. Add a new secret to Juju, and grant its permissions to s3-integrator:
@@ -89,6 +89,98 @@ The S3 Integrator charm is now able to create a bucket on its own, if it finds t
 The S3 Integrator charm will share the bucket information to the charms that are related to it only after ensuring the bucket exists and is ready for use. For this purpose, the charm will try to call `ListObjectsV2` action on the given bucket + path combination. If the charm finds that it cannot run this action on the given set of bucket and path, it won't share this bucket to the related charms.
 
 
+## Integrating your charm with `s3-integrator`
+
+Charmed applications can enable the integration with the `s3-integrator` charm over the `s3` relation interface, allowing them to consume the S3 bucket and connection information shared by the `s3-integrator` charm over the Juju relation. 
+
+The first step towards enabling integration with `s3-integrator` is to add a relation endpoint with interface name `s3` to the `requires` section of your charm's metadata.
+
+```yaml
+# file: metadata.yaml
+
+name: foo-bar
+description: A test charm
+
+requires:
+  s3-credentials:
+    interface: s3
+
+```
+
+The recommended way for the requirer charms to consume the `s3` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm (for example, to `pyproject.toml` as follows).
+
+```toml
+# file: pyproject.toml
+
+[tool.poetry.dependencies]
+object-storage-charmlib = "^0.1.0"
+```
+
+Now in your charm code, you need to instantiate the `S3Requirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific bucket name and path from the `s3-integrator` charm.
+
+```python
+# file: charm.py
+
+from object_storage import S3Requirer
+
+class RequirerCharm(CharmBase):
+   def __init__(self, charm: CharmBase):
+      super().__init__(charm, "s3-requirer")
+
+      self.s3_client = S3Requirer(
+         charm=charm,
+         relation_name="s3-credentials",
+         requests={
+            "bucket": "test-bucket",    # bucket requested by the requirer
+            "path": "test-path",        # path requested by the requirer
+         }
+      )
+```
+
+Using this instance of class `S3Requirer`, the requirer charm then needs to listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` and handle them appropriately in the charm code. The event `storage_connection_info_changed` is fired whenever the `s3-integrator` has written new data to the relation databag, which needs to be handled by the requirer charm by updating its state with the new S3 connection information. The event `storage_connection_info_gone` is fired when the relation with `s3-integrator` is broken, which needs to be handled by the requirer charm by updating its state to not use the S3 connection information anymore.
+
+The latest S3 connection information shared by the `s3-integrator` over the relation can be fetched using the utility function `get_storage_connection_info` available in the `S3Requirer` instance.
+
+```python
+# file: charm.py
+
+from object_storage import S3Requirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+
+class RequirerCharm(CharmBase):
+   def __init__(self, charm: CharmBase):
+      super().__init__(charm, "s3-requirer")
+
+      self.s3_client = S3Requirer(
+         charm=charm,
+         relation_name="s3-credentials",
+         requests={
+            "bucket": "test-bucket",    # bucket requested by the requirer
+            "path": "test-path",        # path requested by the requirer
+         }
+      )
+
+      # Observe custom events 
+      self.framework.observe(self.s3_client.on.storage_connection_info_changed, self._on_conn_info_changed)
+      self.framework.observe(self.s3_client.on.storage_connection_info_gone, self._on_conn_info_gone)
+
+
+    def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
+        # access and consume data from the provider
+        connection_info = self.s3_client.get_storage_connection_info()
+        process_connection_info(connection_info)
+
+    def _on_credential_gone(self, event: StorageConnectionInfoGoneEvent):
+        # notify charm code that credentials are removed
+        process_connection_info(None)
+
+```
+
+Once you have your charm built and deployed, you can then integrate with the `s3-integrator` charm with the `juju integrate` command.
+
+```bash
+juju integrate s3-integrator requirer-charm
+```
+
 ## Usage Modes
 The S3 Integrator charm from track `2/` can be used in two different modes, each catering to its own unique use cases
 1. Global bucket and path configuration.
@@ -122,9 +214,11 @@ class MyCharm(CharmBase):
    def __init__(*args, **kwargs):
       s3_client = S3Requirer(
          self, 
-         relation_name="s3", 
-         bucket="custom-requested-bucket", # Bucket requested by the consumer charm
-         path="custom-requested-path"      # Path requested by the consumer charm
+         relation_name="s3-credentials", 
+         requests={
+            "bucket": "custom-requested-bucket", # Bucket requested by the consumer charm
+            "path": "custom-requested-path"      # Path requested by the consumer charm
+         }
       )
 ```
 
