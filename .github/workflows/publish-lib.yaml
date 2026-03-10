@@ -34,9 +34,6 @@ jobs:
       - id: checkout
         name: Checkout repo
         uses: actions/checkout@v6
-        with:
-          ref: ${{ env.BRANCH }}
-          fetch-depth: 0
       - id: setup_python
         name: Setup Python
         uses: actions/setup-python@v6.0.0
