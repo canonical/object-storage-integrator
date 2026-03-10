@@ -70,7 +70,7 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.0.2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.1.0
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: false
@@ -87,6 +87,7 @@ jobs:
 
   release-to-test-branch:
     name: Release charm to test branch
+    if: ${{ github.event_name == 'pull_request' }}
     strategy:
       matrix:
         charm:
