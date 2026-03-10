@@ -38,7 +38,7 @@ class ApplicationCharm(CharmBase):
         # (these events are defined in the database requires charm library).
         bucket = self.config.get("bucket", "")
         path = self.config.get("path", "")
-        self.s3_requirer = S3Requirer(self, S3_RELATION_NAME, bucket=bucket, path=path)
+        self.s3_requirer = S3Requirer(self, S3_RELATION_NAME, requests={"bucket": bucket, "path": path})
 
         # add relation
         self.framework.observe(
@@ -68,7 +68,7 @@ class ApplicationCharm(CharmBase):
         bucket = self.config.get("bucket", "")
         path = self.config.get("path", "")
         if (rel := self.model.get_relation(S3_RELATION_NAME)):
-            self.s3_requirer.update_relation_data(rel.id, {"bucket": bucket, "path": path})
+            self.s3_requirer.update_requests(requests={"bucket": bucket, "path": path})
 
     def _on_relation_joined(self, _: RelationJoinedEvent):
         """On s3 credential relation joined."""

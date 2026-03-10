@@ -1296,7 +1296,7 @@ ops = ">=2.0.0"
 type = "git"
 url = "https://github.com/canonical/object-storage-integrator.git"
 reference = "lib/gcs-update"
-resolved_reference = "39382c4549d6929cd9650d02ebdafc4846fada26"
+resolved_reference = "b601d3c860b5da330a03422a5759c35f3329de31"
 subdirectory = "lib"
 
 [[package]]
