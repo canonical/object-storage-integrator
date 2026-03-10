@@ -37,11 +37,6 @@ class GcsRequirerEvents(Object):
             self.storage.on.storage_connection_info_gone, self._on_conn_info_gone
         )
 
-        self.framework.observe(self.charm.on.config_changed, self._on_config_changed)
-
-    def _on_config_changed(self, _):
-        self.storage.update_requests(requests=self.requests_from_config())
-        self.refresh_status()
 
     def _on_conn_info_changed(self, event):
         payload = self._load_payload(event.relation)
