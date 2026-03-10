@@ -270,11 +270,11 @@ class StorageRequirerEventHandlers(EventHandlers):
     def _on_relation_joined_event(self, event: RelationJoinedEvent) -> None:
         """Handle relation-joined, apply optional requirer-side requests."""
         logger.info(f"Storage relation ({event.relation.name}) joined...")
-        if not self.requests or not self.charm.unit.is_leader():
+        if not self.charm.unit.is_leader():
             return
-
-        payload = {k: v for k, v in self.requests.items() if v is not None}
-        payload[SCHEMA_VERSION_FIELD] = str(SCHEMA_VERSION)
+        payload = {SCHEMA_VERSION_FIELD: str(SCHEMA_VERSION)}
+        if self.requests:
+            payload.update({k: v for k, v in self.requests.items() if v is not None})
         self.relation_data.update_relation_data(event.relation.id, payload)
 
     def _on_relation_changed_event(self, event: RelationChangedEvent) -> None:
