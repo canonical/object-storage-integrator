@@ -30,6 +30,6 @@ class GeneralEvents(Object):
         self.gcs.refresh_status()
 
     def _on_config_changed(self, event: ConfigChangedEvent):
-        ov = self.gcs.overrides_from_config()
+        ov = self.gcs.requests_from_config()
         self.gcs.storage.set_overrides(ov, push=True)
         self.gcs.refresh_status()
