@@ -81,12 +81,10 @@ jobs:
           fetch-depth: 0
       - name: Install poetry
         run: pipx install poetry
-      - name: Check for tag and build package
+      - name: Build the package
         id: build
         working-directory: lib
         run: |
-          VERSION=$(poetry version -s)
-          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           poetry build
       - name: Store the distribution packages
         uses: actions/upload-artifact@v6
