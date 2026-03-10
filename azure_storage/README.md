@@ -38,6 +38,114 @@ This is an operator charm providing an integrator for connecting to Azure Storag
 Now whenever the user changes the configuration options in azure-storage-integrator charm, appropriate event handlers are fired
 so that the charms that consume the relation on the requirer side sees the latest information.
 
+### Further configuration
+
+To configure the Azure Storage Integrator charm, you may provide the following configuration options:
+  
+- `endpoint`: The endpoint URL for the Azure Storage account. This is optional and can be used to override the default endpoint URL that would be generated based on the provided connection-protocol, container and storage-account.
+- `path`: The path inside the container to store objects.
+- `resource-group`: The name of the Azure resource group where the storage account is located.
+- `connection-protocol`: The storage protocol to use when connecting to Azure Storage. Possible values: "wasb", "wasbs" for Azure Blob Storage, "abfs", "abfss" for Azure Data Lake Storage Gen2 and "http", "https" for Azure Blob/Files REST API access.
+
+The only mandatory fields for Azure Storage Integrator are `container`, `storage-account` and `credentials`.
+
+
+## Integrating your charm with `azure-storage-integrator`
+
+Charmed applications can enable the integration with the `azure-storage-integrator` charm over the `azure_storage` relation interface, allowing them to consume the Azure Storage connection information shared by the `azure-storage-integrator` charm over the Juju relation. 
+
+The first step towards enabling integration with `azure-storage-integrator` is to add a relation endpoint with interface name `azure_storage` to the `requires` section of your charm's metadata.
+
+```yaml
+# file: metadata.yaml
+
+name: foo-bar
+description: A test charm
+
+requires:
+  azure-storage-credentials:
+    interface: azure_storage
+
+```
+
+The recommended way for the requirer charms to consume the `azure_storage` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm (for example, to `pyproject.toml` as follows).
+
+```toml
+# file: pyproject.toml
+
+[tool.poetry.dependencies]
+object-storage-charmlib = "^0.1.0"
+```
+
+Now in your charm code, you need to instantiate the `AzureStorageRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific container name from the `azure-storage-integrator` charm.
+
+```python
+# file: charm.py
+
+from object_storage import AzureStorageRequirer
+
+class RequirerCharm(CharmBase):
+   def __init__(self, charm: CharmBase):
+      super().__init__(charm, "azure-storage-requirer")
+
+      self.s3_client = AzureStorageRequirer(
+         charm=charm,
+         relation_name="azure-storage-credentials",
+         requests={
+            "container": "test-container",    # container requested by the requirer
+         }
+      )
+```
+
+Using this instance of class `AzureStorageRequirer`, the requirer charm then needs to listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` and handle them appropriately in the charm code. The event `storage_connection_info_changed` is fired whenever the `azure-storage-integrator` has written new data to the relation databag, which needs to be handled by the requirer charm by updating its state with the new Azure Storage connection information. The event `storage_connection_info_gone` is fired when the relation with `azure-storage-integrator` is broken, which needs to be handled by the requirer charm by updating its state to not use the Azure Storage connection information anymore.
+
+The latest Azure Storage connection information shared by the `azure-storage-integrator` over the relation can be fetched using the utility function `get_storage_connection_info` available in the `AzureStorageRequirer` instance.
+
+```python
+# file: charm.py
+
+from object_storage import AzureStorageRequirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+
+class RequirerCharm(CharmBase):
+    def __init__(self, charm: CharmBase):
+        super().__init__(charm, "azure-storage-requirer")
+
+        self.az_storage_client = AzureStorageRequirer(
+            charm=charm,
+            relation_name="azure-storage-credentials",
+            requests={
+            "container": "test-container",    # container requested by the requirer
+            }
+        )
+
+        # Observe custom events 
+        self.framework.observe(
+            self.az_storage_client.on.storage_connection_info_changed, 
+            self._on_conn_info_changed
+        ) 
+        self.framework.observe(
+            self.az_storage_client.on.storage_connection_info_gone, 
+            self._on_conn_info_gone
+        )
+
+
+    def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
+        # access and consume data from the provider
+        connection_info = self.az_storage_client.get_storage_connection_info()
+        process_connection_info(connection_info)
+
+    def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):
+        # notify charm code that credentials are removed
+        process_connection_info(None)
+
+```
+
+Once you have your charm built and deployed, you can then integrate with the `azure-storage-integrator` charm with the `juju integrate` command.
+
+```bash
+juju integrate azure-storage-integrator requirer-charm
+```
+
 
 ## Security
 Security issues in the Charmed Object Storage Integrator Operator can be reported through [LaunchPad](https://wiki.ubuntu.com/DebuggingSecurity#How%20to%20File). Please do not file GitHub issues about security issues.

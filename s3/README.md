@@ -160,8 +160,14 @@ class RequirerCharm(CharmBase):
       )
 
       # Observe custom events 
-      self.framework.observe(self.s3_client.on.storage_connection_info_changed, self._on_conn_info_changed)
-      self.framework.observe(self.s3_client.on.storage_connection_info_gone, self._on_conn_info_gone)
+      self.framework.observe(
+         self.s3_client.on.storage_connection_info_changed, 
+         self._on_conn_info_changed
+      )
+      self.framework.observe(
+         self.s3_client.on.storage_connection_info_gone, 
+         self._on_conn_info_gone
+      )
 
 
     def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
@@ -169,7 +175,7 @@ class RequirerCharm(CharmBase):
         connection_info = self.s3_client.get_storage_connection_info()
         process_connection_info(connection_info)
 
-    def _on_credential_gone(self, event: StorageConnectionInfoGoneEvent):
+    def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):
         # notify charm code that credentials are removed
         process_connection_info(None)
 
@@ -201,6 +207,8 @@ Similarly, to enforce a path globally for all charms related to `s3-integrator`,
 juju config s3-integrator path=global-path
 ```
 
+When using `s3-integrator` for this usecase, one S3 Integrator app is deployed per bucket, such that all requirer charms that need this bucket are integrated with this instance of S3 Integrator.
+
 
 ### Consumer specific bucket and path configuration
 In this mode, the bucket and/or path is purposefully not set at the `s3-integrator` charm level, such that the related applications can request for a specific bucket and/or path from the `s3-integrator` charm when they relate to it.
@@ -223,6 +231,9 @@ class MyCharm(CharmBase):
 ```
 
 In the case where the `bucket` and/or `path` is both specified at the `s3-integrator` charm level and requested by the consumer charm via the `S3Requirer` class, the value specified in the `s3-integrator` charm level will always take precedence and thus will overwrite the value requested by consumer charm.
+
+Although S3 Integrator is capable of creating different buckets as per the requests of different consumer charms all integrated together with the same instance of S3 Integrator, it is still recommended that a separate instance of S3 Integrator is deployed per bucket, for the ease of maintainance.
+
 
 ## Troubleshooting
 The S3 Integrator charm implements the Advanced Charm Statuses lib, and thus is able to track multiple statuses at the same time. The details regarding various statuses and the recommended action for them can be viewed by running the action `status-detail` on the charm leader unit.
