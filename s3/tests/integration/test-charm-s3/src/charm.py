@@ -38,7 +38,7 @@ class ApplicationCharm(CharmBase):
         # (these events are defined in the database requires charm library).
         bucket = self.config.get("bucket", "")
         path = self.config.get("path", "")
-        self.s3_requirer = S3Requirer(self, S3_RELATION_NAME, requests={"bucket": bucket, "path": path})
+        self.s3_requirer = S3Requirer(self, S3_RELATION_NAME, bucket=bucket, path=path)
 
         # add relation
         self.framework.observe(
