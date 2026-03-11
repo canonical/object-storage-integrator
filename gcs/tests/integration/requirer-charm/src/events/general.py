@@ -31,5 +31,6 @@ class GeneralEvents(Object):
 
     def _on_config_changed(self, event: ConfigChangedEvent):
         requests = self.gcs.requests_from_config()
-        self.gcs.storage.update_requests(requests=requests)
+        bucket = requests.get("bucket", "")
+        self.gcs.storage.update_requests(bucket=bucket)
         self.gcs.refresh_status()

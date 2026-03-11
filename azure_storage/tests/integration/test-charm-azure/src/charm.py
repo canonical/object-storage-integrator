@@ -42,7 +42,7 @@ class ApplicationCharm(CharmBase):
 
         self.first_azure_client = AzureStorageRequirer(self, FIRST_RELATION)
         self.second_azure_client = AzureStorageRequirer(
-            self, SECOND_RELATION, requests={"container": CONTAINER_NAME}
+            self, SECOND_RELATION, container=CONTAINER_NAME
         )
 
         # add relation

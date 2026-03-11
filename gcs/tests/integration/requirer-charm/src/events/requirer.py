@@ -27,8 +27,9 @@ class GcsRequirerEvents(Object):
         super().__init__(charm, "gcs-requirer")
         self.charm = charm
         self.relation_name = relation_name
+        bucket = self.requests_from_config()["bucket"]
         self.storage = GCSRequirer(
-            charm, relation_name, requests=self.requests_from_config()
+            charm, relation_name, bucket=bucket
         )
         self.framework.observe(
             self.storage.on.storage_connection_info_changed, self._on_conn_info_changed
