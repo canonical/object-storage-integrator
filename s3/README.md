@@ -1,6 +1,8 @@
 # S3-integrator
 
-[![Charmhub](https://charmhub.io/s3-integrator/badge.svg)](https://charmhub.io/s3-integrator)
+[![Charmhub](https://charmhub.io/s3-integrator/badge.svg?channel=2/edge)](https://charmhub.io/s3-integrator)
+[![Charmhub](https://charmhub.io/azure-storage-integrator/badge.svg?channel=latest/edge)](https://charmhub.io/azure-storage-integrator)
+[![Charmhub](https://charmhub.io/gcs-integrator/badge.svg?channel=1/edge)](https://charmhub.io/gcs-integrator)
 
 <!-- TODO(docs): Add the proper badge both here and in azure-storage -->
 <!-- [![Release](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml) -->
@@ -8,11 +10,11 @@
 
 ## Description
 
-This is an operator charm providing an integrator for connecting to S3.
+This is an operator charm providing an integrator for connecting to S3. Charmed applications that need an access to S3 cloud can integrate with this charm and then consume the S3 bucket, S3 connection parameters and credentials shared by the charm over the Juju relation.
 
 
 > [!WARNING]
-> This project is the Juju secrets based S3-integrator charm on track `2/`.
+> This project is the Juju secrets based S3 Integrator charm on track `2/`.
 >
 > The former action-based `s3-integrator` (on track `1/`) lives in https://github.com/canonical/s3-integrator.
 
@@ -25,7 +27,7 @@ This is an operator charm providing an integrator for connecting to S3.
 
 <!-- TODO(release): figure out the channels -->
 
-1. First off all, deploy the `s3-integrator` charm as:
+1. First of all, deploy the `s3-integrator` charm as:
    ```
    juju deploy s3-integrator --channel=2/edge
    ```
@@ -53,7 +55,7 @@ This is an operator charm providing an integrator for connecting to S3.
    ```
 
 Now whenever the user changes the configuration options in s3-integrator charm, appropriate event handlers are fired
-so that the charms that consume the relation on the requirer side sees the latest information.
+so that the charms that consume the relation on the requirer side see the latest information.
 
 ### Further configuration
 
@@ -87,6 +89,12 @@ The S3 Integrator charm is now able to create a bucket on its own, if it finds t
 
 ### Ensure the usability of bucket
 The S3 Integrator charm will share the bucket information to the charms that are related to it only after ensuring the bucket exists and is ready for use. For this purpose, the charm will try to call `ListObjectsV2` action on the given bucket + path combination. If the charm finds that it cannot run this action on the given set of bucket and path, it won't share this bucket to the related charms.
+
+## Versioning and Compatibility
+
+The S3 Integrator charm in this repository is released to track `2/`, which supports charm configuration with Juju secrets and also sharing data over the relation using Juju secrets. The charm uses a newer version of relation data schema (`v1`) in comparison to the relation data schema (`v0`) used by the S3 Integrator on track `1/`. 
+
+The new S3 Integrator is fully compatible and can be integrated with the consumer charms that are still on the older relation data schema `v0` (in other words, still using the old `s3` charmlib). This allows for mixed deployments where the S3 Integrator is updated to the latest track `2/` while the consumer charm will later be upgraded to use the new charm lib (i.e. relation schema `v1`) in the suitable timeframe. Please refer to the [migration guide](#migration-strategy-from-track-1-to-2) for instructions to migrate S3 Integrator from track `1/` to `2/`.
 
 
 ## Integrating your charm with `s3-integrator`
@@ -144,7 +152,11 @@ The latest S3 connection information shared by the `s3-integrator` over the rela
 ```python
 # file: charm.py
 
-from object_storage import S3Requirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+from object_storage import (
+   StorageConnectionInfoChangedEvent, 
+   StorageConnectionInfoGoneEvent,
+   S3Requirer, 
+)
 
 class RequirerCharm(CharmBase):
    def __init__(self, charm: CharmBase):
@@ -179,6 +191,29 @@ class RequirerCharm(CharmBase):
         # notify charm code that credentials are removed
         process_connection_info(None)
 
+```
+
+The utility function `get_storage_connection_info` in `S3Requirer` returns a typed dictionary of type `S3Info`, which is defined as follows:
+
+```python
+S3Info = TypedDict(
+    "S3Info",
+    {
+        "access-key": str,
+        "secret-key": str,
+        "region": str,
+        "storage-class": str,
+        "attributes": str,
+        "bucket": str,
+        "endpoint": str,
+        "path": str,
+        "s3-api-version": str,
+        "s3-uri-style": str,
+        "tls-ca-chain": List[str],
+        "delete-older-than-days": str,
+    },
+    total=False,
+)
 ```
 
 Once you have your charm built and deployed, you can then integrate with the `s3-integrator` charm with the `juju integrate` command.
@@ -232,7 +267,56 @@ class MyCharm(CharmBase):
 
 In the case where the `bucket` and/or `path` is both specified at the `s3-integrator` charm level and requested by the consumer charm via the `S3Requirer` class, the value specified in the `s3-integrator` charm level will always take precedence and thus will overwrite the value requested by consumer charm.
 
-Although S3 Integrator is capable of creating different buckets as per the requests of different consumer charms all integrated together with the same instance of S3 Integrator, it is still recommended that a separate instance of S3 Integrator is deployed per bucket, for the ease of maintainance.
+Although S3 Integrator is capable of creating different buckets as per the requests of different consumer charms all integrated together with the same instance of S3 Integrator, it is still recommended that a separate instance of S3 Integrator is deployed per bucket, for the ease of maintenance.
+
+## Migration Strategy (from track `1/` to `2/`)
+
+The S3 Integrator from track `2/` is supported only on versions of Juju that support secrets, since the charm heavily relies on Juju secrets to configure keys and share data over the relation.
+
+In-place refresh is not supported for `s3-integrator` from track `1/` to track `2/`, because the charms in these two tracks use different Ubuntu bases. The following are the instructions to migrate the charm from track `1/` to track `2/` using offline strategy:
+
+1. Deploy a new instance of `s3-integrator` from track `2/`.
+
+   ```bash
+   juju deploy s3-integrator --channel 2/edge
+   ```
+
+2. Configure it with the same set of original configurations done for the older s3-integrator.
+
+   ```bash
+   juju config s3-integrator endpoint=$ENDPOINT
+   juju config s3-integrator region=$REGION
+   juju config s3-integrator bucket=$BUCKET path=$PATH
+   juju config s3-integrator s3-uri-style=$S3_URI_STYLE
+   
+   juju add-secret s3-credentials access-key=$ACCESS_KEY secret-key=$SECRET_KEY
+   juju grant-secret s3-credentials s3-integrator
+   juju config s3-integrator credentials=secret://<secret-id-of-s3-credentials>
+   ```
+
+3. Remove the relation between the old `s3-integrator` charm and the consumer charm (say, `s3-consumer`).
+
+   ```bash
+   juju remove-relation old-s3-integrator s3-consumer
+   ```
+
+4. Integrate the new `s3-integrator` with the consumer charm.
+
+   ```bash
+   juju integrate s3-integrator consumer-charm
+   ```
+
+5. Ensure the integration is successful with consumer charm's user acceptance tests.
+
+6. Remove the old s3-integrator app from Juju model.
+
+   ```bash
+   juju remove-application old-s3-integrator
+   ```
+
+**Next steps:**
+
+You'd probably want to upgrade the consumer charm next to use the newer `object-storage-charmlib`. Please follow [this guide](../lib/README.md#migration-guidance-old-charmlibs-to-the-new-charmlib) for this migration.
 
 
 ## Troubleshooting
@@ -245,8 +329,8 @@ juju run s3-integrator/0 status-detail
 One of the most common statuses reported by the S3 integrator charm is the charm being on blocked state with message `Could not ensure bucket(s): xxxxx`. This status is set by the charm when it cannot ensure the bucket for use, probably due to one of the following reasons:
 1. The given connection parameters (eg, access key, secret key, endpoint, region, etc.) are not valid.
 2. The charm cannot make a successful HTTP / HTTPS connection to the S3 endpoint (eg, due to proxy, invalid TLS certificate, etc.)
-2. The IAM user (corresponding to access key and secret key) does not have enough permissions to call `ListObjectsv2` on the existing bucket.
-3. The IAM user (corresponding to access key and secret key) does not have enough permissions to create a non-existent bucket.
+3. The IAM user (corresponding to access key and secret key) does not have enough permissions to call `ListObjectsV2` on the existing bucket.
+4. The IAM user (corresponding to access key and secret key) does not have enough permissions to create a non-existent bucket.
 
 In these cases, the first step to troubleshoot this is to check the `juju debug-log`, as the charm logs any failure to ensure the bucket there.
 
@@ -256,4 +340,4 @@ Security issues in the Charmed Object Storage Integrator Operator can be reporte
 
 ## Contributing
 
-Please see the [Juju SDK docs](https://juju.is/docs/sdk) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
+Please see the [Juju docs](https://documentation.ubuntu.com/juju/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrator/blob/main/CONTRIBUTING.md) for developer guidance.

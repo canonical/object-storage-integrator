@@ -1,4 +1,4 @@
-# Object-Storage-integrator
+# Azure Storage Integrator
 [![Charmhub](https://charmhub.io/azure-storage-integrator/badge.svg)](https://charmhub.io/azure-storage-integrator)
 [![Release](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
 [![Tests](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml)
@@ -9,7 +9,7 @@ This is an operator charm providing an integrator for connecting to Azure Storag
 
 
 ## Instructions for Usage
-1. First off all, deploy the `azure-storage-integrator` charm as:
+1. First of all, deploy the `azure-storage-integrator` charm as:
     ```
     juju deploy azure-storage-integrator
     ```
@@ -19,7 +19,7 @@ This is an operator charm providing an integrator for connecting to Azure Storag
     juju config azure-storage-integrator storage-account=stoacc container=conn
     ```
 
-3. Add a new secret to Juju, and grant it's permissions to azure-storage-integrator:
+3. Add a new secret to Juju, and grant its permissions to azure-storage-integrator:
     ```
     juju add-secret mysecret secret-key=changeme
     juju grant-secret mysecret azure-storage-integrator
@@ -88,7 +88,7 @@ class RequirerCharm(CharmBase):
    def __init__(self, charm: CharmBase):
       super().__init__(charm, "azure-storage-requirer")
 
-      self.s3_client = AzureStorageRequirer(
+      self.az_storage_client = AzureStorageRequirer(
          charm=charm,
          relation_name="azure-storage-credentials",
          requests={
@@ -104,7 +104,11 @@ The latest Azure Storage connection information shared by the `azure-storage-int
 ```python
 # file: charm.py
 
-from object_storage import AzureStorageRequirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+from object_storage import (
+    AzureStorageRequirer, 
+    StorageConnectionInfoChangedEvent, 
+    StorageConnectionInfoGoneEvent,
+)
 
 class RequirerCharm(CharmBase):
     def __init__(self, charm: CharmBase):
@@ -140,6 +144,24 @@ class RequirerCharm(CharmBase):
 
 ```
 
+The utility function `get_storage_connection_info` in `AzureStorageRequirer` returns a typed dictionary of type `AzureStorageInfo`, which is defined as follows:
+
+```python
+AzureStorageInfo = TypedDict(
+    "AzureStorageInfo",
+    {
+        "container": str,
+        "storage-account": str,
+        "secret-key": str,
+        "connection-protocol": str,
+        "path": str,
+        "endpoint": str,
+        "resource-group": str,
+    },
+    total=False,
+)
+```
+
 Once you have your charm built and deployed, you can then integrate with the `azure-storage-integrator` charm with the `juju integrate` command.
 
 ```bash
@@ -153,5 +175,5 @@ Security issues in the Charmed Object Storage Integrator Operator can be reporte
 
 ## Contributing
 
-Please see the [Juju SDK docs](https://juju.is/docs/sdk) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
+Please see the [Juju docs](https://documentation.ubuntu.com/juju) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
 

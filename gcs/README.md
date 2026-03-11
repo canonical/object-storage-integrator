@@ -11,22 +11,13 @@ This is an operator charm providing an integrator for connecting to Google Cloud
 
 This charm is released for AMD64 and ARM64.
 
-## Instructions for Usage
+## Creating a GCP Service Account key
 
-1. Deploy the `gcs-integrator` charm:
-    ```
-    juju deploy gcs-integrator
-    ```
+The GCP Service Account can be created as from the Google Cloud Console as follows:
 
-2. Set the bucket name:
-    ```
-    juju config gcs-integrator bucket=foo
-    ```
-3. Create a service account key (service_account.json) via Console:
+1. In the Google Cloud Console, go to IAM & Admin -> Service Accounts -> Create service account and create a service account with proper name (eg, gcs-integrator)
 
-   1. IAM & Admin -> Service Accounts -> Create service account (e.g. gcs-integrator).
-
-   2. Grant the minimum roles your workload needs:
+2. Grant the minimum roles your workload needs:
 
      - Read/write objects (recommended minimum): roles/storage.objectAdmin
 
@@ -34,38 +25,49 @@ This charm is released for AMD64 and ARM64.
 
      - Manage buckets (only if needed): roles/storage.admin
 
-   3. Keys -> Add key -> Create new key -> JSON -> download.
-    
-    The file looks like the one in below:
-```json
-{
-  "type": "service_account",
-  "project_id": "my-project-id",
-  "private_key_id": "abcdef1234567890abcdef1234567890abcdef12",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEv......\n-----END PRIVATE KEY-----\n",
-  "client_email": "gcs-integrator@my-project-id.iam.gserviceaccount.com",
-  "client_id": "123456789012345678901",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gcs-integrator%40my-project-id.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
- }
-```
+3. Now go to Keys -> Add key -> Create new key -> JSON -> download and download the key. The downloaded file looks similar to the the one below:
 
-4. Add the JSON as a Juju secret and grant it to the integrator.
+    ```json
+    {
+        "type": "service_account",
+        "project_id": "my-project-id",
+        "private_key_id": "<private-key-id>",
+        "private_key": "<private-key>",
+        "client_email": "<client-email>",
+        "client_id": "<client-id>",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "<client-x509-cert-url>",
+        "universe_domain": "googleapis.com"
+    }
+    ```
+
+## Instructions for Charm Usage
+
+1. Deploy the `gcs-integrator` charm:
+    ```bash
+    juju deploy gcs-integrator
+    ```
+
+2. Set the bucket name:
+    ```bash
+    juju config gcs-integrator bucket=foo
+    ```
+
+3. Add the secret-key JSON from earlier section as a Juju secret and grant it to the integrator.
     ```
     juju add-secret mysecret secret-key#file=service_account.json
 
     juju grant-secret mysecret gcs-integrator
     ```
 
-5. Configure the GCS Integrator charm by providing Juju secret ID:
+4. Configure the GCS Integrator charm by providing Juju secret ID:
     ```
     juju config gcs-integrator credentials=secret-xxxxxxxxxxxxxxxxxxxx
     ```
 
-6. Wait until the charm is active and idle. Then, relate your consumer charm to the integrator:
+5. Wait until the charm is active and idle. Then, relate your consumer charm to the integrator:
     ```
     juju integrate gcs-integrator:gcs-credentials consumer-charm:gcs-credentials
     ```
@@ -112,7 +114,7 @@ class RequirerCharm(CharmBase):
    def __init__(self, charm: CharmBase):
       super().__init__(charm, "gcs-requirer")
 
-      self.s3_client = GCSRequirer(
+      self.gcs_client = GCSRequirer(
          charm=charm,
          relation_name="gcs-credentials",
          requests={
@@ -128,7 +130,12 @@ The latest GCS connection information shared by the `gcs-integrator` over the re
 ```python
 # file: charm.py
 
-from object_storage import GCSRequirer, StorageConnectionInfoChangedEvent, StorageConnectionInfoGoneEvent
+from object_storage import (
+    GCSRequirer, 
+    StorageConnectionInfoChangedEvent, 
+    StorageConnectionInfoGoneEvent,
+
+)
 
 class RequirerCharm(CharmBase):
     def __init__(self, charm: CharmBase):
@@ -138,7 +145,7 @@ class RequirerCharm(CharmBase):
             charm=charm,
             relation_name="gcs-credentials",
             requests={
-            "bucket": "test-bucket",    # bucket requested by the requirer
+                "bucket": "test-bucket",    # bucket requested by the requirer
             }
         )
 
@@ -164,6 +171,21 @@ class RequirerCharm(CharmBase):
 
 ```
 
+The utility function `get_storage_connection_info` in `GCSRequirer` returns a typed dictionary of type `GCSInfo`, which is defined as follows:
+
+```python
+GCSInfo = TypedDict(
+    "GCSInfo",
+    {
+        "bucket": str,
+        "secret-key": str,
+        "storage-class": str,
+        "path": str,
+    },
+    total=False,
+)
+```
+
 Once you have your charm built and deployed, you can then integrate with the `gcs-integrator` charm with the `juju integrate` command.
 
 ```bash
@@ -177,5 +199,5 @@ Security issues in the GCS Integrator Operator can be reported through [LaunchPa
 
 ## Contributing
 
-Please see the [Juju SDK docs](https://documentation.ubuntu.com/juju/3.6/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
+Please see the [Juju docs](https://documentation.ubuntu.com/juju/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
 
