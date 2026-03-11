@@ -8,6 +8,8 @@ import re
 
 import jubilant
 
+from .mysql import get_mysql_primary_unit
+
 
 @dataclasses.dataclass
 class CharmSpec:
@@ -41,6 +43,16 @@ def wait_active_idle(juju: jubilant.Juju, delay: int = 5):
         lambda status: jubilant.all_active(status) and jubilant.all_agents_idle(status),
         delay=delay,
     )
+
+
+def get_app_leader(juju: jubilant.Juju, app_name: str) -> str:
+    """Get the leader unit for the given application."""
+    model_status = juju.status()
+    app_status = model_status.apps[app_name]
+    for name, status in app_status.units.items():
+        if status.leader:
+            return name
+    raise Exception("No leader unit found")
 
 
 def deploy_and_configure_charm(juju: jubilant.Juju, charm: CharmSpec):
@@ -111,18 +123,52 @@ def list_backups(juju: jubilant.Juju, database: CharmSpec) -> list[str]:
     return backup_ids
 
 
+def pre_create_backup(juju: jubilant.Juju, database: CharmSpec) -> str:
+    """Run extra steps necessary before backup and return the unit name to run backup action on."""
+    if database.charm in ("mysql", "mysql-k8s"):
+        juju.add_unit(database.app, num_units=2)
+        wait_active_idle(juju, delay=10)
+        leader_unit = get_app_leader(juju, database.app)
+        primary_unit_name = get_mysql_primary_unit(juju, unit_name=leader_unit)
+        non_primary_unit_names = [
+            unit for unit in juju.status().apps[database.app].units if unit != primary_unit_name
+        ]
+        return non_primary_unit_names[0]
+    return get_app_leader(juju, database.app)
+
+
 def create_backup(juju: jubilant.Juju, database: CharmSpec) -> str:
     """Create a backup using the requirer charm's action and return the backup ID."""
-    action = juju.run(f"{database.app}/0", "create-backup")
+    backup_unit = pre_create_backup(juju, database)
+    action = juju.run(backup_unit, "create-backup")
     assert action.return_code == 0, f"create-backup action failed: {action.stderr}"
     wait_active_idle(juju)
+    post_create_backup(juju, database)
+
+
+def post_create_backup(juju: jubilant.Juju, database: CharmSpec):
+    """Run extra steps necessary after backup."""
+    if database.charm in ("mysql", "mysql-k8s"):
+        juju.remove_unit(database.app, num_units=2)
+        wait_active_idle(juju, delay=10)
 
 
 def restore_backup(juju: jubilant.Juju, database: CharmSpec, backup_id: str):
     """Restore a backup using the requirer charm's action."""
-    action = juju.run(f"{database.app}/0", "restore", {"backup-id": backup_id})
+    leader_unit = get_app_leader(juju, database.app)
+    action = juju.run(leader_unit, "restore", {"backup-id": backup_id})
     assert action.return_code == 0, f"restore-backup action failed: {action.stderr}"
-    wait_active_idle(juju, delay=10)
+    if database.charm in ("mysql", "mysql-k8s"):
+        # MySQL app stays in blocked state after restore
+        juju.wait(
+            lambda status: jubilant.all_agents_idle(status)
+            and status.apps[database.app].app_status.current == "blocked"
+            and status.apps[database.app].app_status.message
+            == "Move restored cluster to another S3 repository",
+            delay=10,
+        )
+    else:
+        wait_active_idle(juju, delay=10)
 
 
 def upgrade_charm(juju: jubilant.Juju, old_charm: CharmSpec, new_charm: CharmSpec):
