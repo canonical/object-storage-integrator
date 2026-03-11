@@ -106,10 +106,8 @@ class ExampleRequirerCharm(CharmBase):
         self.s3_client = S3Requirer(
             charm, 
             relation_name, 
-            requests={
-                "bucket": "test-bucket",    # bucket requested by the requirer
-                "path": "test-path",        # path requested by the requirer
-            }
+            bucket="test-bucket",           # bucket requested by the requirer
+            path="test-path",               # path requested by the requirer
         )
         self.framework.observe(
             self.s3_client.on.storage_connection_info_changed, self._on_conn_info_changed
@@ -221,9 +219,7 @@ class ExampleRequirerCharm(CharmBase):
         self.azure_storage_client = AzureStorageRequirer(
             charm, 
             relation_name, 
-            requests={
-                "container": "test-container",    # container requested by the requirer
-            }
+            container="test-container"    # container requested by the requirer
         )
         self.framework.observe(
             self.azure_storage_client.on.storage_connection_info_changed, self._on_conn_info_changed
@@ -329,9 +325,7 @@ class ExampleRequirerCharm(CharmBase):
         self.gcs_client = GCSRequirer(
             charm, 
             relation_name, 
-            requests={
-                "bucket": "test-bucket",    # bucket requested by the requirer
-            }
+            bucket="test-bucket"    # bucket requested by the requirer
         )
         self.framework.observe(
             self.gcs_client.on.storage_connection_info_changed, self._on_conn_info_changed

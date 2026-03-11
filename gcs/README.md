@@ -111,16 +111,14 @@ Now in your charm code, you need to instantiate the `GCSRequirer` class imported
 from object_storage import GCSRequirer
 
 class RequirerCharm(CharmBase):
-   def __init__(self, charm: CharmBase):
-      super().__init__(charm, "gcs-requirer")
+    def __init__(self, charm: CharmBase):
+        super().__init__(charm, "gcs-requirer")
 
-      self.gcs_client = GCSRequirer(
-         charm=charm,
-         relation_name="gcs-credentials",
-         requests={
-            "bucket": "test-bucket",    # bucket requested by the requirer
-         }
-      )
+        self.gcs_client = GCSRequirer(
+            charm=charm,
+            relation_name="gcs-credentials",
+            bucket="test-bucket"    # bucket requested by the requirer
+        )
 ```
 
 Using this instance of class `GCSRequirer`, the requirer charm then needs to listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` and handle them appropriately in the charm code. The event `storage_connection_info_changed` is fired whenever the `gcs-integrator` has written new data to the relation databag, which needs to be handled by the requirer charm by updating its state with the new GCS connection information. The event `storage_connection_info_gone` is fired when the relation with `gcs-integrator` is broken, which needs to be handled by the requirer charm by updating its state to not use the GCS connection information anymore.
@@ -144,9 +142,7 @@ class RequirerCharm(CharmBase):
         self.gcs_client = GCSRequirer(
             charm=charm,
             relation_name="gcs-credentials",
-            requests={
-                "bucket": "test-bucket",    # bucket requested by the requirer
-            }
+            bucket="test-bucket"    # bucket requested by the requirer
         )
 
         # Observe custom events 

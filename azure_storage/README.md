@@ -91,9 +91,7 @@ class RequirerCharm(CharmBase):
       self.az_storage_client = AzureStorageRequirer(
          charm=charm,
          relation_name="azure-storage-credentials",
-         requests={
-            "container": "test-container",    # container requested by the requirer
-         }
+         container="test-container"    # container requested by the requirer
       )
 ```
 
@@ -117,9 +115,7 @@ class RequirerCharm(CharmBase):
         self.az_storage_client = AzureStorageRequirer(
             charm=charm,
             relation_name="azure-storage-credentials",
-            requests={
-            "container": "test-container",    # container requested by the requirer
-            }
+            container="test-container"    # container requested by the requirer
         )
 
         # Observe custom events 

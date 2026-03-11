@@ -138,10 +138,8 @@ class RequirerCharm(CharmBase):
       self.s3_client = S3Requirer(
          charm=charm,
          relation_name="s3-credentials",
-         requests={
-            "bucket": "test-bucket",    # bucket requested by the requirer
-            "path": "test-path",        # path requested by the requirer
-         }
+         bucket="test-bucket",    # bucket requested by the requirer
+         path="test-path"         # path requested by the requirer
       )
 ```
 
@@ -165,10 +163,8 @@ class RequirerCharm(CharmBase):
       self.s3_client = S3Requirer(
          charm=charm,
          relation_name="s3-credentials",
-         requests={
-            "bucket": "test-bucket",    # bucket requested by the requirer
-            "path": "test-path",        # path requested by the requirer
-         }
+         bucket="test-bucket",    # bucket requested by the requirer
+         path="test-path"         # path requested by the requirer
       )
 
       # Observe custom events 
@@ -258,10 +254,8 @@ class MyCharm(CharmBase):
       s3_client = S3Requirer(
          self, 
          relation_name="s3-credentials", 
-         requests={
-            "bucket": "custom-requested-bucket", # Bucket requested by the consumer charm
-            "path": "custom-requested-path"      # Path requested by the consumer charm
-         }
+         bucket="custom-requested-bucket",    # bucket requested by the requirer
+         path="custom-requested-path"         # path requested by the requirer
       )
 ```
 
