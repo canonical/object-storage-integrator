@@ -1,7 +1,6 @@
 """Module containing GCS specific relation classes."""
 
 import logging
-from typing import Dict
 
 from ops import CharmBase, Relation
 
@@ -29,20 +28,28 @@ class GCSRequirer(StorageRequirerData[GCS], StorageRequirerEventHandlers):
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        requests: Optional requests from the requirer charm, may include requests such as:
-            bucket: a specific bucket name requested by the requirer charm
+        bucket: Optional bucket name requested by the requirer charm.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        requests: Dict[str, str] | None = None,
+        bucket: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=GCS_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, requests=requests)
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"bucket": bucket})
+
+    def update_requests(
+        self,
+        relation_id: int | None = None,
+        *,
+        bucket: str | None = None,
+    ) -> None:
+        """Update bucket request for given relation or all active relations."""
+        return super()._update_requests(relation_id=relation_id, bucket=bucket)
 
 
 class GCSProvider(StorageProviderData, StorageProviderEventHandlers):

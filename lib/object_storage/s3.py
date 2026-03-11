@@ -1,7 +1,6 @@
 """Module containing S3 specific relation classes."""
 
 import logging
-from typing import Dict
 
 from ops import CharmBase, Relation, RelationChangedEvent
 
@@ -30,21 +29,23 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        requests: Optional requests from the requirer charm, may include requests such as:
-            bucket: a specific bucket name requested by the requirer charm
-            path: a specific path requested by the requirer charm
+        bucket: Optional bucket name requested by the requirer charm.
+        path: Optional path prefix within the bucket requested by the requirer charm.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        requests: Dict[str, str] | None = None,
+        bucket: str = "",
+        path: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=S3_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, requests=requests)
+        StorageRequirerEventHandlers.__init__(
+            self, charm, self, requests={"bucket": bucket, "path": path}
+        )
 
     def is_provider_schema_v0(self, relation: Relation) -> bool:
         """Check if the S3 provider is using schema v0."""
@@ -78,6 +79,16 @@ class S3Requirer(StorageRequirerData[S3], StorageRequirerEventHandlers):
             return
 
         return super()._on_relation_changed_event(event)
+
+    def update_requests(
+        self,
+        relation_id: int | None = None,
+        *,
+        bucket: str | None = None,
+        path: str | None = None,
+    ) -> None:
+        """Update bucket and path requests for given relation or all active relations."""
+        return super()._update_requests(relation_id=relation_id, bucket=bucket, path=path)
 
 
 class S3Provider(StorageProviderData, StorageProviderEventHandlers):

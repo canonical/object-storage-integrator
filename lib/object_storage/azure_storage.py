@@ -1,7 +1,7 @@
 """Module containing Azure Storage specific relation classes."""
 
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 from ops import CharmBase, Relation, RelationChangedEvent
 
@@ -31,20 +31,19 @@ class AzureStorageRequirer(StorageRequirerData[AzureStorage], StorageRequirerEve
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        requests: Optional requests from the requirer charm, may include requests such as:
-            container: a specific container name requested by the requirer charm
+        container: Optional container name requested by the requirer charm.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        requests: Dict[str, str] | None = None,
+        container: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=AZURE_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, requests=requests)
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"container": container})
 
     def is_provider_schema_v0(self, relation: Relation) -> bool:
         """Check if the Azure storage provider is using schema v0."""
@@ -78,6 +77,15 @@ class AzureStorageRequirer(StorageRequirerData[AzureStorage], StorageRequirerEve
             return
 
         return super()._on_relation_changed_event(event)
+
+    def update_requests(
+        self,
+        relation_id: int | None = None,
+        *,
+        container: str | None = None,
+    ) -> None:
+        """Update container request for given relation or all active relations."""
+        return super()._update_requests(relation_id=relation_id, container=container)
 
 
 class AzureStorageProvider(StorageProviderData, StorageProviderEventHandlers):
