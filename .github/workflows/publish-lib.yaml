@@ -13,7 +13,7 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - "lib/v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "lib/v*" # Push events to matching lib/v*, i.e. lib/v1.0, lib/v20.15.10
 
 jobs:
   ci-tests:
