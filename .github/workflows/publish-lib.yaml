@@ -17,8 +17,6 @@ on:
 
 jobs:
   ci-tests:
-    needs:
-      - lib-check
     name: Tests
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
