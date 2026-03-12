@@ -22,31 +22,53 @@ GCS_STORAGE_CONTRACT = StorageContract(
 )
 
 
-class GcsStorageRequires(StorageRequirerData[GCS], StorageRequirerEventHandlers):
+class GCSRequirer(StorageRequirerData[GCS], StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the GCS backend.
 
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        overrides: Optional requirer-side overrides to write on join/push.
+        bucket: Optional bucket name requested by the requirer charm.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        overrides: dict[str, str] | None = None,
+        bucket: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=GCS_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"bucket": bucket})
+
+    def update_requests(
+        self,
+        relation_id: int | None = None,
+        *,
+        bucket: str | None = None,
+    ) -> None:
+        """Update bucket request for given relation or all active relations."""
+        return super()._update_requests(relation_id=relation_id, bucket=bucket)
 
 
-class GcsStorageProviderData(StorageProviderData):
-    """Define the resource fields which is provided by requirer, otherwise provider will not publish any payload."""
+class GCSProvider(StorageProviderData, StorageProviderEventHandlers):
+    """Provider helper preconfigured for the GCS backend.
+
+    Args:
+        charm: Parent charm.
+        relation_name: Relation endpoint
+    """
 
     LEGACY_PROTOCOL_INITIATOR_FIELD = "requested-secrets"
+
+    def __init__(
+        self,
+        charm: CharmBase,
+        relation_name: str,
+    ) -> None:
+        StorageProviderData.__init__(self, charm.model, relation_name)
+        StorageProviderEventHandlers.__init__(self, charm, self)
 
     def is_protocol_ready(self, relation: Relation) -> bool:
         """Check whether the protocol has been initialized by the requirer.
@@ -68,27 +90,4 @@ class GcsStorageProviderData(StorageProviderData):
         return (
             data.get(relation.id, {}).get(self.PROTOCOL_INITIATOR_FIELD) is not None
             or data.get(relation.id, {}).get(self.LEGACY_PROTOCOL_INITIATOR_FIELD) is not None
-        )
-
-
-class GcsStorageProviderEventHandlers(StorageProviderEventHandlers):
-    """Provider-side event handlers preconfigured for GCS.
-
-    Args:
-        charm (CharmBase): Parent charm.
-        relation_name (str): Relation endpoint name.
-        unique_key (str): Optional key used by the base handler for
-            idempotency or uniq semantics
-    """
-
-    def __init__(
-        self,
-        charm: CharmBase,
-        relation_name: str,
-        unique_key: str = "",
-    ):
-        super().__init__(
-            charm=charm,
-            relation_data=GcsStorageProviderData(charm.model, relation_name),
-            unique_key=unique_key,
         )
