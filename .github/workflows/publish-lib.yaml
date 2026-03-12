@@ -8,6 +8,7 @@ env:
   BRANCH: ${{ github.ref_name }}
 permissions:
   contents: read
+  id-token: write
 
 on:
   push:
