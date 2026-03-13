@@ -6,19 +6,20 @@
 
 from typing import TYPE_CHECKING, Dict
 
-from charms.data_platform_libs.v0.object_storage import (
-    GcsStorageProviderEventHandlers,
-    StorageConnectionInfoRequestedEvent,
-)
 from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
 from data_platform_helpers.advanced_statuses.types import Scope
+from object_storage import (
+    GcsStorageProviderEventHandlers,
+    StorageConnectionInfoGoneEvent,
+    StorageConnectionInfoRequestedEvent,
+)
 from ops import Relation
 
 from constants import ALLOWED_OVERRIDES, GCS_RELATION_NAME
 from core.context import Context
 from core.statuses import CharmStatuses
-from events.base import BaseEventHandler
+from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from utils.logging import WithLogging
 
 if TYPE_CHECKING:
@@ -34,7 +35,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         self.charm = charm
         self.state = context
 
-        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm)
+        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm, GCS_RELATION_NAME)
 
         self.framework.observe(
             self.gcs_provider.on.storage_connection_info_requested,
@@ -93,8 +94,6 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
             return
         self._clear_status()
         base = self._build_payload()
-        self.logger.info("base_payload %s", base)
-
         payload = self._merge_requirer_override(relation, base)
         self.gcs_provider.relation_data.update_relation_data(relation.id, payload)
         self.logger.info("Published GCS payload to relation %s", relation.id)
@@ -105,6 +104,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         for rel in self.charm.model.relations.get(GCS_RELATION_NAME, []):
             self.publish_to_relation(rel)
 
+    @defer_on_premature_data_access_error
     def _on_storage_connection_info_requested(
         self, event: StorageConnectionInfoRequestedEvent
     ) -> None:
@@ -114,11 +114,13 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
 
         self.publish_to_relation(event.relation)
 
-    def _on_gcs_relation_broken(self, event: StorageConnectionInfoRequestedEvent) -> None:
+    def _on_gcs_relation_broken(self, event: StorageConnectionInfoGoneEvent) -> None:
+        """Handle GCS relation broken.Just clear local status."""
         self.logger.info("On gcs relation broken")
         if not self.charm.unit.is_leader():
             return
-        self.publish_to_relation(event.relation)
+
+        self._clear_status()
 
     def get_statuses(self, scope: Scope, recompute: bool = False) -> list[StatusObject]:
         """Return the list of statuses for this component."""

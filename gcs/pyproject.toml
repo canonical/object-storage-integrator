@@ -7,14 +7,15 @@ requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-ops = {version = ">=2.23.1", extras = ["testing"]}
+ops = "^3.5.0"
 tenacity = "^9.1.2"
-pydantic = "^2.12.3"
-google-cloud-storage = "^3.4.1"
-google-auth = "^2.41.1"
+pydantic = "^2.12.5"
+google-cloud-storage = "^3.7.0"
+google-auth = "^2.45.0"
 requests = "^2.32.5"
 typing-extensions = "^4.15.0"
 data-platform-helpers = ">=0.1.7"
+object-storage-charmlib = { git = "https://github.com/canonical/object-storage-integrator.git", subdirectory = "lib" }
 
 [tool.poetry.group.charm-libs.dependencies]
 cosl = "^0.0.51"
@@ -23,31 +24,32 @@ cosl = "^0.0.51"
 optional = true
 
 [tool.poetry.group.format.dependencies]
-ruff = "^0.14.2"
+ruff = "^0.14.10"
 
 [tool.poetry.group.lint]
 optional = true
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.14.2"
+ruff = "^0.14.10"
 codespell = "^2.4.1"
 
 [tool.poetry.group.unit.dependencies]
-coverage = { extras = ["toml"], version = "^7.11.0" }
+coverage = { extras = ["toml"], version = "^7.13.0" }
 pytest = "^8.4.2"
 pytest-asyncio = "*"
+ops = { version = ">=3.5.0", extras = ["testing"] }
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.2"
-jubilant = "^1.5.0"
+jubilant = "^1.6.2"
 juju = "^3.6.0.0"
 
 # Testing tools configuration
 
 [tool.poetry.group.dev.dependencies]
-jubilant = "^1.5.0"
+jubilant = "^1.6.2"
 pytest = "^8.4.2"
-pytest-asyncio = "^1.2.0"
+pytest-asyncio = "^1.3.0"
 
 [tool.coverage.run]
 branch = true
@@ -68,7 +70,7 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 99
-extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/test-charm-gcs"]
+extend-exclude = ["__pycache__", "*.egg_info", "tests/integration/requirer-charm"]
 target-version = "py311"
 src = ["src", "tests"]
 

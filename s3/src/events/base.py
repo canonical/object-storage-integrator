@@ -9,9 +9,9 @@ from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING, Callable
 
+from object_storage import PrematureDataAccessError
 from ops import EventBase, Object
 
-from s3_lib import PrematureDataAccessError
 from utils.logging import WithLogging
 
 if TYPE_CHECKING:

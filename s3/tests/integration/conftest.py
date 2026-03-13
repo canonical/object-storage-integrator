@@ -14,8 +14,15 @@ from typing import Iterable
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import create_bucket, create_iam_user, delete_bucket, local_tmp_folder
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from .domain import S3ConnectionInfo
+from .helpers import (
+    create_bucket,
+    create_iam_user,
+    delete_bucket,
+    local_tmp_folder,
+)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("jubilant.wait").setLevel(logging.WARNING)
@@ -41,33 +48,37 @@ def platform() -> str:
 
 
 @pytest.fixture
-def s3_charm() -> Path:
+def s3_charm(platform: str) -> Path:
     """Path to the packed s3-integrator charm."""
-    if not (path := next(iter(Path.cwd().glob("*.charm")), None)):
+    if not (path := next(iter(Path.cwd().glob(f"*-{platform}.charm")), None)):
         raise FileNotFoundError("Could not find packed s3-integrator charm.")
-
+    logger.info(f"Using s3-integrator charm at: {path}")
     return path
 
 
 @pytest.fixture
-def test_charm() -> Path:
-    if not (
-        path := next(iter((Path.cwd() / "tests/integration/test-charm-s3").glob("*.charm")), None)
-    ):
-        raise FileNotFoundError("Could not find packed test charm.")
-
-    return path
-
-
-@pytest.fixture
-def test_charm_s3_v0() -> Path:
+def test_charm(platform: str) -> Path:
     if not (
         path := next(
-            iter((Path.cwd() / "tests/integration/test-charm-s3-v0").glob("*.charm")), None
+            iter((Path.cwd() / "tests/integration/test-charm-s3").glob(f"*-{platform}.charm")),
+            None,
+        )
+    ):
+        raise FileNotFoundError("Could not find packed test charm.")
+    logger.info(f"Using test charm at: {path}")
+    return path
+
+
+@pytest.fixture
+def test_charm_s3_v0(platform: str) -> Path:
+    if not (
+        path := next(
+            iter((Path.cwd() / "tests/integration/test-charm-s3-v0").glob(f"*-{platform}.charm")),
+            None,
         )
     ):
         raise FileNotFoundError("Could not find packed test charm (with S3 lib v0).")
-
+    logger.info(f"Using test charm (with S3 lib v0) at: {path}")
     return path
 
 
@@ -81,7 +92,7 @@ def juju(request: pytest.FixtureRequest):
         yield juju  # run the test
 
         if request.session.testsfailed:
-            log = juju.debug_log(limit=30)
+            log = juju.debug_log(limit=500)
             print(log, end="")
 
 
@@ -98,6 +109,17 @@ def certs_path() -> Iterable[Path]:
     """A temporary directory to store certificates and keys."""
     with local_tmp_folder("temp-certs") as tmp_folder:
         yield tmp_folder
+
+
+@retry(stop=stop_after_attempt(20), wait=wait_fixed(3), reraise=True)
+def wait_for_rgw_ready():
+    """Wait for RADOS Gateway to be ready by checking if account list command succeeds."""
+    subprocess.run(
+        ["sudo", "microceph.radosgw-admin", "account", "list"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    )
 
 
 @pytest.fixture(scope="module")
@@ -223,6 +245,7 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
             ],
             check=True,
         )
+        wait_for_rgw_ready()
 
         logger.info("Creating user account...")
         output = subprocess.run(
@@ -279,7 +302,7 @@ def s3_root_user(host_ip: str, certs_path: Path) -> Iterable[S3ConnectionInfo]:
             access_key=key_id,
             secret_key=secret_key,
             tls_ca_chain=ca_crt_base64,
-            region="us-east-1",
+            region="default",
         )
 
         subprocess.run(["sudo", "snap", "remove", "microceph", "--purge"], check=True)
