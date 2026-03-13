@@ -8,16 +8,16 @@ description = "Common charm lib for providers and requirers of object storage re
 
 requires-python = ">=3.8"
 dependencies = [
-    "ops>=2.0.0"
+    "ops>=2.23.2"
 ]
 
 [dependency-groups]
 format = [
-    "ruff>=0.14.10"
+    "ruff>=0.15.6"
 ]
 lint = [
-    "ruff>=0.14.10",
-    "codespell>=2.4.1",
+    "ruff>=0.15.6",
+    "codespell>=2.4.2",
 ]
 
 [tool.poetry.group.format]
