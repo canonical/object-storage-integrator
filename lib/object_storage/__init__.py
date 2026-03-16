@@ -6,7 +6,7 @@
 """Module that exports the public API of the object storage integrators."""
 
 from object_storage.azure_storage import AzureStorageProvider, AzureStorageRequirer
-from object_storage.domain import AzureStorageInfo, GcsInfo, S3Info
+from object_storage.domain import AzureStorageInfo, GCSInfo, S3Info
 from object_storage.events import (
     StorageConnectionInfoChangedEvent,
     StorageConnectionInfoGoneEvent,
@@ -16,8 +16,8 @@ from object_storage.exceptions import (
     PrematureDataAccessError,
 )
 from object_storage.gcs import (
+    GCSProvider,
     GCSRequirer,
-    GCSProvider
 )
 from object_storage.s3 import S3Provider, S3Requirer
 
@@ -31,7 +31,7 @@ __all__ = [
     "AzureStorageProvider",
     "AzureStorageRequirer",
     # GCS classes
-    "GcsInfo",
+    "GCSInfo",
     "GCSProvider",
     "GCSRequirer",
     # Events

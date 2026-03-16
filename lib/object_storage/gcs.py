@@ -21,29 +21,44 @@ GCS_STORAGE_CONTRACT = StorageContract(
     secret_fields=["secret-key"],
 )
 
+
 class GCSRequirer(StorageRequirerData[GCS], StorageRequirerEventHandlers):
     """Requirer helper preconfigured for the GCS backend.
 
     Args:
         charm: Parent charm.
         relation_name: Relation endpoint
-        overrides: Optional requirer-side overrides to write on join/push.
+        bucket: Optional bucket name requested by the requirer charm.
     """
 
     def __init__(
         self,
         charm: CharmBase,
         relation_name: str,
-        overrides: dict[str, str] | None = None,
+        bucket: str = "",
     ) -> None:
         StorageRequirerData.__init__(
             self, charm.model, relation_name, contract=GCS_STORAGE_CONTRACT
         )
-        StorageRequirerEventHandlers.__init__(self, charm, self, overrides=overrides)
+        StorageRequirerEventHandlers.__init__(self, charm, self, requests={"bucket": bucket})
+
+    def update_requests(
+        self,
+        relation_id: int | None = None,
+        *,
+        bucket: str | None = None,
+    ) -> None:
+        """Update bucket request for given relation or all active relations."""
+        return super()._update_requests(relation_id=relation_id, bucket=bucket)
 
 
-class GCSProvider(StorageProviderData[GCS], StorageProviderEventHandlers):
+class GCSProvider(StorageProviderData, StorageProviderEventHandlers):
     """Provider helper preconfigured for the GCS backend.
+
+    Args:
+        charm: Parent charm.
+        relation_name: Relation endpoint
+    """
 
     Args:
         charm: Parent charm.
