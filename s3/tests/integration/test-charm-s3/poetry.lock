@@ -7,18 +7,13 @@ description = "Common charm lib for providers and requirers of object storage re
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "object_storage_charmlib-0.1.0-py3-none-any.whl", hash = "sha256:012ff8c793f8167c8ca57667487e74a70c97f0b22bbc8f921a2e105c6ac8778e"},
+    {file = "object_storage_charmlib-0.1.0.tar.gz", hash = "sha256:c71192cd35ab5d761480f6d9187c8cded1ee4cbb94ec68e287b8a95d2bc2358e"},
+]
 
 [package.dependencies]
 ops = ">=2.0.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "HEAD"
-resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
-subdirectory = "lib"
 
 [[package]]
 name = "ops"
@@ -123,4 +118,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "b6178ca57659cbcc39544726d5580b0997d4960db3fb81bd2942ff162c969b32"
+content-hash = "9dee0d133cdfaf39515a90b521932a550858539dbc8fc793ad8a60706b1d6007"
