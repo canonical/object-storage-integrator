@@ -19,15 +19,16 @@ This is an operator charm providing an integrator for connecting to Azure Storag
     juju config azure-storage-integrator storage-account=stoacc container=conn
     ```
 
-3. Add a new secret to Juju, and grant its permissions to azure-storage-integrator:
+3. Add a new secret containing the storage account secret-key to Juju, and grant its permissions to azure-storage-integrator:
     ```
     juju add-secret mysecret secret-key=changeme
     juju grant-secret mysecret azure-storage-integrator
     ```
+    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
 
-4. Configure the Azure Storage Integrator charm:
+4. Configure the Azure Storage Integrator charm with the newly created secret:
     ```
-    juju config azure-storage-integrator credentials=secret-xxxxxxxxxxxxxxxxxxxx
+    juju config azure-storage-integrator credentials=secret:d0erdgfmp25c762i8np0
     ```
 
 5. Now the charm should be in active and idle condition. To relate it with a consumer charm, simply do:
@@ -40,14 +41,17 @@ so that the charms that consume the relation on the requirer side sees the lates
 
 ### Further configuration
 
-To configure the Azure Storage Integrator charm, you may provide the following configuration options:
-  
-- `endpoint`: The endpoint URL for the Azure Storage account. This is optional and can be used to override the default endpoint URL that would be generated based on the provided connection-protocol, container and storage-account.
-- `path`: The path inside the container to store objects.
-- `resource-group`: The name of the Azure resource group where the storage account is located.
-- `connection-protocol`: The storage protocol to use when connecting to Azure Storage. Possible values: "wasb", "wasbs" for Azure Blob Storage, "abfs", "abfss" for Azure Data Lake Storage Gen2 and "http", "https" for Azure Blob/Files REST API access.
+To further configure the Azure Storage Integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
 
-The only mandatory fields for Azure Storage Integrator are `container`, `storage-account` and `credentials`.
+| Config name | Description |
+| --- | --- |
+| `credentials` | (**Required**) The Juju secret ID that contains the storage account secret key used to connect to Azure Storage. |
+| `storage-account` | (**Required**) The name of the Azure Storage account. |
+| `container` | (**Required**) The name of the Azure Storage container to store objects. |
+| `endpoint` | The endpoint URL for the Azure Storage account. If not specified, the enddpoint is inferred based on the given values of `container`, `storage-account` and `connection-protocol`. |
+| `path` | The path inside the container to store objects. |
+| `resource-group` | The name of the Azure resource group where the storage account is located. If not specified, the resource group is auto inferred as per default behavior of Azure Storage Blob SDK. |
+| `connection-protocol` | The storage protocol to use when connecting to Azure Storage. Default value is `"abfss"`. Possible values are: `"wasb"`, `"wasbs"` for Azure Blob Storage, `"abfs"`, `"abfss"` for Azure Data Lake Storage Gen2 and `"http"`, `"https"` for Azure Blob/Files REST API access. |
 
 
 ## Integrating your charm with `azure-storage-integrator`

@@ -37,14 +37,14 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
    juju config s3-integrator bucket=mybucket path=mypath endpoint=http://my-endpoint
    ```
 
-3. Add a new secret to Juju, and grant its permissions to s3-integrator:
+3. Add a new secret containing S3 access-key and secret-key to Juju, and grant its permissions to s3-integrator:
    ```
    juju add-secret mysecret access-key=<ACCESS_KEY> secret-key=<SECRET_KEY>
    juju grant-secret mysecret s3-integrator
    ```
    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
 
-4. Configure the S3 Integrator charm credentials with the ID above:
+4. Configure the S3 Integrator charm with the newly created secret:
    ```
    juju config s3-integrator credentials=secret:d0erdgfmp25c762i8np0
    ```
@@ -59,28 +59,30 @@ so that the charms that consume the relation on the requirer side see the latest
 
 ### Further configuration
 
-To configure the S3 integrator charm, you may provide the following configuration options:
-  
-- `endpoint`: the endpoint used to connect to the object storage.
-- `bucket`: the bucket/container name delivered by the provider (the bucket name can be specified also on the requirer application).
-- `region`: the region used to connect to the object storage.
-- `path`: the path inside the bucket/container to store objects.
-- `attributes`: the custom metadata (HTTP headers).
-- `s3-uri-style`: the S3 protocol specific bucket path lookup type.
-- `storage-class`:the storage class for objects uploaded to the object storage.
-- `tls-ca-chain`: the complete CA chain, which can be used for HTTPS validation.
-- `s3-api-version`: the S3 protocol specific API signature.
-- `experimental-delete-older-than-days`: the amount of day after which backups going to be deleted. EXPERIMENTAL option.
+To further configure the S3 integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
 
-The only mandatory fields for the integrator are `access-key` and `secret-key`.
+| Config name | Description |
+| --- | --- |
+| `credentials` | (**Required**) The Juju secret ID that contains the access key and secret key used to connect to S3. |
+| `endpoint` | The endpoint used to connect to the S3 object storage. If not specified, the charm attempts to create and ensure bucket as per default `boto3` behavior for endpoint discovery. |
+| `bucket` | The S3 bucket name delivered by the provider, creating it if it doesn't exist. |
+| `region` | The region used to connect to the S3. |
+| `path` | The path inside the S3 bucket to store objects. |
+| `attributes` | The custom metadata (HTTP headers). The value needs to be specified in comma-separated format.|
+| `s3-uri-style` | The S3 protocol specific bucket path lookup type. Examples are `host`, `path`, etc. |
+| `s3-api-version` | The S3 protocol specific API signature. Can be either `2` or `4`. |
+| `storage-class` | The storage class for objects uploaded to S3. |
+| `tls-ca-chain` | The complete CA chain, which can be used for HTTPS validation. This needs to be a base64 encoded string of the original CA chain. |
+| `experimental-delete-older-than-days` | The number of days after which full backups are eligible for deletion. EXPERIMENTAL option. |
 
-In order to set ca-chain certificate use the following command:
+In order to set `tls-ca-chain` config, the value needs to be base64-encoded string of the original CA chain. Use the following command to configure the charm with CA chain from a file:
 
 ```bash
 juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
 ```
 
-The config option `attributes` needs to be specified in comma-separated format. 
+If the config is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm, see [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for more information.
+
 
 ## What's new in `s3-integrator` track `2/`?
 

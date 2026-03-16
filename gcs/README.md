@@ -45,35 +45,46 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
 
 ## Instructions for Charm Usage
 
-1. Deploy the `gcs-integrator` charm:
+1.  First of all, deploy the `gcs-integrator` charm:
     ```bash
     juju deploy gcs-integrator
     ```
 
-2. Set the bucket name:
+2. Configure the GCS Integrator charm as:
     ```bash
     juju config gcs-integrator bucket=foo
     ```
 
-3. Add the secret-key JSON from earlier section as a Juju secret and grant it to the integrator.
+3. Add a new secret containing GCP service account key obtained from [this section](#creating-a-gcp-service-account-key) to Juju, and grant its permissions to gcs-integrator.
     ```
     juju add-secret mysecret secret-key#file=service_account.json
-
     juju grant-secret mysecret gcs-integrator
     ```
+    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
 
-4. Configure the GCS Integrator charm by providing Juju secret ID:
+4. Configure the GCS Integrator charm  with the newly created secret:
     ```
-    juju config gcs-integrator credentials=secret-xxxxxxxxxxxxxxxxxxxx
+    juju config gcs-integrator credentials=secret:d0erdgfmp25c762i8np0
     ```
 
-5. Wait until the charm is active and idle. Then, relate your consumer charm to the integrator:
+5. Now the charm should be in active and idle condition. To relate it with a consumer charm, simply do:
     ```
     juju integrate gcs-integrator:gcs-credentials consumer-charm:gcs-credentials
     ```
 
 Now whenever the user changes the configuration options in gcs-integrator charm, appropriate event handlers are fired
 so that the charms that consume the relation on the requirer side see the latest information.
+
+### Further configuration
+
+To further configure the GCS Integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
+
+| Config name | Description |
+| --- | --- |
+| `credentials` | (**Required**) The Juju secret ID that contains the GCP service account secret key used to connect to GCS. See [Creating a GCP Service Account key](#creating-a-gcp-service-account-key) for instructions on creating this key. |
+| `bucket` | (**Required**) Target GCS bucket for snapshots/backups (3-63 chars, lowercase letters, digits, hyphens). |
+| `storage-class` | The GCS storage class (`STANDARD`, `NEARLINE`, `COLDLINE`, `ARCHIVE`). Default value is `STANDARD`. |
+| `path` | The path inside the GCS bucket to store objects (`<=1024` bytes, no NULL bytes). |
 
 
 ## Integrating your charm with `gcs-integrator`
