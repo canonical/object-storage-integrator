@@ -140,6 +140,7 @@ The latest GCS connection information shared by the `gcs-integrator` over the re
 # file: charm.py
 
 from object_storage import (
+    GCSInfo,
     GCSRequirer, 
     StorageConnectionInfoChangedEvent, 
     StorageConnectionInfoGoneEvent,
@@ -169,7 +170,7 @@ class RequirerCharm(CharmBase):
 
     def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
         # access and consume data from the provider
-        connection_info = self.gcs_client.get_storage_connection_info()
+        connection_info: GCSInfo = self.gcs_client.get_storage_connection_info()
         process_connection_info(connection_info)
 
     def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):

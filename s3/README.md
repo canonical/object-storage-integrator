@@ -1,12 +1,9 @@
 # S3-integrator
 
 [![Charmhub](https://charmhub.io/s3-integrator/badge.svg?channel=2/edge)](https://charmhub.io/s3-integrator)
-[![Charmhub](https://charmhub.io/azure-storage-integrator/badge.svg?channel=latest/edge)](https://charmhub.io/azure-storage-integrator)
-[![Charmhub](https://charmhub.io/gcs-integrator/badge.svg?channel=1/edge)](https://charmhub.io/gcs-integrator)
+[![Release](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
+[![Tests](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml)
 
-<!-- TODO(docs): Add the proper badge both here and in azure-storage -->
-<!-- [![Release](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml) -->
-<!-- [![Tests](https://github.com/canonical/object-storage-integrators/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrators/actions/workflows/ci.yaml) -->
 
 ## Description
 
@@ -155,6 +152,7 @@ The latest S3 connection information shared by the `s3-integrator` over the rela
 from object_storage import (
    StorageConnectionInfoChangedEvent, 
    StorageConnectionInfoGoneEvent,
+   S3Info,
    S3Requirer, 
 )
 
@@ -182,7 +180,7 @@ class RequirerCharm(CharmBase):
 
     def _on_conn_info_changed(self, event: StorageConnectionInfoChangedEvent):
         # access and consume data from the provider
-        connection_info = self.s3_client.get_storage_connection_info()
+        connection_info: S3Info = self.s3_client.get_storage_connection_info()
         process_connection_info(connection_info)
 
     def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):

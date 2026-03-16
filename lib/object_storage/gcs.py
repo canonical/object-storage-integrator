@@ -60,10 +60,6 @@ class GCSProvider(StorageProviderData, StorageProviderEventHandlers):
         relation_name: Relation endpoint
     """
 
-    Args:
-        charm: Parent charm.
-        relation_name: Relation endpoint
-    """
     LEGACY_PROTOCOL_INITIATOR_FIELD = "requested-secrets"
 
     def __init__(
