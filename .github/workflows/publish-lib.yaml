@@ -93,7 +93,7 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    needs: [publish_checks, build]
+    needs: [publish_checks, build, ci_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Download all the dists
