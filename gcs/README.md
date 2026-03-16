@@ -207,5 +207,5 @@ Security issues in the GCS Integrator Operator can be reported through [LaunchPa
 
 ## Contributing
 
-Please see the [Juju docs](https://documentation.ubuntu.com/juju/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
+Please see the [Juju docs](https://documentation.ubuntu.com/juju/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrator/blob/main/CONTRIBUTING.md) for developer guidance.
 
