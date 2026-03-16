@@ -166,7 +166,7 @@ from object_storage import (
 class ExampleProviderCharm(CharmBase):
 
     def __init__(self, charm: CharmBase):
-        super().__init__(charm, "example-provider")
+        super().__init__(charm, "azure-storage-provider")
 
         self.azure_storage_provider = AzureStorageProvider(self, AZURE_STORAGE_RELATION_NAME)
         self.framework.observe(
@@ -273,7 +273,7 @@ from object_storage import (
 class ExampleProviderCharm(CharmBase):
 
     def __init__(self, charm: CharmBase):
-        super().__init__(charm, "example-provider")
+        super().__init__(charm, "gcs-provider")
 
         self.gcs_provider = GCSProvider(self, GCS_RELATION_NAME)
         self.framework.observe(
