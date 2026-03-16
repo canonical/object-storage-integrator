@@ -176,5 +176,5 @@ Security issues in the Charmed Object Storage Integrator Operator can be reporte
 
 ## Contributing
 
-Please see the [Juju docs](https://documentation.ubuntu.com/juju) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrators/blob/main/CONTRIBUTING.md) for developer guidance.
+Please see the [Juju docs](https://documentation.ubuntu.com/juju) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrator/blob/main/CONTRIBUTING.md) for developer guidance.
 
