@@ -1,5 +1,7 @@
 # Object Storage Charmlib
 
+[![PyPI](https://img.shields.io/pypi/v/object-storage-charmlib)](https://pypi.python.org/pypi/object-storage-charmlib)
+
 The `object-storage-charmlib` is a Python charm interface library for communication between object storage integrator charms and the requirer charms that relate with it. This library implements a common object-storage contract and the relation/event plumbing to publish
 and consume storage connection info.
 
