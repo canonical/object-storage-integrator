@@ -56,9 +56,9 @@ so that the charms that consume the relation on the requirer side see the latest
 
 ### Further configuration
 
-To further configure the S3 integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
+To further configure the S3 integrator charm, you may provide the charm with additional configuration options. The following are the full list of configuration options supported by the charm:
 
-| Config name | Description |
+| Configuration name | Description |
 | --- | --- |
 | `credentials` | (**Required**) The Juju secret ID that contains the access key and secret key used to connect to S3. |
 | `endpoint` | The endpoint used to connect to the S3 object storage. If not specified, the charm attempts to create and ensure bucket as per default `boto3` behavior for endpoint discovery. |
@@ -72,13 +72,13 @@ To further configure the S3 integrator charm, you may provide the charm with add
 | `tls-ca-chain` | The complete CA chain, which can be used for HTTPS validation. This needs to be a base64 encoded string of the original CA chain. |
 | `experimental-delete-older-than-days` | The number of days after which full backups are eligible for deletion. EXPERIMENTAL option. |
 
-In order to set `tls-ca-chain` config, the value needs to be base64-encoded string of the original CA chain. Use the following command to configure the charm with CA chain from a file:
+In order to set `tls-ca-chain` configuration, the value needs to be base64-encoded string of the original CA chain. Use the following command to configure the charm with CA chain from a file:
 
 ```bash
 juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
 ```
 
-If the config is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm, see [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for more information.
+If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm, see [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for more information.
 
 
 ## What's new in `s3-integrator` track `2/`?
@@ -226,13 +226,13 @@ The S3 Integrator charm from track `2/` can be used in two different modes, each
 ### Global bucket and path configuration
 In this mode, the bucket and/or path is set at the `s3-integrator` charm level, such that any related applications will always receive this bucket and/or path when they relate to `s3-integrator.`
 
-To enforce a bucket globally for all charms related to the `s3-integrator`, set the `bucket` config option in `s3-integrator` charm.
+To enforce a bucket globally for all charms related to the `s3-integrator`, set the `bucket` configuration option in `s3-integrator` charm.
 
 ```
 juju config s3-integrator bucket=global-bucket
 ```
 
-Similarly, to enforce a path globally for all charms related to `s3-integrator`, set the `path` config option in `s3-integrator` charm.
+Similarly, to enforce a path globally for all charms related to `s3-integrator`, set the `path` configuration option in `s3-integrator` charm.
 
 ```
 juju config s3-integrator path=global-path
@@ -244,7 +244,7 @@ When using `s3-integrator` for this usecase, one S3 Integrator app is deployed p
 ### Consumer specific bucket and path configuration
 In this mode, the bucket and/or path is purposefully not set at the `s3-integrator` charm level, such that the related applications can request for a specific bucket and/or path from the `s3-integrator` charm when they relate to it.
 
-To allow for the consumer charms to request bucket and/or path themselves, do not set the value of `bucket` and/or `path` config option at the `s3-integrator` charm level. The consumer charms can then make this request by specifying the `bucket` and/or `path` keyword argument in the charm code, when instantiating the `S3Requirer` class from `object-storage-charmlib`.
+To allow for the consumer charms to request bucket and/or path themselves, do not set the value of `bucket` and/or `path` configuration option at the `s3-integrator` charm level. The consumer charms can then make this request by specifying the `bucket` and/or `path` keyword argument in the charm code, when instantiating the `S3Requirer` class from `object-storage-charmlib`.
 
 ```python
 from object_storage import S3Requirer

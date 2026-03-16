@@ -43,7 +43,7 @@ so that the charms that consume the relation on the requirer side sees the lates
 
 To further configure the Azure Storage Integrator charm, you may provide the charm with additional configuration options. The following are the full list of configuration options supported by the charm:
 
-| Config name | Description |
+| Configuration name | Description |
 | --- | --- |
 | `credentials` | (**Required**) The Juju secret ID that contains the storage account secret key used to connect to Azure Storage. |
 | `storage-account` | (**Required**) The name of the Azure Storage account. |

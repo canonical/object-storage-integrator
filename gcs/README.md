@@ -77,9 +77,9 @@ so that the charms that consume the relation on the requirer side see the latest
 
 ### Further configuration
 
-To further configure the GCS Integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
+To further configure the GCS Integrator charm, you may provide the charm with additional configuration options. The following are the full list of configuration options supported by the charm:
 
-| Config name | Description |
+| Configuration name | Description |
 | --- | --- |
 | `credentials` | (**Required**) The Juju secret ID that contains the GCP service account secret key used to connect to GCS. See [Creating a GCP Service Account key](#creating-a-gcp-service-account-key) for instructions on creating this key. |
 | `bucket` | (**Required**) Target GCS bucket for snapshots/backups (3-63 chars, lowercase letters, digits, hyphens). |
