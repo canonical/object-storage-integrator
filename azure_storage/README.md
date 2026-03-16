@@ -41,7 +41,7 @@ so that the charms that consume the relation on the requirer side sees the lates
 
 ### Further configuration
 
-To further configure the Azure Storage Integrator charm, you may provide the charm with additional configuration options. The following are the full list of config options supported by the charm:
+To further configure the Azure Storage Integrator charm, you may provide the charm with additional configuration options. The following are the full list of configuration options supported by the charm:
 
 | Config name | Description |
 | --- | --- |
