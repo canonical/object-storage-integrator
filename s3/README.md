@@ -77,7 +77,7 @@ To set the `tls-ca-chain` configuration, the value needs to be base64-encoded st
 juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
 ```
 
-If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm, see [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for more information.
+If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm. See [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for details.
 
 ## What's new in `s3-integrator` track `2/`?
 
@@ -89,7 +89,7 @@ The S3 Integrator charm is now able to create a bucket on its own, if it finds t
 
 ### Ensure the usability of bucket
 
-The S3 Integrator charm will share the bucket information to the charms that are related to it only after ensuring the bucket exists and is ready for use. For this purpose, the charm will try to call `ListObjectsV2` action on the given bucket + path combination. If the charm finds that it cannot run this action on the given set of bucket and path, it won't share this bucket to the related charms.
+The S3 Integrator charm shares bucket information with integrated charms only after verifying that the bucket exists and is ready to use. To do this, the charm calls the `ListObjectsV2` action on the specified bucket and path combination. If this check fails, the charm does not share the bucket information.
 
 ## Versioning and compatibility
 
