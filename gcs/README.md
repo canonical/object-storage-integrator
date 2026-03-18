@@ -1,4 +1,4 @@
-# GCS-integrator
+# Google Cloud Storage (GCS) Integrator
 
 [![Charmhub](https://charmhub.io/gcs-integrator/badge.svg)](https://charmhub.io/gcs-integrator)
 [![Release](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
@@ -8,7 +8,7 @@
 
 This is an operator charm providing an integrator for connecting to Google Cloud Storage.
 
-## Supported Architectures
+## Supported architectures
 
 This charm is released for AMD64 and ARM64.
 
@@ -44,7 +44,7 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
     }
     ```
 
-## Usage Instructions
+## Usage instructions
 
 1. First of all, deploy the `gcs-integrator` charm:
 

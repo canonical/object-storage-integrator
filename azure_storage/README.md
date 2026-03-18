@@ -8,7 +8,7 @@
 
 This is an operator charm providing an integrator for connecting to Azure Storage.
 
-## Usage Instructions
+## Usage instructions
 
 1. First of all, deploy the `azure-storage-integrator` charm:
 

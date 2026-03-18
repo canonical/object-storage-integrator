@@ -1,4 +1,4 @@
-# S3-integrator
+# S3 Integrator
 
 [![Charmhub](https://charmhub.io/s3-integrator/badge.svg?channel=2/edge)](https://charmhub.io/s3-integrator)
 [![Release](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
@@ -15,7 +15,7 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
 > In-place refresh is not supported for `s3-integrator` from track `1/` to track `2/`,
 > because the charms in these two tracks use different Ubuntu bases.
 
-## Usage Instructions
+## Usage instructions
 
 1. First of all, deploy the `s3-integrator` charm:
 
@@ -91,7 +91,7 @@ The S3 Integrator charm is now able to create a bucket on its own, if it finds t
 
 The S3 Integrator charm will share the bucket information to the charms that are related to it only after ensuring the bucket exists and is ready for use. For this purpose, the charm will try to call `ListObjectsV2` action on the given bucket + path combination. If the charm finds that it cannot run this action on the given set of bucket and path, it won't share this bucket to the related charms.
 
-## Versioning and Compatibility
+## Versioning and compatibility
 
 The S3 Integrator charm in this repository is released to track `2/`, which supports charm configuration with Juju secrets and also sharing data over the relation using Juju secrets. The charm uses a newer version of relation data schema (`v1`) in comparison to the relation data schema (`v0`) used by the S3 Integrator on track `1/`.
 
@@ -209,7 +209,7 @@ Once you have your charm built and deployed, you can then integrate with the `s3
 juju integrate s3-integrator requirer-charm
 ```
 
-## Usage Modes
+## Usage modes
 
 The S3 Integrator charm from track `2/` can be used in two different modes, each catering to its own unique use cases. The modes are:
 
@@ -257,7 +257,7 @@ In the case where the `bucket` and/or `path` is both specified at the `s3-integr
 
 Although S3 Integrator is capable of creating different buckets as per the requests of different consumer charms all integrated together with the same instance of S3 Integrator, it is still recommended that a separate instance of S3 Integrator is deployed per bucket, for the ease of maintenance.
 
-## Migration Strategy (from track `1/` to `2/`)
+## Migration strategy (from track `1/` to `2/`)
 
 The S3 Integrator from track `2/` is supported only on versions of Juju that support secrets, since the charm heavily relies on Juju secrets to configure keys and share data over the relation.
 

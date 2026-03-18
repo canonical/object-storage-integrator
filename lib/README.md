@@ -15,7 +15,7 @@ When two charms are related over an object storage relation interface, the one p
 credentials is termed as Provider and the one that consumes those credentials is termed as Requirer. A provider
 publishes the payload when the requirer asks for it.
 
-## Table of Contents
+## Table of contents
 
 - [Installation](#installation)
 - [Usage: `S3Provider`](#usage-s3provider)
@@ -384,7 +384,7 @@ To upgrade your charms from using the old object storage charmlibs to the new li
 
 For production charms, pin `object-storage-charmlib` to a compatible minor version range (for example `^0.1.0`) and validate upgrades in integration tests before promoting to stable channels.
 
-## The `PrematureDataAccessError` Exception
+## The `PrematureDataAccessError` exception
 
 The `PrematureDataAccessError` exception is raised by the lib when the provider charm attempts to update the relation data before the relation protocol has been fully initialized.
 

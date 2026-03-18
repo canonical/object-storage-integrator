@@ -1,4 +1,4 @@
-# Object Storage Integrator Monorepo
+# Object Storage Integrator monorepo
 
 [![PyPI](https://img.shields.io/pypi/v/object-storage-charmlib)](https://pypi.python.org/pypi/object-storage-charmlib)
 [![Charmhub](https://charmhub.io/s3-integrator/badge.svg?channel=2/edge)](https://charmhub.io/s3-integrator)
