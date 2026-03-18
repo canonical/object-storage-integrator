@@ -176,7 +176,6 @@ class RequirerCharm(CharmBase):
     def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):
         # notify charm code that credentials are removed
         process_connection_info(None)
-
 ```
 
 The utility function `get_storage_connection_info` in `S3Requirer` returns a typed dictionary of type `S3Info`, which is defined as follows:

@@ -100,7 +100,6 @@ description: A test charm
 requires:
   gcs-credentials:
     interface: gcs
-
 ```
 
 The recommended way for the requirer charms to consume the `gcs` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm. For example, add the following to the `pyproject.toml` file:
@@ -168,7 +167,6 @@ class RequirerCharm(CharmBase):
     def _on_conn_info_gone(self, event: StorageConnectionInfoGoneEvent):
         # notify charm code that credentials are removed
         process_connection_info(None)
-
 ```
 
 The utility function `get_storage_connection_info` in `GCSRequirer` returns a typed dictionary of type `GCSInfo`, which is defined as follows:

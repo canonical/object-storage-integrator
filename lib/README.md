@@ -89,7 +89,6 @@ provider charm using the function `get_storage_connection_info` in the `S3Requir
 
 
 ```python
-
 from object_storage import (
     StorageConnectionInfoChangedEvent, 
     StorageConnectionInfoGoneEvent,
@@ -159,7 +158,6 @@ The `AzureStorageProvider` class can be used by the provider charm (eg, `azure-s
 The provider needs to instantiate the `AzureStorageProvider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the Azure Storage connection information using the function `set_storage_connection_info` in the `AzureStorageProvider` class.
 
 ```python
-
 from object_storage import (
     AzureStorageProvider,
     StorageConnectionInfoRequestedEvent,
@@ -202,7 +200,6 @@ provider charm using the function `get_storage_connection_info` in the `AzureSto
 
 
 ```python
-
 from object_storage import (
     AzureStorageInfo,
     AzureStorageRequirer, 
@@ -266,7 +263,6 @@ The `GCSProvider` class can be used by the provider charm (eg, `gcs-integrator`)
 The provider needs to instantiate the `GCSProvider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the GCS connection information using the function `set_storage_connection_info` in the `GCSProvider` class.
 
 ```python
-
 from object_storage import (
     GCSProvider,
     StorageConnectionInfoRequestedEvent,
@@ -308,7 +304,6 @@ The requirer charm needs to instantiate the `GCSRequirer` class -- optionally wi
 
 
 ```python
-
 from object_storage import (
     GCSInfo,
     GCSRequirer, 
