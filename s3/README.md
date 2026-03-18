@@ -36,7 +36,7 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
    juju grant-secret mysecret s3-integrator
    ```
 
-   The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
+   The first command will return an ID like `secret:d0erdgfmp25c762i8np0`.
 
 4. Configure the S3 Integrator charm with the newly created secret:
 

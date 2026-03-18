@@ -29,7 +29,7 @@ This is an operator charm providing an integrator for connecting to Azure Storag
     juju grant-secret mysecret azure-storage-integrator
     ```
 
-    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
+    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`.
 
 4. Configure the Azure Storage Integrator charm with the newly created secret:
 

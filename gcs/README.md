@@ -65,7 +65,7 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
     juju grant-secret mysecret gcs-integrator
     ```
 
-    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
+    The first command will return an ID like `secret:d0erdgfmp25c762i8np0`.
 
 4. Configure the GCS Integrator charm  with the newly created secret:
 
