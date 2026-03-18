@@ -55,7 +55,7 @@ so that the charms that consume the relation on the requirer side see the latest
 
 ### Further configuration
 
-To further configure the S3 integrator charm, you may provide the charm with additional configuration options. The following are the full list of configuration options supported by the charm:
+S3 Integrator charm supports the following configuration options:
 
 | Configuration name | Description |
 | --- | --- |
