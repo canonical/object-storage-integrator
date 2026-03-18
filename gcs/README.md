@@ -91,11 +91,9 @@ To further configure the GCS Integrator charm, you may provide the charm with ad
 
 Charmed applications can enable the integration with the `gcs-integrator` charm over the `gcs` relation interface, allowing them to consume the Google Cloud Storage connection information shared by the `gcs-integrator` charm over the Juju relation. 
 
-The first step towards enabling integration with `gcs-integrator` is to add a relation endpoint with interface name `gcs` to the `requires` section of your charm's metadata.
+The first step towards enabling integration with `gcs-integrator` is to add a relation endpoint with interface name `gcs` to the `requires` section of your charm's metadata. For example, add the following section to your charm's `metadata.yaml`:
 
 ```yaml
-# file: metadata.yaml
-
 name: foo-bar
 description: A test charm
 
@@ -105,20 +103,16 @@ requires:
 
 ```
 
-The recommended way for the requirer charms to consume the `gcs` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm (for example, to `pyproject.toml` as follows).
+The recommended way for the requirer charms to consume the `gcs` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm. For example, add the following to the `pyproject.toml` file:
 
 ```toml
-# file: pyproject.toml
-
 [tool.poetry.dependencies]
 object-storage-charmlib = "^0.1.0"
 ```
 
-Now in your charm code, you need to instantiate the `GCSRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific bucket name from the `gcs-integrator` charm.
+Now in your charm code, you need to instantiate the `GCSRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific bucket name from the `gcs-integrator` charm. For example, add the following code block to your charm's `charm.py`:
 
 ```python
-# file: charm.py
-
 from object_storage import GCSRequirer
 
 class RequirerCharm(CharmBase):
@@ -134,11 +128,9 @@ class RequirerCharm(CharmBase):
 
 Using this instance of class `GCSRequirer`, the requirer charm then needs to listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` and handle them appropriately in the charm code. The event `storage_connection_info_changed` is fired whenever the `gcs-integrator` has written new data to the relation databag, which needs to be handled by the requirer charm by updating its state with the new GCS connection information. The event `storage_connection_info_gone` is fired when the relation with `gcs-integrator` is broken, which needs to be handled by the requirer charm by updating its state to not use the GCS connection information anymore.
 
-The latest GCS connection information shared by the `gcs-integrator` over the relation can be fetched using the utility function `get_storage_connection_info` available in the `GCSRequirer` instance.
+The latest GCS connection information shared by the `gcs-integrator` over the relation can be fetched using the utility function `get_storage_connection_info` available in the `GCSRequirer` instance. The following code example shows the usage of `get_storage_connection_info` function in the requirer charm code:
 
 ```python
-# file: charm.py
-
 from object_storage import (
     GCSInfo,
     GCSRequirer, 
