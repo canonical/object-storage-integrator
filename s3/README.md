@@ -232,7 +232,7 @@ Similarly, to enforce a path globally for all charms related to `s3-integrator`,
 juju config s3-integrator path=global-path
 ```
 
-When using `s3-integrator` for this usecase, one S3 Integrator app is deployed per bucket, such that all requirer charms that need this bucket are integrated with this instance of S3 Integrator.
+When using `s3-integrator` in this mode, one S3 Integrator app is deployed per bucket, such that all requirer charms that need this bucket are integrated with this instance of S3 Integrator.
 
 ### Consumer specific bucket and path configuration
 
