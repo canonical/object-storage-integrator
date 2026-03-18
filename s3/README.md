@@ -20,9 +20,7 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
 > because the charms in these two tracks use different Ubuntu bases.
 >
 
-## Instructions for Usage
-
-<!-- TODO(release): figure out the channels -->
+## Usage Instructions
 
 1. First of all, deploy the `s3-integrator` charm as:
    ```

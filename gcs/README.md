@@ -43,7 +43,7 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
     }
     ```
 
-## Instructions for Charm Usage
+## Usage Instructions
 
 1.  First of all, deploy the `gcs-integrator` charm:
     ```bash

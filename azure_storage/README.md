@@ -8,7 +8,8 @@
 This is an operator charm providing an integrator for connecting to Azure Storage.
 
 
-## Instructions for Usage
+## Usage Instructions
+
 1. First of all, deploy the `azure-storage-integrator` charm as:
     ```
     juju deploy azure-storage-integrator
