@@ -11,6 +11,7 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
 > [!WARNING]
 > This project is the Juju secrets based S3 Integrator charm on track `2`.
 > The former action-based `s3-integrator` (on track `1`) lives in <https://github.com/canonical/s3-integrator>.
+
 > [!WARNING]
 > In-place refresh is not supported for `s3-integrator` from track `1` to track `2`,
 > because the charms in these two tracks use different Ubuntu bases.

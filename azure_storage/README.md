@@ -44,7 +44,7 @@ This is an operator charm providing an integrator for connecting to Azure Storag
     ```
 
 Now whenever the user changes the configuration options in azure-storage-integrator charm, appropriate event handlers are fired
-so that the charms that consume the relation on the requirer side sees the latest information.
+so that the charms that consume the relation on the requirer side see the latest information.
 
 ### Further configuration
 
