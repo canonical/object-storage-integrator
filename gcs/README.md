@@ -49,7 +49,7 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
 1. First of all, deploy the `gcs-integrator` charm:
 
     ```bash
-    juju deploy gcs-integrator
+    juju deploy gcs-integrator --channel 1/edge
     ```
 
 2. Configure the GCS Integrator charm:
