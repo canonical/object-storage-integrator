@@ -89,7 +89,7 @@ The S3 Integrator charm is now able to create a bucket on its own, if it finds t
 
 ### Ensure the usability of bucket
 
-The S3 Integrator charm will share the bucket information to the charms that are related to it only after ensuring the bucket exists and is ready for use. For this purpose, the charm will try to call `ListObjectsV2` action on the given bucket + path combination. If the charm finds that it cannot run this action on the given set of bucket and path, it won't share this bucket to the related charms.
+The S3 Integrator charm shares bucket information with integrated charms only after verifying that the bucket exists and is ready to use. To do this, the charm calls the `ListObjectsV2` action on the specified bucket and path combination. If this check fails, the charm does not share the bucket information.
 
 ## Versioning and Compatibility
 
