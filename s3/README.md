@@ -71,7 +71,7 @@ S3 Integrator charm supports the following configuration options:
 | `tls-ca-chain` | The complete CA chain, which can be used for HTTPS validation. This needs to be a base64 encoded string of the original CA chain. |
 | `experimental-delete-older-than-days` | The number of days after which full backups are eligible for deletion. EXPERIMENTAL option. |
 
-In order to set `tls-ca-chain` configuration, the value needs to be base64-encoded string of the original CA chain. Use the following command to configure the charm with CA chain from a file:
+To set the `tls-ca-chain` configuration, the value needs to be base64-encoded string of the original CA chain. Use the following command to configure the charm with a CA chain from a file:
 
 ```bash
 juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
