@@ -29,13 +29,13 @@ publishes the payload when the requirer asks for it.
 
 ## Installation
 
-The lib can be installed from PyPI using `pip` as:
+The lib can be installed from PyPI using `pip`:
 
 ```bash
 pip install object-storage-charmlib
 ```
 
-If you're using Poetry as packaging tool in your charm project, you can add the lib to the charm dependencies as:
+If you're using Poetry as packaging tool in your charm project, you can add the lib to the charm dependencies:
 
 ```toml
 [tool.poetry.dependencies]

@@ -10,13 +10,13 @@ This is an operator charm providing an integrator for connecting to Azure Storag
 
 ## Usage Instructions
 
-1. First of all, deploy the `azure-storage-integrator` charm as:
+1. First of all, deploy the `azure-storage-integrator` charm:
 
     ```bash
     juju deploy azure-storage-integrator
     ```
 
-2. Configure the Azure Storage Integrator charm as:
+2. Configure the Azure Storage Integrator charm:
 
     ```bash
     juju config azure-storage-integrator storage-account=stoacc container=conn

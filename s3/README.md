@@ -17,13 +17,13 @@ This is an operator charm providing an integrator for connecting to S3. Charmed 
 
 ## Usage Instructions
 
-1. First of all, deploy the `s3-integrator` charm as:
+1. First of all, deploy the `s3-integrator` charm:
 
    ```bash
    juju deploy s3-integrator --channel=2/edge
    ```
 
-2. Configure the S3 Integrator charm as:
+2. Configure the S3 Integrator charm:
 
    ```bash
    juju config s3-integrator bucket=mybucket path=mypath endpoint=http://my-endpoint
