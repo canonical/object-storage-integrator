@@ -77,7 +77,7 @@ To set the `tls-ca-chain` configuration, the value needs to be base64-encoded st
 juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
 ```
 
-If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm, see [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for more information.
+If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm. See [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for details.
 
 ## What's new in `s3-integrator` track `2/`?
 
