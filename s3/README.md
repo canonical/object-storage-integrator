@@ -81,6 +81,8 @@ If a configuration is not set in the `s3-integrator`, its value won't be shared 
 
 ## What's new in `s3-integrator` track `2/`?
 
+The S3 Integrator charm from track `2` is different from the same charm in track `1` in the following aspects:
+
 ### Auto creation of bucket
 
 The S3 Integrator charm is now able to create a bucket on its own, if it finds that the specified bucket does not exist already in the S3 cloud. This is also applicable when the requirer charm integrated with `s3-integrator` requests for a bucket that doesn't exist already in S3.
@@ -108,7 +110,6 @@ description: A test charm
 requires:
   s3-credentials:
     interface: s3
-
 ```
 
 The recommended way for the requirer charms to consume the `s3` interface is to use the `object-storage-charmlib` Python package. Add this package as a dependency to your charm. For example, add the following to the `pyproject.toml` file:
