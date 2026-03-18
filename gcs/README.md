@@ -1,4 +1,5 @@
 # GCS-integrator
+
 [![Charmhub](https://charmhub.io/gcs-integrator/badge.svg)](https://charmhub.io/gcs-integrator)
 [![Release](https://github.com/canonical/object-storage-integrators/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/release.yaml)
 [![Tests](https://github.com/canonical/object-storage-integrators/actions/workflows/ci.yaml/badge.svg)](https://github.com/canonical/object-storage-integrator/actions/workflows/ci.yaml)
@@ -45,30 +46,36 @@ The GCP Service Account can be created as from the Google Cloud Console as follo
 
 ## Usage Instructions
 
-1.  First of all, deploy the `gcs-integrator` charm:
+1. First of all, deploy the `gcs-integrator` charm:
+
     ```bash
     juju deploy gcs-integrator
     ```
 
 2. Configure the GCS Integrator charm as:
+
     ```bash
     juju config gcs-integrator bucket=foo
     ```
 
 3. Add a new secret containing GCP service account key obtained from [this section](#creating-a-gcp-service-account-key) to Juju, and grant its permissions to gcs-integrator.
-    ```
+
+    ```bash
     juju add-secret mysecret secret-key#file=service_account.json
     juju grant-secret mysecret gcs-integrator
     ```
+
     The first command will return an ID like `secret:d0erdgfmp25c762i8np0`
 
 4. Configure the GCS Integrator charm  with the newly created secret:
-    ```
+
+    ```bash
     juju config gcs-integrator credentials=secret:d0erdgfmp25c762i8np0
     ```
 
 5. Now the charm should be in active and idle condition. To relate it with a consumer charm, simply do:
-    ```
+
+    ```bash
     juju integrate gcs-integrator:gcs-credentials consumer-charm:gcs-credentials
     ```
 
@@ -86,10 +93,9 @@ To further configure the GCS Integrator charm, you may provide the charm with ad
 | `storage-class` | The GCS storage class (`STANDARD`, `NEARLINE`, `COLDLINE`, `ARCHIVE`). Default value is `STANDARD`. |
 | `path` | The path inside the GCS bucket to store objects (`<=1024` bytes, no NULL bytes). |
 
-
 ## Integrating your charm with `gcs-integrator`
 
-Charmed applications can enable the integration with the `gcs-integrator` charm over the `gcs` relation interface, allowing them to consume the Google Cloud Storage connection information shared by the `gcs-integrator` charm over the Juju relation. 
+Charmed applications can enable the integration with the `gcs-integrator` charm over the `gcs` relation interface, allowing them to consume the Google Cloud Storage connection information shared by the `gcs-integrator` charm over the Juju relation.
 
 The first step towards enabling integration with `gcs-integrator` is to add a relation endpoint with interface name `gcs` to the `requires` section of your charm's metadata. For example, add the following section to your charm's `metadata.yaml`:
 
@@ -190,12 +196,10 @@ Once you have your charm built and deployed, you can then integrate with the `gc
 juju integrate gcs-integrator requirer-charm
 ```
 
-
 ## Security
-Security issues in the GCS Integrator Operator can be reported through [LaunchPad](https://wiki.ubuntu.com/DebuggingSecurity#How%20to%20File). Please do not file GitHub issues about security issues.
 
+Security issues in the GCS Integrator Operator can be reported through [LaunchPad](https://wiki.ubuntu.com/DebuggingSecurity#How%20to%20File). Please do not file GitHub issues about security issues.
 
 ## Contributing
 
 Please see the [Juju docs](https://documentation.ubuntu.com/juju/) for guidelines on enhancements to this charm following best practice guidelines, and [CONTRIBUTING.md](https://github.com/canonical/object-storage-integrator/blob/main/CONTRIBUTING.md) for developer guidance.
-

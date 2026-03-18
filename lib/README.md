@@ -6,12 +6,13 @@ The `object-storage-charmlib` is a Python charm interface library for communicat
 and consume storage connection info.
 
 The following object storage providers are currently supported:
+
 1. AWS S3 (and S3 compliant providers)
 2. Azure Blob Storage / Azure Data Lake Storage (ADLS)
 3. Google Cloud Storage (GCS)
 
 When two charms are related over an object storage relation interface, the one providing the object storage
-credentials is termed as Provider and the one that consumes those credentials is termed as Requirer. A provider 
+credentials is termed as Provider and the one that consumes those credentials is termed as Requirer. A provider
 publishes the payload when the requirer asks for it.
 
 ## Table of Contents
@@ -42,6 +43,7 @@ object-storage-charmlib = "^0.1.0"
 ```
 
 ## Usage: `S3Provider`
+
 The `S3Provider` class can be used by the provider charm (eg, `s3-integrator`) to share S3 bucket and connection information to the requirer charm (eg, `postgresql`).
 
 The provider needs to instantiate the `S3Provider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the S3 storage connection information using the function `set_storage_connection_info` in the `S3Provider` class.
@@ -79,14 +81,12 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-
 ## Usage: `S3Requirer`
 
 The `S3Requirer` class can be used by the requirer charm (eg, `postgresql`) to request and receive S3 bucket and credentials from the provider charm (eg, `s3-integrator`).
 
 The requirer charm needs to instantiate the `S3Requirer` class -- optionally with additional request for a particular bucket and/or a path -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the S3 storage connection information shared by the
 provider charm using the function `get_storage_connection_info` in the `S3Requirer` class.
-
 
 ```python
 from object_storage import (
@@ -150,7 +150,6 @@ S3Info = TypedDict(
 )
 ```
 
-
 ## Usage: `AzureStorageProvider`
 
 The `AzureStorageProvider` class can be used by the provider charm (eg, `azure-storage-integrator`) to share Azure Blob Storage and Azure Data Lake Storage connection information to the requirer charm (eg, `mongodb`).
@@ -190,14 +189,12 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-
 ## Usage: `AzureStorageRequirer`
 
 The `AzureStorageRequirer` class can be used by the requirer charm (eg, `mongodb`) to request and receive Azure Storage credentials from the provider charm (eg, `azure-storage-integrator`).
 
 The requirer charm needs to instantiate the `AzureStorageRequirer` class -- optionally with additional request for a particular container -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the Azure Storage connection information shared by the
 provider charm using the function `get_storage_connection_info` in the `AzureStorageRequirer` class.
-
 
 ```python
 from object_storage import (
@@ -255,7 +252,6 @@ AzureStorageInfo = TypedDict(
 )
 ```
 
-
 ## Usage: `GCSProvider`
 
 The `GCSProvider` class can be used by the provider charm (eg, `gcs-integrator`) to share Google Cloud Storage connection information to the requirer charm (eg, `opensearch`).
@@ -295,13 +291,11 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-
 ## Usage: `GCSRequirer`
 
 The `GCSRequirer` class can be used by the requirer charm (eg, `opensearch`) to request and receive Google Cloud Storage credentials from the provider charm (eg, `gcs-integrator`).
 
 The requirer charm needs to instantiate the `GCSRequirer` class -- optionally with additional request for a particular bucket -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the GCS storage connection information shared by the provider charm using the function `get_storage_connection_info` in the `GCSRequirer` class.
-
 
 ```python
 from object_storage import (
@@ -380,17 +374,15 @@ To upgrade your charms from using the old object storage charmlibs to the new li
 
 1. Update your charm's dependencies to include the `object-storage-charmlib` Python package.
 2. Update charm codebase to use the new requirer classes, custom events and functions in the new lib from their old counterparts. Please follow the usage instructions for [`S3Requirer`](#usage-s3requirer), [`AzureStorageRequirer`](#usage-azurestoragerequirer) and [`GCSRequirer`](#usage-gcsrequirer) for this purpose. A few common changes (however not an exhaustive list) are:
-    * Update the references of `S3Requirer`, `AzureStorageRequirer` and `GCSRequirer` to their counterparts from the new lib. 
-    * Listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` in the charm code instead of `s3_connection_info_changed`, `s3_connection_info_gone`, etc.
-    * Update function calls like `get_s3_connection_info`, `get_azure_storage_connection_info` and `get_gcs_connection_info` to a more generic function `get_storage_connection_info`.
+    - Update the references of `S3Requirer`, `AzureStorageRequirer` and `GCSRequirer` to their counterparts from the new lib.
+    - Listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone` in the charm code instead of `s3_connection_info_changed`, `s3_connection_info_gone`, etc.
+    - Update function calls like `get_s3_connection_info`, `get_azure_storage_connection_info` and `get_gcs_connection_info` to a more generic function `get_storage_connection_info`.
 3. Delete the old charm lib inside the `lib` or `src` section of your charm codebase.
 4. Update your charm's unit and integration tests to make them compatible with the newer lib.
-
 
 ### Dependency pinning recommendation
 
 For production charms, pin `object-storage-charmlib` to a compatible minor version range (for example `^0.1.0`) and validate upgrades in integration tests before promoting to stable channels.
-
 
 ## The `PrematureDataAccessError` Exception
 
@@ -399,7 +391,6 @@ The `PrematureDataAccessError` exception is raised by the lib when the provider 
 There are valid use cases where the provider charm may want to update the connection information on charm lifecycle events like `config-changed`, etc. When the relation data is attempted to be updated when the relation is not completely initialized, there might be risks of the provider sharing secret data over plaintext, sharing data with incorrect schema with respect to the schema used by the requirer, etc. To prevent these edge cases, the lib raises `PrematureDataAccessError` when the `set_storage_connection_info` function is called while the relation is yet not fully initialized.
 
 The calls to the function `set_storage_connection_info` in the handlers of events outside the context of the object storage relation should properly handle the `PrematureDataAccessError`, while deferring the event for execution later when the relation will have completed initialization. The following is an example of how this can be done, in the context of S3 interface.
-
 
 ```python
 from object_storage import (
