@@ -60,7 +60,7 @@ Azure Storage Integrator charm supports the following configuration options:
 | `resource-group` | The name of the Azure resource group where the storage account is located. If not specified, the resource group is auto inferred as per default behavior of Azure Storage Blob SDK. |
 | `connection-protocol` | The storage protocol to use when connecting to Azure Storage. Default value is `"abfss"`. Possible values are: `"wasb"`, `"wasbs"` for Azure Blob Storage, `"abfs"`, `"abfss"` for Azure Data Lake Storage Gen2 and `"http"`, `"https"` for Azure Blob/Files REST API access. |
 
-## Integrating your charm with `azure-storage-integrator`
+## Integrating your charm with Azure Storage Integrator
 
 Charmed applications can enable the integration with the `azure-storage-integrator` charm over the `azure_storage` relation interface, allowing them to consume the Azure Storage connection information shared by the `azure-storage-integrator` charm over the Juju relation.
 

@@ -93,7 +93,7 @@ GCS Integrator charm supports the following configuration options:
 | `storage-class` | The GCS storage class (`STANDARD`, `NEARLINE`, `COLDLINE`, `ARCHIVE`). Default value is `STANDARD`. |
 | `path` | The path inside the GCS bucket to store objects (`<=1024` bytes, no NULL bytes). |
 
-## Integrating your charm with `gcs-integrator`
+## Integrating your charm with GCS Integrator
 
 Charmed applications can enable the integration with the `gcs-integrator` charm over the `gcs` relation interface, allowing them to consume the Google Cloud Storage connection information shared by the `gcs-integrator` charm over the Juju relation.
 

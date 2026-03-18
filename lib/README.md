@@ -18,12 +18,12 @@ publishes the payload when the requirer asks for it.
 ## Table of contents
 
 - [Installation](#installation)
-- [Usage: `S3Provider`](#usage-s3provider)
-- [Usage: `S3Requirer`](#usage-s3requirer)
-- [Usage: `AzureStorageProvider`](#usage-azurestorageprovider)
-- [Usage: `AzureStorageRequirer`](#usage-azurestoragerequirer)
-- [Usage: `GCSProvider`](#usage-gcsprovider)
-- [Usage: `GCSRequirer`](#usage-gcsrequirer)
+- [S3Provider class](#s3provider-class)
+- [S3Requirer class](#s3requirer-class)
+- [AzureStorageProvider class](#azurestorageprovider-class)
+- [AzureStorageRequirer class](#azurestoragerequirer-class)
+- [GCSProvider class](#gcsprovider-class)
+- [GCSRequirer class](#gcsrequirer-class)
 - [Versioning and compatibility](#versioning-and-compatibility)
 - [The `PrematureDataAccessError` Exception](#the-prematuredataaccesserror-exception)
 
@@ -42,9 +42,9 @@ If you're using Poetry as packaging tool in your charm project, you can add the 
 object-storage-charmlib = "^0.1.0"
 ```
 
-## Usage: `S3Provider`
+## S3Provider class
 
-The `S3Provider` class can be used by the provider charm (eg, `s3-integrator`) to share S3 bucket and connection information to the requirer charm (eg, `postgresql`).
+The `S3Provider` class can be used by the provider charm (e.g., `s3-integrator`) to share S3 bucket and connection information to the requirer charm (e.g., `postgresql`).
 
 The provider needs to instantiate the `S3Provider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the S3 storage connection information using the function `set_storage_connection_info` in the `S3Provider` class.
 
@@ -81,9 +81,9 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-## Usage: `S3Requirer`
+## S3Requirer class
 
-The `S3Requirer` class can be used by the requirer charm (eg, `postgresql`) to request and receive S3 bucket and credentials from the provider charm (eg, `s3-integrator`).
+The `S3Requirer` class can be used by the requirer charm (e.g., `postgresql`) to request and receive S3 bucket and credentials from the provider charm (e.g., `s3-integrator`).
 
 The requirer charm needs to instantiate the `S3Requirer` class -- optionally with additional request for a particular bucket and/or a path -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the S3 storage connection information shared by the
 provider charm using the function `get_storage_connection_info` in the `S3Requirer` class.
@@ -150,9 +150,9 @@ S3Info = TypedDict(
 )
 ```
 
-## Usage: `AzureStorageProvider`
+## AzureStorageProvider class
 
-The `AzureStorageProvider` class can be used by the provider charm (eg, `azure-storage-integrator`) to share Azure Blob Storage and Azure Data Lake Storage connection information to the requirer charm (eg, `mongodb`).
+The `AzureStorageProvider` class can be used by the provider charm (e.g., `azure-storage-integrator`) to share Azure Blob Storage and Azure Data Lake Storage connection information to the requirer charm (e.g., `mongodb`).
 
 The provider needs to instantiate the `AzureStorageProvider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the Azure Storage connection information using the function `set_storage_connection_info` in the `AzureStorageProvider` class.
 
@@ -189,9 +189,9 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-## Usage: `AzureStorageRequirer`
+## AzureStorageRequirer class
 
-The `AzureStorageRequirer` class can be used by the requirer charm (eg, `mongodb`) to request and receive Azure Storage credentials from the provider charm (eg, `azure-storage-integrator`).
+The `AzureStorageRequirer` class can be used by the requirer charm (e.g., `mongodb`) to request and receive Azure Storage credentials from the provider charm (e.g., `azure-storage-integrator`).
 
 The requirer charm needs to instantiate the `AzureStorageRequirer` class -- optionally with additional request for a particular container -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the Azure Storage connection information shared by the
 provider charm using the function `get_storage_connection_info` in the `AzureStorageRequirer` class.
@@ -252,9 +252,9 @@ AzureStorageInfo = TypedDict(
 )
 ```
 
-## Usage: `GCSProvider`
+## GCSProvider class
 
-The `GCSProvider` class can be used by the provider charm (eg, `gcs-integrator`) to share Google Cloud Storage connection information to the requirer charm (eg, `opensearch`).
+The `GCSProvider` class can be used by the provider charm (e.g., `gcs-integrator`) to share Google Cloud Storage connection information to the requirer charm (e.g., `opensearch`).
 
 The provider needs to instantiate the `GCSProvider` class, and then listen to `storage_connection_info_requested` custom event. When handling the event, the provider needs to set the GCS connection information using the function `set_storage_connection_info` in the `GCSProvider` class.
 
@@ -291,9 +291,9 @@ class ExampleProviderCharm(CharmBase):
 
 The function `set_storage_connection_info` accepts a `relation_id` for the relation to which the data is to be updated, along with the `data` payload dictionary. To delete an existing field in the relation data, the value of the field should be set as an empty string (`""`) in the `data` payload dictionary.
 
-## Usage: `GCSRequirer`
+## GCSRequirer class
 
-The `GCSRequirer` class can be used by the requirer charm (eg, `opensearch`) to request and receive Google Cloud Storage credentials from the provider charm (eg, `gcs-integrator`).
+The `GCSRequirer` class can be used by the requirer charm (e.g., `opensearch`) to request and receive Google Cloud Storage credentials from the provider charm (e.g., `gcs-integrator`).
 
 The requirer charm needs to instantiate the `GCSRequirer` class -- optionally with additional request for a particular bucket -- and then listen to custom events `storage_connection_info_changed` and `storage_connection_info_gone`. When handling the event, the requirer charm can access the GCS storage connection information shared by the provider charm using the function `get_storage_connection_info` in the `GCSRequirer` class.
 

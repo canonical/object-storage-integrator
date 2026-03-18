@@ -79,7 +79,7 @@ juju config s3-integrator tls-ca-chain="$(base64 -w0 your_ca_chain.pem)"
 
 If a configuration is not set in the `s3-integrator`, its value won't be shared to the requirer charm over the relation. However, the requirer may ask for a `bucket` and a `path` even if it is not configured in the `s3-integrator` charm. See [Consumer specific bucket and path configuration](#consumer-specific-bucket-and-path-configuration) for details.
 
-## What's new in `s3-integrator` track `2`?
+## What's new in S3 Integrator from track 2?
 
 The S3 Integrator charm from track `2` is different from the same charm in track `1` in the following aspects:
 
@@ -97,7 +97,7 @@ The S3 Integrator charm in this repository is released to track `2`, which suppo
 
 The new S3 Integrator is fully compatible and can be integrated with the consumer charms that are still on the older relation data schema `v0` (in other words, still using the old `s3` charmlib). This allows for mixed deployments where the S3 Integrator is updated to the latest track `2` while the consumer charm will later be upgraded to use the new charm lib (i.e. relation schema `v1`) in the suitable timeframe. Please refer to the [migration guide](#migration-strategy-from-track-1-to-2) for instructions to migrate S3 Integrator from track `1` to `2`.
 
-## Integrating your charm with `s3-integrator`
+## Integrating your charm with S3 Integrator
 
 Charmed applications can enable the integration with the `s3-integrator` charm over the `s3` relation interface, allowing them to consume the S3 bucket and connection information shared by the `s3-integrator` charm over the Juju relation.
 
@@ -257,7 +257,7 @@ In the case where the `bucket` and/or `path` is both specified at the `s3-integr
 
 Although S3 Integrator is capable of creating different buckets as per the requests of different consumer charms all integrated together with the same instance of S3 Integrator, it is still recommended that a separate instance of S3 Integrator is deployed per bucket, for the ease of maintenance.
 
-## Migration strategy (from track `1` to `2`)
+## Migration strategy (from track 1 to 2)
 
 The S3 Integrator from track `2` is supported only on versions of Juju that support secrets, since the charm heavily relies on Juju secrets to configure keys and share data over the relation.
 
