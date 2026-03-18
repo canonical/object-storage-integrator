@@ -305,7 +305,7 @@ In-place refresh is not supported for `s3-integrator` from track `1` to track `2
 
 **Next steps:**
 
-You'd probably want to upgrade the consumer charm next to use the newer `object-storage-charmlib`. Please follow [this guide](../lib/README.md#migration-guidance-old-charmlibs-to-the-new-charmlib) for this migration.
+Follow the [dedicated migration guide](../lib/README.md#migration-guidance-old-charmlibs-to-the-new-charmlib) to upgrade the consumer charm to use the newer `object-storage-charmlib`.
 
 ## Troubleshooting
 
