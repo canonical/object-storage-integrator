@@ -5,6 +5,6 @@
 
 GCS_RELATION_NAME = "gcs-credentials"
 CREDENTIAL_FIELD = "credentials"
-ALLOWED_OVERRIDES = ["bucket", "storage-class", "path"]
+ALLOWED_REQUIRER_REQUESTS = ["bucket", "storage-class", "path"]
 MANDATORY_OPTIONS = ["bucket", "credentials"]
 STATUS_PEERS_RELATION_NAME = "status-peers"
