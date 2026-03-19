@@ -12,6 +12,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from typing import (
+    Any,
     Callable,
     Dict,
     Generic,
@@ -39,7 +40,7 @@ from .domain import (
     S3,
     AzureStorage,
     AzureStorageInfo,
-    GcsInfo,
+    GCSInfo,
     S3Info,
     Scope,
     StorageBackend,
@@ -778,7 +779,7 @@ class StorageRequirerData(Data, Generic[StorageBackend]):
     @overload
     def get_storage_connection_info(
         self: StorageRequirerData[GCS], relation: Relation | None = None
-    ) -> GcsInfo: ...
+    ) -> GCSInfo: ...
 
     @overload
     def get_storage_connection_info(
@@ -866,3 +867,18 @@ class StorageProviderData(Data):
 
         if provided_secrets is not None:
             self._remote_secret_fields = provided_secrets
+
+    def set_storage_connection_info(self, relation_id: str, data: Dict[str, Any]) -> None:
+        """Set the storage connection info for a relation.
+
+        Args:
+            relation_id: ID of relation to set storage connection info for.
+            data: Connection info to set for the relation.
+        """
+        # Replace null values with empty strings, as Juju databag does not allow null values.
+        data = {k: (v if v is not None else "") for k, v in data.items()}
+        if data.get("tls-ca-chain"):
+            data["tls-ca-chain"] = json.dumps(data["tls-ca-chain"])
+        if data.get("delete-older-than-days"):
+            data["delete-older-than-days"] = str(data["delete-older-than-days"])
+        return self.update_relation_data(relation_id=relation_id, data=data)

@@ -66,8 +66,8 @@ S3Info = TypedDict(
     total=False,
 )
 
-GcsInfo = TypedDict(
-    "GcsInfo",
+GCSInfo = TypedDict(
+    "GCSInfo",
     {
         "bucket": str,
         "secret-key": str,
