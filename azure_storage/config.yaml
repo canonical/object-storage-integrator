@@ -4,10 +4,10 @@
 options:
   container:
     type: string
-    description: The name of the Azure Storage Container.
+    description: The name of the Azure Storage container.
   storage-account:
     type: string
-    description: The name of the Azure storage account.
+    description: The name of the Azure Storage account.
   resource-group:
     type: string
     description: |
@@ -22,12 +22,12 @@ options:
       on the provided connection-protocol, container and storage-account.
   path:
     type: string
-    description: The path inside the bucket/container to store objects.
+    description: The path inside the container to store objects.
     default: ''
   connection-protocol:
     type: string
     description: |
-      The storage protocol to use when connecting to Azure storage. 
+      The storage protocol to use when connecting to Azure Storage. 
       Possible values: "wasb", "wasbs" for Azure Blob Storage, 
       "abfs", "abfss" for Azure Data Lake Storage Gen2 and 
       "http", "https" for Azure Blob/Files REST API access.
