@@ -11,6 +11,9 @@ dependencies = [
     "ops>=2.0.0"
 ]
 
+[project.urls]
+source = "https://github.com/canonical/object-storage-integrator/tree/main/lib"
+
 [dependency-groups]
 format = [
     "ruff>=0.14.10"
