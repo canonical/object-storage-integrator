@@ -19,7 +19,7 @@ website:
   - https://charmhub.io/azure-storage-integrator
   - https://github.com/canonical/object-storage-integrator
   - https://launchpad.net/~data-platform
-  - https://matrix.to/#/#charmhub-data-platform:ubuntu.com
+  - https://matrix.to/#/%23charmhub-data-platform%3Aubuntu.com
 maintainers:
   - Data Platform Team <data-platform@lists.launchpad.net>
 
