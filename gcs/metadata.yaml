@@ -17,7 +17,7 @@ website:
   - https://ubuntu.com/data
   - https://github.com/canonical/object-storage-integrator
   - https://launchpad.net/~data-platform
-  - https://chat.charmhub.io/charmhub/channels/data-platform
+  - https://matrix.to/#/#charmhub-data-platform:ubuntu.com
 maintainers:
   - Data Platform Team <data-platform@lists.launchpad.net>
 

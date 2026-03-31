@@ -19,6 +19,7 @@ website:
   - https://charmhub.io/s3-integrator
   - https://github.com/canonical/object-storage-integrators
   - https://launchpad.net/~data-platform
+  - https://matrix.to/#/#charmhub-data-platform:ubuntu.com
 maintainers:
   - Data Platform Team <data-platform@lists.launchpad.net>
 
