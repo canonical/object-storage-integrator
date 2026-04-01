@@ -6,7 +6,7 @@ package-mode = false
 requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 ops = "^3.5.0"
 tenacity = "^9.1.2"
 pydantic = "^2.12.5"
