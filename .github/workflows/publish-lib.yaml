@@ -17,7 +17,7 @@ on:
       - "lib/v*" # Push events to matching lib/v*, i.e. lib/v1.0, lib/v20.15.10
 
 jobs:
-  ci-tests:
+  ci_tests:
     name: Tests
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
