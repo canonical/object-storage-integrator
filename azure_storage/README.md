@@ -79,7 +79,7 @@ The recommended way for the requirer charms to consume the `azure_storage` inter
 
 ```toml
 [tool.poetry.dependencies]
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 ```
 
 Now in your charm code, you need to instantiate the `AzureStorageRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific container name from the `azure-storage-integrator` charm. For example, add the following code block to your charm's `charm.py`:

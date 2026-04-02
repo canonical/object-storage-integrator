@@ -112,7 +112,7 @@ The recommended way for the requirer charms to consume the `gcs` interface is to
 
 ```toml
 [tool.poetry.dependencies]
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 ```
 
 Now in your charm code, you need to instantiate the `GCSRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific bucket name from the `gcs-integrator` charm. For example, add the following code block to your charm's `charm.py`:

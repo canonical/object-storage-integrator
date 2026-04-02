@@ -39,7 +39,7 @@ If you're using Poetry as packaging tool in your charm project, you can add the 
 
 ```toml
 [tool.poetry.dependencies]
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 ```
 
 ## S3Provider class
@@ -382,7 +382,7 @@ To upgrade your charms from using the old object storage charmlibs to the new li
 
 ### Dependency pinning recommendation
 
-For production charms, pin `object-storage-charmlib` to a compatible minor version range (for example `^0.1.0`) and validate upgrades in integration tests before promoting to stable channels.
+For production charms, pin `object-storage-charmlib` to a compatible minor version range (for example `^1.0.0`) and validate upgrades in integration tests before promoting to stable channels.
 
 ## The `PrematureDataAccessError` exception
 

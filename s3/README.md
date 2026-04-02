@@ -117,7 +117,7 @@ The recommended way for the requirer charms to consume the `s3` interface is to 
 
 ```toml
 [tool.poetry.dependencies]
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 ```
 
 Now in your charm code, you need to instantiate the `S3Requirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific bucket name and path from the `s3-integrator` charm. For example, add the following code block to your charm's `charm.py`:
