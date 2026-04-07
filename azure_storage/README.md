@@ -13,7 +13,7 @@ This is an operator charm providing an integrator for connecting to Azure Storag
 1. First of all, deploy the `azure-storage-integrator` charm:
 
     ```bash
-    juju deploy azure-storage-integrator --channel latest/edge
+    juju deploy azure-storage-integrator --channel 1/edge
     ```
 
 2. Configure the Azure Storage Integrator charm:
@@ -79,7 +79,7 @@ The recommended way for the requirer charms to consume the `azure_storage` inter
 
 ```toml
 [tool.poetry.dependencies]
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 ```
 
 Now in your charm code, you need to instantiate the `AzureStorageRequirer` class imported from the `object_storage` namespace, which also allows the requirer charm to optionally request a specific container name from the `azure-storage-integrator` charm. For example, add the following code block to your charm's `charm.py`:
