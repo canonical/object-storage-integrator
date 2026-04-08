@@ -89,6 +89,9 @@ backends:
           username: runner
       - self-hosted-linux-s390x-noble-medium:
           username: ubuntu
+          environment:
+            # Microk8s is only available in edge channel in s390x arch
+            CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/edge
 
 suites:
   tests/azure_storage_microk8s/:
