@@ -524,14 +524,14 @@ files = [
 
 [[package]]
 name = "object-storage-charmlib"
-version = "0.1.0"
+version = "1.0.0"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "object_storage_charmlib-0.1.0-py3-none-any.whl", hash = "sha256:012ff8c793f8167c8ca57667487e74a70c97f0b22bbc8f921a2e105c6ac8778e"},
-    {file = "object_storage_charmlib-0.1.0.tar.gz", hash = "sha256:c71192cd35ab5d761480f6d9187c8cded1ee4cbb94ec68e287b8a95d2bc2358e"},
+    {file = "object_storage_charmlib-1.0.0-py3-none-any.whl", hash = "sha256:17e95686ddeac3dd83dc6f9276d75f967fdd84b5658e3660d6ef1fe72b3ad56e"},
+    {file = "object_storage_charmlib-1.0.0.tar.gz", hash = "sha256:7bb853f9d1d14273e8bc603964e8582b93ea635aff0619612f7c8b6bce6da900"},
 ]
 
 [package.dependencies]
@@ -1656,4 +1656,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "cd7659efcd2deb12081d4a18579d5842ff46d605daf871e12cfc6530e4709c1b"
+content-hash = "a7c7862d9e3b4954333b6a1fa978acddaa22c9c323b4a87fa2901f4deeaf980e"

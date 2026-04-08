@@ -9,7 +9,7 @@ requires-poetry = ">=2.0.0"
 python = "^3.10"
 ops = "^3.5.0"
 tenacity = "^9.1.2"
-object-storage-charmlib = "^0.1.0"
+object-storage-charmlib = "^1.0.0"
 
 [tool.poetry.group.charm-libs.dependencies]
 cosl = "^0.0.51"

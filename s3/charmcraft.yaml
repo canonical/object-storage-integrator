@@ -52,9 +52,8 @@ parts:
     source: .
     after:
       - poetry-deps
-    poetry-export-extra-args: ["--only", "main,charm-libs", "--without-hashes"] # TODO: Remove `--without-hashes`
+    poetry-export-extra-args: ["--only", "main,charm-libs"]
     build-packages:
-      - git # Needed to install Python dependencies from git+https:// URLs TODO: Remove this when removing --without-hashes
       - libffi-dev # Needed to build Python dependencies with Rust from source
       - libssl-dev # Needed to build Python dependencies with Rust from source
       - pkg-config # Needed to build Python dependencies with Rust from source
