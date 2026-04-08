@@ -50,11 +50,6 @@ class GeneralEvents(BaseEventHandler, WithLogging):
             self.context.azure_storage
         )
 
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.charm.azure_storage_provider_events.legacy_azure_storage_manager.update(
-            self.context.azure_storage
-        )
-
     @compute_status
     @defer_on_premature_data_access_error
     def _on_secret_changed(self, event: ops.SecretChangedEvent):
@@ -76,10 +71,5 @@ class GeneralEvents(BaseEventHandler, WithLogging):
             return
 
         self.charm.azure_storage_provider_events.azure_storage_manager.update(
-            self.context.azure_storage
-        )
-
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.charm.azure_storage_provider_events.legacy_azure_storage_manager.update(
             self.context.azure_storage
         )

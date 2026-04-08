@@ -2,14 +2,14 @@
 
 [[package]]
 name = "object-storage-charmlib"
-version = "0.1.0"
+version = "1.0.0"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "object_storage_charmlib-0.1.0-py3-none-any.whl", hash = "sha256:012ff8c793f8167c8ca57667487e74a70c97f0b22bbc8f921a2e105c6ac8778e"},
-    {file = "object_storage_charmlib-0.1.0.tar.gz", hash = "sha256:c71192cd35ab5d761480f6d9187c8cded1ee4cbb94ec68e287b8a95d2bc2358e"},
+    {file = "object_storage_charmlib-1.0.0-py3-none-any.whl", hash = "sha256:17e95686ddeac3dd83dc6f9276d75f967fdd84b5658e3660d6ef1fe72b3ad56e"},
+    {file = "object_storage_charmlib-1.0.0.tar.gz", hash = "sha256:7bb853f9d1d14273e8bc603964e8582b93ea635aff0619612f7c8b6bce6da900"},
 ]
 
 [package.dependencies]
@@ -118,4 +118,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "9dee0d133cdfaf39515a90b521932a550858539dbc8fc793ad8a60706b1d6007"
+content-hash = "ac7303caa0306292513db72022ad185923d01e0b894d579fc9cd14f3b3cd9e25"

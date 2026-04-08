@@ -83,9 +83,9 @@ backends:
       CI: '$(HOST: echo $CI)'
       CHARM_UBUNTU_BASE: '$(HOST: echo $CHARM_UBUNTU_BASE)'
     systems:
-      - ubuntu-24.04:
+      - ubuntu-22.04: # TODO: Revert back to noble when LXD flakiness is fixed
           username: runner
-      - ubuntu-24.04-arm:
+      - ubuntu-22.04-arm: # TODO: Revert back to noble when LXD flakiness is fixed
           username: runner
       - self-hosted-linux-s390x-noble-medium:
           username: runner
