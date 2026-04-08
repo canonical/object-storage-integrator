@@ -87,6 +87,8 @@ backends:
           username: runner
       - ubuntu-24.04-arm:
           username: runner
+      - ubuntu-24.04-s390x:
+          username: runner
 
 suites:
   tests/azure_storage_microk8s/:

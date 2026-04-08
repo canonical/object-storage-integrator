@@ -50,11 +50,20 @@ jobs:
               task = task.removeprefix("tests/")
               if runner.endswith("-arm"):
                   architecture = "arm64"
+              elif runner.endswith("-s390x"):
+                  architecture = "s390x"
               else:
                   architecture = "amd64"
 
               if architecture == "arm64" and "opensearch" in task:
                   # Skip arm64 for opensearch because not supported
+                  continue
+
+              if architecture == "s390x" and task not in {
+                  "s3_vm/test_config",
+                  "s3_microk8s/test_config",
+              }:
+                  # Keep s390x CI lightweight by running only packaging/deploy smoke tests
                   continue
 
               # Example: "test_charm.py:juju36 | amd64"
