@@ -88,7 +88,7 @@ backends:
       - ubuntu-22.04-arm: # TODO: Revert back to noble when LXD flakiness is fixed
           username: runner
       - self-hosted-linux-s390x-noble-medium:
-          username: runner
+          username: ubuntu
 
 suites:
   tests/azure_storage_microk8s/:
