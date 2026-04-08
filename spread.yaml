@@ -87,7 +87,7 @@ backends:
           username: runner
       - ubuntu-24.04-arm:
           username: runner
-      - ubuntu-24.04-s390x:
+      - self-hosted-linux-s390x-noble-medium:
           username: runner
 
 suites:
