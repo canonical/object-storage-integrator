@@ -11,15 +11,15 @@ description: |
   the integrator charm and relate consumer charms as needed.
 
   This charm supports both bare-metal/virtual-machines and K8s.
-docs: https://discourse.charmhub.io/t/azure-storage-integrator-documentation/16610
-source: https://github.com/canonical/object-storage-integrators
-issues: https://github.com/canonical/object-storage-integrators/issues
+docs: https://github.com/canonical/object-storage-integrator/blob/main/azure_storage/README.md
+source: https://github.com/canonical/object-storage-integrator
+issues: https://github.com/canonical/object-storage-integrator/issues
 website:
   - https://ubuntu.com/data
   - https://charmhub.io/azure-storage-integrator
-  - https://github.com/canonical/object-storage-integrators
+  - https://github.com/canonical/object-storage-integrator
   - https://launchpad.net/~data-platform
-  - https://chat.charmhub.io/charmhub/channels/data-platform
+  - https://matrix.to/#/%23charmhub-data-platform%3Aubuntu.com
 maintainers:
   - Data Platform Team <data-platform@lists.launchpad.net>
 
@@ -27,11 +27,5 @@ assumes:
   - juju >= 3.4.0
 
 provides:
-
-  # DEPRECATED
-  # TODO (azure-interface): Remove this once all users have been upgraded to the new interface.
-  azure-credentials:
-    interface: azure
-
   azure-storage-credentials:
     interface: azure_storage

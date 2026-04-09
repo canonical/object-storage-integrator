@@ -17,7 +17,7 @@ on:
       - "lib/v*" # Push events to matching lib/v*, i.e. lib/v1.0, lib/v20.15.10
 
 jobs:
-  ci-tests:
+  ci_tests:
     name: Tests
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
@@ -35,9 +35,9 @@ jobs:
         uses: actions/checkout@v6
       - id: setup_python
         name: Setup Python
-        uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@v6.2.0
         with:
-          python-version: "3.8"
+          python-version: "3.14"
           architecture: x64
       - name: Install poetry
         run: pipx install poetry
@@ -93,7 +93,7 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    needs: [publish_checks, build]
+    needs: [publish_checks, build, ci_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Download all the dists

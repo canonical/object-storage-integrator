@@ -89,6 +89,7 @@ class S3Manager(WithLogging):
         """Yield a boto3 S3 resource, handling TLS CA chain cleanup safely."""
         ca_file: str | None = None
         extra_args: dict[str, object] = {}
+        endpoint = self.conn_info.get("endpoint") or None
 
         if self.conn_info.get("tls-ca-chain"):
             ca_chain_pem: str = "\n".join(self.conn_info["tls-ca-chain"])
@@ -110,7 +111,7 @@ class S3Manager(WithLogging):
         )
 
         # Set up proxy configuration only if the endpoint is not in no_proxy list
-        if not self.skip_proxy(self.conn_info.get("endpoint", "")):
+        if not self.skip_proxy(endpoint or ""):
             proxy_config: dict[str, str] = {}
             if os.environ.get("JUJU_CHARM_HTTPS_PROXY"):
                 proxy_config["https"] = os.environ["JUJU_CHARM_HTTPS_PROXY"]
@@ -131,7 +132,7 @@ class S3Manager(WithLogging):
             S3ServiceResource,
             session.resource(
                 service_name="s3",
-                endpoint_url=self.conn_info.get("endpoint"),
+                endpoint_url=endpoint,
                 config=config,
                 **extra_args,
             ),  # type: ignore
@@ -145,47 +146,51 @@ class S3Manager(WithLogging):
 
     def get_bucket(self, bucket_name: str, path: str = "") -> Bucket | None:
         """Fetch the bucket with given name from S3 cloud."""
-        with self.s3_resource() as resource:
-            bucket: Bucket = resource.Bucket(bucket_name)
-            prefix = path[1:] if path.startswith("/") else path
-            try:
+        try:
+            with self.s3_resource() as resource:
+                bucket: Bucket = resource.Bucket(bucket_name)
+                prefix = path[1:] if path.startswith("/") else path
                 resource.meta.client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
                 return bucket
-            except (
-                ClientError,
-                SSLError,
-                ConnectTimeoutError,
-                ParamValidationError,
-                EndpointConnectionError,
-                ProxyConnectionError,
-            ) as e:
-                self.logger.error(f"The bucket '{bucket_name}' can't be fetched; Response: {e}")
-                return None
+        except (
+            ClientError,
+            SSLError,
+            ConnectTimeoutError,
+            ParamValidationError,
+            EndpointConnectionError,
+            ProxyConnectionError,
+            ValueError,
+        ) as e:
+            self.logger.error(f"The bucket '{bucket_name}' can't be fetched; Response: {e}")
+            return None
 
     def create_bucket(self, bucket_name: str, wait_until_exists: bool = True) -> Bucket:
         """Create a bucket with given name in the S3 cloud."""
-        with self.s3_resource() as resource:
-            bucket: Bucket = resource.Bucket(bucket_name)
-            create_args = {}
-            region = self.conn_info.get("region")
-            if region and region != "us-east-1":
-                create_args = {
-                    "CreateBucketConfiguration": {"LocationConstraint": self.conn_info["region"]}
-                }
-            try:
+        try:
+            with self.s3_resource() as resource:
+                bucket: Bucket = resource.Bucket(bucket_name)
+                create_args = {}
+                region = self.conn_info.get("region")
+                if region and region != "us-east-1":
+                    create_args = {
+                        "CreateBucketConfiguration": {
+                            "LocationConstraint": self.conn_info["region"]
+                        }
+                    }
                 bucket.create(**create_args)  # type: ignore
                 if wait_until_exists:
                     bucket.wait_until_exists()
                 return bucket
-            except (
-                SSLError,
-                ConnectTimeoutError,
-                ClientError,
-                ParamValidationError,
-                EndpointConnectionError,
-                ProxyConnectionError,
-            ) as e:
-                self.logger.error(f"Could not create the bucket '{bucket_name}'; Response: {e}")
-                raise S3BucketError(
-                    f"Could not create bucket '{bucket_name}' using provided configuration"
-                )
+        except (
+            SSLError,
+            ConnectTimeoutError,
+            ClientError,
+            ParamValidationError,
+            EndpointConnectionError,
+            ProxyConnectionError,
+            ValueError,
+        ) as e:
+            self.logger.error(f"Could not create the bucket '{bucket_name}'; Response: {e}")
+            raise S3BucketError(
+                f"Could not create bucket '{bucket_name}' using provided configuration"
+            )

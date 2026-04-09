@@ -38,23 +38,18 @@ type = ["pytest-mypy"]
 
 [[package]]
 name = "object-storage-charmlib"
-version = "0.1.0"
+version = "1.0.0"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "object_storage_charmlib-1.0.0-py3-none-any.whl", hash = "sha256:17e95686ddeac3dd83dc6f9276d75f967fdd84b5658e3660d6ef1fe72b3ad56e"},
+    {file = "object_storage_charmlib-1.0.0.tar.gz", hash = "sha256:7bb853f9d1d14273e8bc603964e8582b93ea635aff0619612f7c8b6bce6da900"},
+]
 
 [package.dependencies]
 ops = ">=2.0.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/canonical/object-storage-integrator.git"
-reference = "HEAD"
-resolved_reference = "f0d3d2fc0d597d28f581f65a03f8a2ad26bec32a"
-subdirectory = "lib"
 
 [[package]]
 name = "opentelemetry-api"
@@ -374,4 +369,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "30c2d882dc09ab95392c56d2fabad1312a6203d4ec3df080fb82c353dcc0679a"
+content-hash = "7eb5c7a41031caaff1726cd3abe6464defbf10d9088c1d2df54021316ab3e6b9"
