@@ -10,7 +10,7 @@ license = "Apache-2.0"
 
 requires-python = ">=3.8"
 dependencies = [
-    "ops>=2.0.0"
+    "ops>=3.7.0"
 ]
 
 [project.urls]
