@@ -4,14 +4,13 @@
 
 """Azure Storage Provider related event handlers."""
 
-from charms.data_platform_libs.v0.azure_storage import (
-    AzureStorageProviderData,
-    AzureStorageProviderEventHandlers,
+from object_storage import (
+    AzureStorageProvider,
     StorageConnectionInfoRequestedEvent,
 )
 from ops import CharmBase
 
-from constants import AZURE_RELATION_NAME, LEGACY_AZURE_RELATION_NAME
+from constants import AZURE_RELATION_NAME
 from core.context import Context
 from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from managers.azure_storage import AzureStorageManager
@@ -27,27 +26,10 @@ class AzureStorageProviderEvents(BaseEventHandler, WithLogging):
         self.charm = charm
         self.context = context
 
-        self.azure_provider_data = AzureStorageProviderData(self.charm.model, AZURE_RELATION_NAME)
-        self.azure_provider = AzureStorageProviderEventHandlers(
-            self.charm, self.azure_provider_data
-        )
-        self.azure_storage_manager = AzureStorageManager(self.azure_provider_data)
+        self.azure_provider = AzureStorageProvider(self.charm, relation_name=AZURE_RELATION_NAME)
+        self.azure_storage_manager = AzureStorageManager(self.azure_provider)
         self.framework.observe(
             self.azure_provider.on.storage_connection_info_requested,
-            self._on_azure_storage_connection_info_requested,
-        )
-
-        # DEPRECATED: This code is here only for backward compatibility.
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_provider_data = AzureStorageProviderData(
-            self.charm.model, LEGACY_AZURE_RELATION_NAME
-        )
-        self.legacy_azure_provider = AzureStorageProviderEventHandlers(
-            self.charm, self.legacy_azure_provider_data
-        )
-        self.legacy_azure_storage_manager = AzureStorageManager(self.legacy_azure_provider_data)
-        self.framework.observe(
-            self.legacy_azure_provider.on.storage_connection_info_requested,
             self._on_azure_storage_connection_info_requested,
         )
 
@@ -64,8 +46,5 @@ class AzureStorageProviderEvents(BaseEventHandler, WithLogging):
         # assert container_name is not None
         if not container_name:
             self.logger.warning("Container is setup by the requirer application!")
-
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_storage_manager.update(self.context.azure_storage)
 
         self.azure_storage_manager.update(self.context.azure_storage)

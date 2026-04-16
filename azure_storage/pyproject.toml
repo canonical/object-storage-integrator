@@ -7,8 +7,9 @@ requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-ops = {version = ">=3.4.0", extras = ["testing"]}
+ops = "^3.5.0"
 tenacity = "^9.1.2"
+object-storage-charmlib = "^1.0.0"
 
 [tool.poetry.group.charm-libs.dependencies]
 cosl = "^0.0.51"
@@ -17,19 +18,20 @@ cosl = "^0.0.51"
 optional = true
 
 [tool.poetry.group.format.dependencies]
-ruff = "^0.14.6"
+ruff = "^0.14.10"
 
 [tool.poetry.group.lint]
 optional = true
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.14.6"
+ruff = "^0.14.10"
 codespell = "^2.4.1"
 
 [tool.poetry.group.unit.dependencies]
-coverage = { extras = ["toml"], version = "^7.12.0" }
+coverage = { extras = ["toml"], version = "^7.13.0" }
 pytest = "^8.4.2"
 pytest-asyncio = "*"
+ops = { version = ">=3.5.0", extras = ["testing"] }
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.2"

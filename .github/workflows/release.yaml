@@ -9,27 +9,8 @@ on:
       - main
 
 jobs:
-  lib-check:
-    name: Check libraries
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - run: |
-          # Workaround for https://github.com/canonical/charmcraft/issues/1389#issuecomment-1880921728
-          touch requirements.txt
-      - name: Check libs
-        uses: canonical/charming-actions/check-libraries@2.7.0
-        with:
-          # FIXME: CHARMHUB_TOKEN will expire in 2024-01-26
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
   ci-tests:
-    needs:
-      - lib-check
     name: Tests
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
@@ -40,15 +21,14 @@ jobs:
       matrix:
         charm:
           - path: azure_storage/
-            track: latest
+            track: 1
           - path: s3/
             track: 2
           - path: gcs/
             track: 1
     needs:
-      - lib-check
       - ci-tests
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v39.1.0
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v40.1.0
     with:
       track: ${{ matrix.charm.track }}
       artifact-prefix: ${{ needs.ci-tests.outputs.artifact-prefix }}

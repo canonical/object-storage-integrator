@@ -39,12 +39,10 @@ class Context(Object, WithLogging, StatusesStateProtocol):
             self.logger.error(exc)
             return None
 
-        s3 = cast(
-            S3ConnectionInfo,
-            validated_config.model_dump(mode="json", exclude_none=True, by_alias=True),
-        )
-
-        s3["access-key"] = access_key
-        s3["secret-key"] = secret_key
-
+        s3_info = dict.fromkeys(S3ConnectionInfo.__annotations__.keys(), "")
+        config_dump = validated_config.model_dump(mode="json", exclude_none=True, by_alias=True)
+        s3_info.update(config_dump)
+        s3_info["access-key"] = access_key
+        s3_info["secret-key"] = secret_key
+        s3 = cast(S3ConnectionInfo, s3_info)
         return s3

@@ -6,17 +6,17 @@
 
 from typing import TYPE_CHECKING, Dict
 
-from charms.data_platform_libs.v0.object_storage import (
-    GcsStorageProviderEventHandlers,
-    StorageConnectionInfoGoneEvent,
-    StorageConnectionInfoRequestedEvent,
-)
 from data_platform_helpers.advanced_statuses.models import StatusObject
 from data_platform_helpers.advanced_statuses.protocol import ManagerStatusProtocol
 from data_platform_helpers.advanced_statuses.types import Scope
+from object_storage import (
+    GCSProvider,
+    StorageConnectionInfoGoneEvent,
+    StorageConnectionInfoRequestedEvent,
+)
 from ops import Relation
 
-from constants import ALLOWED_OVERRIDES, GCS_RELATION_NAME
+from constants import ALLOWED_REQUIRER_REQUESTS, GCS_RELATION_NAME
 from core.context import Context
 from core.statuses import CharmStatuses
 from events.base import BaseEventHandler, defer_on_premature_data_access_error
@@ -35,7 +35,7 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
         self.charm = charm
         self.state = context
 
-        self.gcs_provider = GcsStorageProviderEventHandlers(self.charm)
+        self.gcs_provider = GCSProvider(self.charm, GCS_RELATION_NAME)
 
         self.framework.observe(
             self.gcs_provider.on.storage_connection_info_requested,
@@ -69,21 +69,21 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
 
         return {k: v for k, v in raw_data.items() if v not in (None, "")}
 
-    def _merge_requirer_override(
+    def _merge_requirer_requests(
         self, relation: Relation, payload: Dict[str, str]
     ) -> Dict[str, str]:
-        """Optionally, override keys from the requirer (bucket, path, storage-class)."""
+        """Optionally, the requested keys from the requirer (bucket, path, storage-class)."""
         if not payload or not relation or not relation.app:
             return payload
         remote = (
-            self.gcs_provider.relation_data.fetch_relation_data([relation.id]).get(relation.id)
+            self.gcs_provider.fetch_relation_data([relation.id]).get(relation.id)
             if relation
             else None
         )
         merged = dict(payload)
 
         for key in remote:
-            if remote[key] and key in ALLOWED_OVERRIDES:
+            if remote[key] and key in ALLOWED_REQUIRER_REQUESTS:
                 merged[key] = remote[key]
                 self.logger.info("Applied requirer override %r=%r", key, remote[key])
         return merged
@@ -94,10 +94,8 @@ class GCStorageProviderEvents(BaseEventHandler, ManagerStatusProtocol, WithLoggi
             return
         self._clear_status()
         base = self._build_payload()
-        self.logger.info("base_payload %s", base)
-
-        payload = self._merge_requirer_override(relation, base)
-        self.gcs_provider.relation_data.update_relation_data(relation.id, payload)
+        payload = self._merge_requirer_requests(relation, base)
+        self.gcs_provider.update_relation_data(relation.id, payload)
         self.logger.info("Published GCS payload to relation %s", relation.id)
         self._add_status(CharmStatuses.ACTIVE_IDLE.value)
 

@@ -9,10 +9,7 @@ import logging
 
 import ops
 import ops.charm
-import ops.framework
-import ops.lib
 import ops.main
-import ops.model
 
 from core.context import Context
 from events.actions import ActionEvents

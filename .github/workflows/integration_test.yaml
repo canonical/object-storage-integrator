@@ -20,7 +20,7 @@ jobs:
       - name: Set up environment
         run: |
           sudo snap install go --classic
-          go install github.com/snapcore/spread/cmd/spread@latest
+          go install github.com/canonical/spread/cmd/spread@latest
           pipx install tox
           pipx install poetry
       - name: Collect spread jobs
@@ -52,6 +52,11 @@ jobs:
                   architecture = "arm64"
               else:
                   architecture = "amd64"
+
+              if architecture == "arm64" and "opensearch" in task:
+                  # Skip arm64 for opensearch because not supported
+                  continue
+
               # Example: "test_charm.py:juju36 | amd64"
               name = f"{task}:{variant} | {architecture}"
               # ":" character not valid in GitHub Actions artifact
@@ -99,10 +104,10 @@ jobs:
       # https://github.com/canonical/charmcraft/issues/2130 fixed
       - run: |
           sudo snap install go --classic
-          go install github.com/snapcore/spread/cmd/spread@latest
+          go install github.com/canonical/spread/cmd/spread@latest
       - name: Download packed charm(s)
         timeout-minutes: 5
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true

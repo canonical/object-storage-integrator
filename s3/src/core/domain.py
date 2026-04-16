@@ -9,32 +9,15 @@ from __future__ import annotations
 
 import base64
 import binascii
-import json
 import logging
 import re
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, List, Literal
 
+from botocore.utils import is_valid_uri
 from charms.data_platform_libs.v0.data_models import BaseConfigModel
+from object_storage import S3Info
 from pydantic import BeforeValidator, Field, field_validator
 
-S3ConnectionInfo = TypedDict(
-    "S3ConnectionInfo",
-    {
-        "access-key": str,
-        "secret-key": str,
-        "region": str,
-        "storage-class": str,
-        "attributes": str,
-        "bucket": str,
-        "endpoint": str,
-        "path": str,
-        "s3-api-version": str,
-        "s3-uri-style": str,
-        "tls-ca-chain": str,
-        "delete-older-than-days": str,
-    },
-    total=False,
-)
 SECRET_REGEX = re.compile("secret:[a-z0-9]{20}")
 # Should cover most of the naming rules
 # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html#general-purpose-bucket-names
@@ -42,6 +25,8 @@ SECRET_REGEX = re.compile("secret:[a-z0-9]{20}")
 BUCKET_REGEX = re.compile(r"(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$|^$")
 
 logger = logging.getLogger(__name__)
+
+S3ConnectionInfo = S3Info
 
 
 def nullify_empty_string(in_str: str) -> str | None:
@@ -114,7 +99,7 @@ class CharmConfig(BaseConfigModel):
 
     @field_validator("tls_ca_chain")
     @classmethod
-    def validate_tls_ca_chain(cls, value: str) -> str | None:
+    def validate_tls_ca_chain(cls, value: str) -> List[str] | None:
         """Validate the `tls-ca-chain` config option."""
         if value is None:
             return None
@@ -124,4 +109,14 @@ class CharmConfig(BaseConfigModel):
             raise ValueError("The given TLS CA chain is not a valid base64 encoded string")
 
         chain_list = parse_ca_chain(decoded_value)
-        return json.dumps(chain_list)
+        return chain_list
+
+    @field_validator("endpoint")
+    @classmethod
+    def validate_endpoint(cls, value: str) -> str | None:
+        """Validate the `endpoint` config option."""
+        if value is None:
+            return None
+        if not is_valid_uri(value):
+            raise ValueError("The given endpoint is not a valid URI")
+        return value

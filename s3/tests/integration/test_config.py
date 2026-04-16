@@ -8,8 +8,9 @@ from pathlib import Path
 
 import jubilant
 import pytest
-from domain import S3ConnectionInfo
-from helpers import delete_bucket, get_bucket
+
+from .domain import S3ConnectionInfo
+from .helpers import delete_bucket, get_bucket
 
 S3 = "s3-integrator"
 SECRET_LABEL = "s3-creds-secret-config"
@@ -146,3 +147,15 @@ def test_config_existing_bucket_name_valid_keys(juju: jubilant.Juju, pre_created
     juju.wait(
         lambda status: jubilant.all_active(status) and jubilant.all_agents_idle(status), delay=5
     )
+
+
+def test_config_empty_endpoint_does_not_crash(juju: jubilant.Juju) -> None:
+    """Test that the charm gracefully handles empty endpoint config with valid bucket and credentials."""
+    # Ensure endpoint is explicitly empty
+    juju.config(S3, reset="endpoint")
+    # Charm should degrade to blocked status instead of crashing
+    status = juju.wait(
+        lambda status: jubilant.all_blocked(status) and jubilant.all_agents_idle(status), delay=5
+    )
+    assert "Could not ensure bucket" in status.apps[S3].app_status.message
+    assert "Could not ensure bucket" in status.apps[S3].units[f"{S3}/0"].workload_status.message
