@@ -62,6 +62,30 @@ def parse_ca_chain(ca_chain_pem: str) -> list[str]:
     return chain_list
 
 
+def validate_and_parse_tls_ca_chain(value: str | None) -> list[str] | None:
+    """Validate and parse TLS CA chain from base64 encoded string.
+
+    Args:
+        value: Base64-encoded string containing PEM certificates, empty string, or None.
+
+    Returns:
+        List of certificate strings, or None if input is empty/None.
+
+    Raises:
+        ValueError: If the input is not valid base64 or contains no certificates.
+    """
+    if not value:  # Handles None and empty string
+        return None
+
+    try:
+        decoded_value = base64.b64decode(value).decode("utf-8")
+    except (TypeError, binascii.Error):
+        raise ValueError("The given TLS CA chain is not a valid base64 encoded string")
+
+    chain_list = parse_ca_chain(decoded_value)
+    return chain_list
+
+
 class CharmConfig(BaseConfigModel):
     """Manager for the structured configuration."""
 
@@ -78,9 +102,8 @@ class CharmConfig(BaseConfigModel):
     storage_class: Annotated[str | None, BeforeValidator(nullify_empty_string)] = Field(
         alias="storage-class"
     )
-    # TODO(tls): validate ca chain format
-    tls_ca_chain: Annotated[List[str] | None, BeforeValidator(nullify_empty_string)] = Field(
-        alias="tls-ca-chain"
+    tls_ca_chain: Annotated[List[str] | None, BeforeValidator(validate_and_parse_tls_ca_chain)] = (
+        Field(alias="tls-ca-chain")
     )
     s3_api_version: Annotated[Literal["2", "4", None], BeforeValidator(nullify_empty_string)] = (
         Field(
@@ -96,20 +119,6 @@ class CharmConfig(BaseConfigModel):
         serialization_alias="delete-older-than-days",
     )
     credentials: str = Field(pattern=SECRET_REGEX, exclude=True)
-
-    @field_validator("tls_ca_chain")
-    @classmethod
-    def validate_tls_ca_chain(cls, value: str) -> List[str] | None:
-        """Validate the `tls-ca-chain` config option."""
-        if value is None:
-            return None
-        try:
-            decoded_value = base64.b64decode(value).decode("utf-8")
-        except (TypeError, binascii.Error):
-            raise ValueError("The given TLS CA chain is not a valid base64 encoded string")
-
-        chain_list = parse_ca_chain(decoded_value)
-        return chain_list
 
     @field_validator("endpoint")
     @classmethod
