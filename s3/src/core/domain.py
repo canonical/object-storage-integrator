@@ -79,7 +79,7 @@ class CharmConfig(BaseConfigModel):
         alias="storage-class"
     )
     # TODO(tls): validate ca chain format
-    tls_ca_chain: Annotated[str | None, BeforeValidator(nullify_empty_string)] = Field(
+    tls_ca_chain: Annotated[List[str] | None, BeforeValidator(nullify_empty_string)] = Field(
         alias="tls-ca-chain"
     )
     s3_api_version: Annotated[Literal["2", "4", None], BeforeValidator(nullify_empty_string)] = (
