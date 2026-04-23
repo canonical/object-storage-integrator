@@ -3,13 +3,18 @@
 
 [project]
 name = "object-storage-charmlib"
-version = "0.1.0"
+version = "1.0.0"
 description = "Common charm lib for providers and requirers of object storage relation interfaces"
+readme = "README.md"
+license = "Apache-2.0"
 
 requires-python = ">=3.8"
 dependencies = [
     "ops>=2.0.0"
 ]
+
+[project.urls]
+source = "https://github.com/canonical/object-storage-integrator/tree/main/lib"
 
 [dependency-groups]
 format = [

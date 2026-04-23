@@ -10,7 +10,7 @@ from object_storage import (
 )
 from ops import CharmBase
 
-from constants import AZURE_RELATION_NAME, LEGACY_AZURE_RELATION_NAME
+from constants import AZURE_RELATION_NAME
 from core.context import Context
 from events.base import BaseEventHandler, defer_on_premature_data_access_error
 from managers.azure_storage import AzureStorageManager
@@ -33,29 +33,6 @@ class AzureStorageProviderEvents(BaseEventHandler, WithLogging):
             self._on_azure_storage_connection_info_requested,
         )
 
-        # DEPRECATED: This code is here only for backward compatibility.
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_provider = AzureStorageProvider(
-            self.charm, relation_name=LEGACY_AZURE_RELATION_NAME
-        )
-        self.legacy_azure_storage_manager = AzureStorageManager(self.legacy_azure_provider)
-        self.framework.observe(
-            self.legacy_azure_provider.on.storage_connection_info_requested,
-            self._on_azure_storage_connection_info_requested,
-        )
-        self.framework.observe(
-            self.charm.on[LEGACY_AZURE_RELATION_NAME].relation_joined, self._log_deprecation_notice
-        )
-
-    def _log_deprecation_notice(self, *args) -> None:
-        """Log a deprecation notice for legacy interface.
-
-        TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        """
-        self.logger.warning(
-            "The interface 'azure' has been deprecated. Please use 'azure_storage' interface instead."
-        )
-
     @defer_on_premature_data_access_error
     def _on_azure_storage_connection_info_requested(
         self, event: StorageConnectionInfoRequestedEvent
@@ -69,8 +46,5 @@ class AzureStorageProviderEvents(BaseEventHandler, WithLogging):
         # assert container_name is not None
         if not container_name:
             self.logger.warning("Container is setup by the requirer application!")
-
-        # TODO (azure-interface): Remove this once all users have migrated to the new azure storage interface
-        self.legacy_azure_storage_manager.update(self.context.azure_storage)
 
         self.azure_storage_manager.update(self.context.azure_storage)
