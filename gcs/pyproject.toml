@@ -14,7 +14,7 @@ google-cloud-storage = "^3.7.0"
 google-auth = "^2.45.0"
 requests = "^2.32.5"
 typing-extensions = "^4.15.0"
-data-platform-helpers = ">=0.1.7"
+data-platform-helpers = ">=1.0.1"
 object-storage-charmlib = "^1.0.0"
 
 [tool.poetry.group.charm-libs.dependencies]
