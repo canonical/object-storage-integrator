@@ -224,24 +224,24 @@ toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [[package]]
 name = "data-platform-helpers"
-version = "0.1.7"
+version = "1.0.1"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "data_platform_helpers-0.1.7-py3-none-any.whl", hash = "sha256:cf01caef414a4c07911ecf2c009c19b8f69cae154b540dd578ddbe2af8fd3b98"},
-    {file = "data_platform_helpers-0.1.7.tar.gz", hash = "sha256:04445f3f4309730bb1c569a04464caeb27390b0d6e07829d09dacd8882fcfcd1"},
+    {file = "data_platform_helpers-1.0.1-py3-none-any.whl", hash = "sha256:21ef9c3cc62c19648a1ca742e962d1a3ed361dd97bf60f4c20e3d16228df74d4"},
+    {file = "data_platform_helpers-1.0.1.tar.gz", hash = "sha256:eb1d8350dc4a6c3670237dfaec3c53433ff42c757cfba3bed92e35c2779a7447"},
 ]
 
 [package.dependencies]
-ops = ">=2.15.0"
-pydantic = ">=2.0"
+ops = ">=3,<4"
+pydantic = ">=2.11,<3"
 rich = "*"
 
 [package.extras]
-all = ["pytest_operator (==0.36.0)"]
-tests = ["pytest_operator (==0.36.0)"]
+all = ["pytest-operator"]
+tests = ["pytest-operator"]
 
 [[package]]
 name = "exceptiongroup"
@@ -1656,4 +1656,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "082fc6b3cb3b83d9b19939856489675cee3db4e0da7c8070baf2a385fa50e94d"
+content-hash = "6a798519584fbde6d2eaba63fddb30c282a6ab8fe7b76622569baa279236eafb"
