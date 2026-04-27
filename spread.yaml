@@ -151,6 +151,10 @@ prepare: |
     # https://chat.canonical.com/canonical/pl/jo5cg6wqjjrudqd5ybj6hhttee
     microk8s status --wait-ready
 
+    # Enable storage and rbac addons
+    microk8s enable hostpath-storage rbac
+    microk8s status --wait-ready
+
     tee /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml << EOF
     server = "$DOCKERHUB_MIRROR"
     [host."${DOCKERHUB_MIRROR#'https://'}"]

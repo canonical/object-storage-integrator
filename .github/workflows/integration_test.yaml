@@ -59,10 +59,6 @@ jobs:
                   # Skip arm64 for opensearch because not supported
                   continue
 
-              if architecture != "s390x":
-                  # for test, run only s390x test
-                  continue
-
               if architecture == "s390x" and task not in {
                   "s3_vm/test_config",
                   "s3_microk8s/test_config",
@@ -132,8 +128,6 @@ jobs:
         run: |
           sudo lxc image copy ubuntu:3e7ef486d7a6 local:
           sudo lxc image alias create "juju/ubuntu@22.04/arm64" 3e7ef486d7a6
-      - name: Setup tmate session for ${{ matrix.job.spread_job }}
-        uses: canonical/action-tmate@main
       - name: Run spread job
         timeout-minutes: 180
         id: spread
