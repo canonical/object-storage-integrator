@@ -167,12 +167,13 @@ prepare: |
   # Install charmcraft & pipx (on lxd-vm backend)
   concierge prepare --trace
 
-  microk8s config | juju add-k8s my-k8s --client
-  juju bootstrap my-k8s concierge-microk8s
-  juju add-model testing
-
   if [[ $SPREAD_SYSTEM == *"s390x"* ]]
   then
+    # On s390x self-hosted runners, ensure a microk8s cloud/controller exists.
+    microk8s config | juju add-k8s my-k8s --client || true
+    juju bootstrap my-k8s concierge-microk8s || true
+    juju add-model testing || true
+
     rustup set profile minimal
     rustup default 1.88.0
   fi
