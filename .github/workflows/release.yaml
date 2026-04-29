@@ -21,7 +21,7 @@ jobs:
       matrix:
         charm:
           - path: azure_storage/
-            track: latest
+            track: 1
           - path: s3/
             track: 2
           - path: gcs/
