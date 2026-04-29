@@ -48,7 +48,9 @@ jobs:
               _, runner, task, variant = job.split(":")
               # Example: "test_charm.py"
               task = task.removeprefix("tests/")
-              if runner.endswith("-arm"):
+              if "s390x" in runner:
+                  architecture = "s390x"
+              elif runner.endswith("-arm"):
                   architecture = "arm64"
               else:
                   architecture = "amd64"
@@ -56,6 +58,14 @@ jobs:
               if architecture == "arm64" and "opensearch" in task:
                   # Skip arm64 for opensearch because not supported
                   continue
+
+              if architecture == "s390x" and task not in {
+                  "s3_vm/test_config",
+                  "s3_microk8s/test_config",
+              }:
+                  # Keep s390x CI lightweight by running only packaging/deploy smoke tests
+                  continue
+
 
               # Example: "test_charm.py:juju36 | amd64"
               name = f"{task}:{variant} | {architecture}"
@@ -91,7 +101,7 @@ jobs:
           printf '\nDisk usage before cleanup\n'
           df --human-readable
           # Based on https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
-          rm -r /opt/hostedtoolcache/
+          rm -rf /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
       - name: Checkout
@@ -118,7 +128,6 @@ jobs:
         run: |
           sudo lxc image copy ubuntu:3e7ef486d7a6 local:
           sudo lxc image alias create "juju/ubuntu@22.04/arm64" 3e7ef486d7a6
-
       - name: Run spread job
         timeout-minutes: 180
         id: spread
