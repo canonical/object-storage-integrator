@@ -84,9 +84,9 @@ backends:
       CHARM_UBUNTU_BASE: '$(HOST: echo $CHARM_UBUNTU_BASE)'
       DOCKERHUB_MIRROR: '$(HOST: echo $DOCKERHUB_MIRROR)'
     systems:
-      - ubuntu-22.04: # TODO: Revert back to noble when LXD flakiness is fixed
+      - ubuntu-24.04:
           username: runner
-      - ubuntu-22.04-arm: # TODO: Revert back to noble when LXD flakiness is fixed
+      - ubuntu-24.04-arm:
           username: runner
       - self-hosted-linux-s390x-noble-medium:
           username: ubuntu
