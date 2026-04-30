@@ -9,15 +9,15 @@ description: |
   for Google Storage buckets to consumer charms which seek to access shared object storage data. 
   Store the credentials centrally in the integrator charm and relate consumer charms as needed.
 
-  This charm supports both bare-metal/virtual-machines and K8s.
-docs: https://github.com/canonical/object-storage-integrators/gcs/README.md
-source: https://github.com/canonical/object-storage-integrators/gcs
-issues: https://github.com/canonical/object-storage-integrators/issues
+  This charm supports both bare-metal/virtual-machines and K8s. 
+docs: https://github.com/canonical/object-storage-integrator/blob/main/gcs/README.md
+source: https://github.com/canonical/object-storage-integrator/gcs
+issues: https://github.com/canonical/object-storage-integrator/issues
 website:
   - https://ubuntu.com/data
-  - https://github.com/canonical/object-storage-integrators
+  - https://github.com/canonical/object-storage-integrator
   - https://launchpad.net/~data-platform
-  - https://chat.charmhub.io/charmhub/channels/data-platform
+  - https://matrix.to/#/%23charmhub-data-platform%3Aubuntu.com
 maintainers:
   - Data Platform Team <data-platform@lists.launchpad.net>
 
