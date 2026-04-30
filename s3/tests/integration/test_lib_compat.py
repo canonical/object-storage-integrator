@@ -75,8 +75,10 @@ def test_deploy_requirer_v0(juju: jubilant.Juju, test_charm_s3_v0, platform: str
     logger.info(f"Deploying consumer charm {REQUIRER_V0}...")
     juju.deploy(test_charm_s3_v0, app=REQUIRER_V0, constraints={"arch": platform})
     status = juju.wait(
-        lambda status: jubilant.all_waiting(status, REQUIRER_V0)
-        and jubilant.all_agents_idle(status, REQUIRER_V0),
+        lambda status: (
+            jubilant.all_waiting(status, REQUIRER_V0)
+            and jubilant.all_agents_idle(status, REQUIRER_V0)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[REQUIRER_V0].app_status.message
@@ -122,8 +124,10 @@ def test_deploy_provider_v0(
         constraints={"arch": platform},
     )
     juju.wait(
-        lambda status: jubilant.all_blocked(status, S3_INTEGRATOR_V0)
-        and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0),
+        lambda status: (
+            jubilant.all_blocked(status, S3_INTEGRATOR_V0)
+            and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0)
+        ),
         delay=5,
     )
     juju.run(
@@ -132,8 +136,10 @@ def test_deploy_provider_v0(
         params={"access-key": s3_root_user.access_key, "secret-key": s3_root_user.secret_key},
     )
     juju.wait(
-        lambda status: jubilant.all_active(status, S3_INTEGRATOR_V0)
-        and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0),
+        lambda status: (
+            jubilant.all_active(status, S3_INTEGRATOR_V0)
+            and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0)
+        ),
         delay=5,
     )
 
@@ -143,8 +149,10 @@ def test_deploy_requirer_v1(juju: jubilant.Juju, test_charm, platform: str):
     logger.info(f"Deploying consumer charm {REQUIRER_V1}...")
     juju.deploy(test_charm, app=REQUIRER_V1, constraints={"arch": platform})
     status = juju.wait(
-        lambda status: jubilant.all_waiting(status, REQUIRER_V1)
-        and jubilant.all_agents_idle(status, REQUIRER_V1),
+        lambda status: (
+            jubilant.all_waiting(status, REQUIRER_V1)
+            and jubilant.all_agents_idle(status, REQUIRER_V1)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[REQUIRER_V1].app_status.message
@@ -156,8 +164,10 @@ def test_integrate_provider_v0_requirer_v1(
     """Integrate s3-integrator (1/stable) with requirer charm (which uses s3 LIBAPI=0), to test compatibility."""
     juju.integrate(S3_INTEGRATOR_V0, REQUIRER_V1)
     juju.wait(
-        lambda status: jubilant.all_active(status, S3_INTEGRATOR_V0, REQUIRER_V1)
-        and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0, REQUIRER_V1),
+        lambda status: (
+            jubilant.all_active(status, S3_INTEGRATOR_V0, REQUIRER_V1)
+            and jubilant.all_agents_idle(status, S3_INTEGRATOR_V0, REQUIRER_V1)
+        ),
         delay=5,
     )
     result = juju.run(f"{REQUIRER_V1}/0", "get-s3-connection-info").results
