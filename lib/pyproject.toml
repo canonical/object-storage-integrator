@@ -18,11 +18,11 @@ source = "https://github.com/canonical/object-storage-integrator/tree/main/lib"
 
 [dependency-groups]
 format = [
-    "ruff>=0.14.10"
+    "ruff>=0.15.11"
 ]
 lint = [
-    "ruff>=0.14.10",
-    "codespell>=2.4.1",
+    "ruff>=0.15.11",
+    "codespell>=2.4.2",
 ]
 
 [tool.poetry.group.format]
@@ -59,7 +59,7 @@ mccabe.max-complexity = 10
 
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=2.3.2,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]

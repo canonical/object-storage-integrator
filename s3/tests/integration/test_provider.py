@@ -77,8 +77,9 @@ def test_deploy_consumer1(juju: jubilant.Juju, test_charm: Path, platform: str) 
     logger.info(f"Deploying consumer charm {CONSUMER1}...")
     juju.deploy(test_charm, app=CONSUMER1, constraints={"arch": platform})
     status = juju.wait(
-        lambda status: jubilant.all_waiting(status, CONSUMER1)
-        and jubilant.all_agents_idle(status, CONSUMER1),
+        lambda status: (
+            jubilant.all_waiting(status, CONSUMER1) and jubilant.all_agents_idle(status, CONSUMER1)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER1].app_status.message
@@ -192,8 +193,9 @@ def test_deploy_consumer2(juju: jubilant.Juju, test_charm: Path, platform: str) 
     logger.info(f"Deploying consumer charm {CONSUMER2}...")
     juju.deploy(test_charm, app=CONSUMER2, constraints={"arch": platform})
     status = juju.wait(
-        lambda status: jubilant.all_waiting(status, CONSUMER2)
-        and jubilant.all_agents_idle(status, CONSUMER2),
+        lambda status: (
+            jubilant.all_waiting(status, CONSUMER2) and jubilant.all_agents_idle(status, CONSUMER2)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER2].app_status.message
@@ -279,9 +281,11 @@ def test_keys_are_invalid(juju: jubilant.Juju, config_bucket_name_2: str):
     juju.config(CONSUMER1, {"bucket": "consumer1-bucket"})
     juju.config(CONSUMER2, {"bucket": "consumer2-bucket"})
     status = juju.wait(
-        lambda status: jubilant.all_blocked(status, S3)
-        and jubilant.all_active(status, CONSUMER1, CONSUMER2)
-        and jubilant.all_agents_idle(status),
+        lambda status: (
+            jubilant.all_blocked(status, S3)
+            and jubilant.all_active(status, CONSUMER1, CONSUMER2)
+            and jubilant.all_agents_idle(status)
+        ),
         delay=5,
     )
 
