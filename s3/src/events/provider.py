@@ -164,7 +164,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
     def get_statuses(self, scope: Scope, recompute: bool = False) -> list[StatusObject]:
         """Return the list of statuses for this component."""
         if not recompute:
-            return self.state.statuses.get(scope=scope, component=self.name)
+            return list(self.state.statuses.get(scope=scope, component=self.name))
 
         status_list: list[StatusObject] = []
         if not self.state.s3:
