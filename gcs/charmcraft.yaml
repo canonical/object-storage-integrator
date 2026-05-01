@@ -24,7 +24,7 @@ parts:
       "$HOME/.local/bin/uv" tool install \
         --no-python-downloads \
         --python '>=3.11,<3.12' \
-        poetry==2.0.0 \
+        poetry==2.1.0 \
         --with poetry-plugin-export==1.10.0  # renovate: charmcraft-poetry-latest
 
       ln -sf "$HOME/.local/bin/poetry" /usr/local/bin/poetry
