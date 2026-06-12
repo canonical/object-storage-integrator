@@ -29,7 +29,7 @@ optional = true
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.15.11"
 codespell = "^2.4.2"
-mypy = "^1.20.2"
+mypy = "^2.1.0"
 types-boto3 = { extras = ["s3"], version = "^1.42.95" }
 
 [tool.poetry.group.unit.dependencies]
