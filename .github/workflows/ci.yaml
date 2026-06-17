@@ -70,10 +70,10 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v40.1.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v49.0.2
     with:
       path-to-charm-directory: ${{ matrix.path }}
-      cache: false
+      cache: true
 
   integration-test:
     name: Integration test charm

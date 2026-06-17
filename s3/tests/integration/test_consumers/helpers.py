@@ -161,10 +161,12 @@ def restore_backup(juju: jubilant.Juju, database: CharmSpec, backup_id: str):
     if database.charm in ("mysql", "mysql-k8s"):
         # MySQL app stays in blocked state after restore
         juju.wait(
-            lambda status: jubilant.all_agents_idle(status)
-            and status.apps[database.app].app_status.current == "blocked"
-            and status.apps[database.app].app_status.message
-            == "Move restored cluster to another S3 repository",
+            lambda status: (
+                jubilant.all_agents_idle(status)
+                and status.apps[database.app].app_status.current == "blocked"
+                and status.apps[database.app].app_status.message
+                == "Move restored cluster to another S3 repository"
+            ),
             delay=10,
         )
     else:

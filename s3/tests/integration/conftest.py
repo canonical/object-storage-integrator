@@ -43,6 +43,7 @@ def platform() -> str:
     platforms = {
         "x86_64": "amd64",
         "aarch64": "arm64",
+        "s390x": "s390x",
     }
     return platforms.get(machine(), "amd64")
 
