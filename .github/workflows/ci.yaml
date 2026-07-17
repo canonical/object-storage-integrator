@@ -39,6 +39,31 @@ jobs:
           cd ${{ matrix.backend }}
           tox run -e lint
 
+  terraform-lint:
+    name: Terraform - Lint / format / validate ${{ matrix.backend }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    strategy:
+      matrix:
+        backend: ["gcs", "s3"]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install terraform snap
+        run: |
+          sudo snap install terraform --channel=latest/stable --classic
+
+      - name: Install tox
+        run: pipx install tox
+
+      - name: Lint / format / validate TF modules
+        working-directory: ${{ matrix.backend }}
+        run: tox run -e terraform-lint
+
   unit-test:
     name: Unit Test ${{ matrix.backend }}
     runs-on: ubuntu-latest
