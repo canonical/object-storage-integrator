@@ -7,13 +7,13 @@ This is a Terraform module facilitating the deployment of the S3 integrator char
 | Name | Version |
 |------|---------|
 | `Terraform` | >= 1.6 |
-| `Juju provider` | ~> 2.0  |
+| `Juju provider` | >= 1.0.0  |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| `juju` | ~> 2.0 |
+| `juju` | >= 1.0.0 |
 
 ## Modules
 
@@ -66,3 +66,38 @@ No modules.
 | `offers` | Map of all offers exposed by the single charm. |
 | `provides` | Map of all "provides" endpoints. |
 | `requires` | Map of all "requires" endpoints. |
+
+
+## Usage
+
+Create a Juju secret containing the S3 credentials, pass its URI to the module,
+and grant the deployed application access to it:
+
+```hcl
+resource "juju_secret" "s3_credentials" {
+  model_uuid = "<model-uuid>"
+  name       = "s3-credentials"
+  value = {
+    access-key = "<access-key>"
+    secret-key = "<secret-key>"
+  }
+}
+
+module "s3_integrator" {
+  source = "git::https://github.com/canonical/object-storage-integrator.git//s3/terraform/charm/s3_integrator?ref=<revision>"
+
+  model_uuid = "<model-uuid>"
+  config = {
+    bucket      = "<bucket-name>"
+    credentials = juju_secret.s3_credentials.secret_uri
+  }
+}
+
+resource "juju_access_secret" "s3_credentials" {
+  model_uuid = "<model-uuid>"
+  secret_id  = juju_secret.s3_credentials.secret_id
+  applications = [
+    module.s3_integrator.application.name
+  ]
+}
+```

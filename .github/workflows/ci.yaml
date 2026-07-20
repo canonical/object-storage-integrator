@@ -95,12 +95,11 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v49.0.2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v50.1.0
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: true
     permissions:
-      actions: read
       contents: read
 
   integration-test:

@@ -7,13 +7,13 @@ This is a Terraform module facilitating the deployment of the GCS integrator cha
 | Name | Version |
 |------|---------|
 | `Terraform` | >= 1.6 |
-| `Juju provider` | ~> 2.0  |
+| `Juju provider` | >= 1.0.0  |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| `juju` | ~> 2.0 |
+| `juju` | >= 1.0.0 |
 
 ## Modules
 
@@ -59,3 +59,37 @@ No modules.
 | `offers` | Map of all offers exposed by the single charm. |
 | `provides` | Map of all "provides" endpoints. |
 | `requires` | Map of all "requires" endpoints |
+
+
+## Usage
+
+Create a Juju secret containing the GCP service-account JSON key, pass its URI
+to the module, and grant the deployed application access to it:
+
+```hcl
+resource "juju_secret" "gcs_credentials" {
+  model_uuid = "<model-uuid>"
+  name       = "gcs-credentials"
+  value = {
+    secret-key = "<gcp-service-account-json>"
+  }
+}
+
+module "gcs_integrator" {
+  source = "git::https://github.com/canonical/object-storage-integrator.git//gcs/terraform/charm/gcs_integrator?ref=<revision>"
+
+  model_uuid = "<model-uuid>"
+  config = {
+    bucket      = "<bucket-name>"
+    credentials = juju_secret.gcs_credentials.secret_uri
+  }
+}
+
+resource "juju_access_secret" "gcs_credentials" {
+  model_uuid = "<model-uuid>"
+  secret_id  = juju_secret.gcs_credentials.secret_id
+  applications = [
+    module.gcs_integrator.application.name
+  ]
+}
+```
