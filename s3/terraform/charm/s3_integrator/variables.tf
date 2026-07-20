@@ -22,10 +22,11 @@ variable "channel" {
 }
 
 variable "config" {
-  description = "Map for configuration options."
+  description = "S3 Integrator charm configuration options."
   type = object({
     attributes                          = optional(string)
     bucket                              = optional(string)
+    credentials                         = optional(string)
     endpoint                            = optional(string)
     experimental-delete-older-than-days = optional(number)
     path                                = optional(string)
@@ -34,9 +35,35 @@ variable "config" {
     s3-uri-style                        = optional(string)
     storage-class                       = optional(string)
     tls-ca-chain                        = optional(string)
-    credentials                         = optional(string)
   })
   default = {}
+
+  validation {
+    condition = (
+      var.config.credentials == null
+      ? true
+      : startswith(var.config.credentials, "secret:")
+    )
+    error_message = "config.credentials must be a Juju secret URI starting with 'secret:'."
+  }
+
+  validation {
+    condition = (
+      var.config["experimental-delete-older-than-days"] == null
+      ? true
+      : var.config["experimental-delete-older-than-days"] >= 1 && var.config["experimental-delete-older-than-days"] <= 9999999
+    )
+    error_message = "config.experimental-delete-older-than-days must be between 1 and 9999999."
+  }
+
+  validation {
+    condition = (
+      var.config["s3-api-version"] == null
+      ? true
+      : contains(["2", "4"], var.config["s3-api-version"])
+    )
+    error_message = "config.s3-api-version must be either 2 or 4."
+  }
 }
 
 
@@ -44,6 +71,15 @@ variable "constraints" {
   description = "String listing constraints for this application."
   type        = string
   default     = null
+}
+
+variable "endpoint_bindings" {
+  description = "Map of endpoint bindings"
+  type = set(object({
+    space    = string
+    endpoint = optional(string)
+  }))
+  default = []
 }
 
 variable "model_uuid" {
@@ -58,6 +94,11 @@ variable "machines" {
   default     = []
 }
 
+variable "storage_directives" {
+  description = "Map of storage directives (constraints) for the Juju application."
+  type        = map(string)
+  default     = {}
+}
 
 variable "revision" {
   description = "Revision number of the charm."

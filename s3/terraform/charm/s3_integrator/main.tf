@@ -8,12 +8,14 @@ resource "juju_application" "s3_integrator" {
     channel  = var.channel
     revision = var.revision
   }
-  config      = var.config
-  constraints = var.constraints
-  machines    = (var.machines == null || length(var.machines) == 0) ? null : var.machines
-  name        = var.app_name
-  model_uuid  = var.model_uuid
-  units       = (var.machines == null || length(var.machines) == 0) ? var.units : null
+  config             = var.config
+  constraints        = var.constraints
+  endpoint_bindings  = var.endpoint_bindings
+  machines           = (var.machines == null || length(var.machines) == 0) ? null : var.machines
+  name               = var.app_name
+  model_uuid         = var.model_uuid
+  storage_directives = var.storage_directives
+  units              = (var.machines == null || length(var.machines) == 0) ? var.units : null
 }
 
 resource "juju_offer" "s3_credentials" {
