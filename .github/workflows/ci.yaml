@@ -99,6 +99,9 @@ jobs:
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: true
+    permissions:
+      actions: read
+      contents: read
 
   integration-test:
     name: Integration test charm

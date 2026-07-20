@@ -66,17 +66,3 @@ No modules.
 | `offers` | Map of all offers exposed by the single charm. |
 | `provides` | Map of all "provides" endpoints. |
 | `requires` | Map of all "requires" endpoints. |
-
-## Relations
-
-### Provides
-
-| Output key | Endpoint | Interface |
-|------------|----------|-----------|
-| `s3_credentials` | `s3-credentials` | `s3` |
-
-### Peers
-
-The charm also uses the `status-peers` peer endpoint with the `status_peers`
-interface. Peer endpoints are internal to the charm and are not exposed as a
-Terraform module relation output.
