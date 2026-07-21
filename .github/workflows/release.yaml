@@ -16,6 +16,7 @@ jobs:
     secrets: inherit
     permissions:
       id-token: write # Required by publish-lib-to-test-pypi
+      contents: read # Required by build nested job
 
   release:
     name: Release charm
