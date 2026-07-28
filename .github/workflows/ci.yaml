@@ -104,6 +104,7 @@ jobs:
 
   release:
     strategy:
+      fail-fast: false
       matrix:
         charm:
           - path: azure_storage/
