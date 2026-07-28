@@ -229,11 +229,7 @@ def test_recompute_statuses_config_bucket_ignores_relation_buckets(
     charm_configuration: dict,
     base_state: State,
 ) -> None:
-    """When a config bucket is set, recompute must ignore relation-requested buckets.
-
-    The config bucket takes precedence and overwrites any requested bucket, so the
-    recomputed status should never reference a relation-requested bucket.
-    """
+    """When a config bucket is set, recompute must ignore relation-requested buckets."""
     # Given
     credentials_secret = Secret(
         tracked_content={"access-key": "my-access-key", "secret-key": "my-secret-key"}
@@ -274,11 +270,7 @@ def test_recompute_statuses_deduplicates_missing_buckets(
     charm_configuration: dict,
     base_state: State,
 ) -> None:
-    """Recompute must not report the same unavailable bucket more than once.
-
-    When multiple requirers request the same bucket and no config bucket is set,
-    the emitted status should list the bucket name a single time.
-    """
+    """Recompute should deduplicate buckets."""
     # Given
     credentials_secret = Secret(
         tracked_content={"access-key": "my-access-key", "secret-key": "my-secret-key"}
