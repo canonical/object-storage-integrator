@@ -196,6 +196,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
                 if not re.match(BUCKET_REGEX, bucket_name)
             )
         )
+        # For the status message, skip duplicates and invalid buckets
         missing_buckets = list(
             dict.fromkeys(
                 bucket_name
