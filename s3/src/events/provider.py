@@ -172,33 +172,41 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
 
         s3_manager = S3Manager(self.state.s3)
 
+        config_bucket = self.state.s3.get("bucket")
+        config_path = self.state.s3.get("path", "")
+        # When a config bucket is set, it takes precedence and overwrites any bucket
+        # requested by requirers, so only the config bucket is evaluated here.
+        if config_bucket:
+            if not s3_manager.get_bucket(bucket_name=config_bucket, path=config_path):
+                status_list.append(BucketStatuses.bucket_unavailable(bucket_names=[config_bucket]))
+                return status_list
+            status_list.append(CharmStatuses.ACTIVE_IDLE.value)
+            return status_list
+
         requested_bucket_paths = [
             (request.get("bucket", ""), request.get("path", ""))
             for request in self.get_requested_relation_buckets().values()
             if request.get("bucket", "")
         ]
 
-        config_bucket = self.state.s3.get("bucket")
-        config_path = self.state.s3.get("path", "")
-        if config_bucket and not s3_manager.get_bucket(
-            bucket_name=config_bucket, path=config_path
-        ):
-            status_list.append(BucketStatuses.bucket_unavailable(bucket_names=[config_bucket]))
-            return status_list
-
-        invalid_buckets = [
-            bucket_name
-            for bucket_name, _ in requested_bucket_paths
-            if not re.match(BUCKET_REGEX, bucket_name)
-        ]
-        missing_buckets = [
-            bucket_name
-            for bucket_name, bucket_path in requested_bucket_paths
-            if not s3_manager.get_bucket(
-                bucket_name=bucket_name, path=(config_path or bucket_path or "")
+        invalid_buckets = list(
+            dict.fromkeys(
+                bucket_name
+                for bucket_name, _ in requested_bucket_paths
+                if not re.match(BUCKET_REGEX, bucket_name)
             )
-            and bucket_name not in invalid_buckets
-        ]
+        )
+        # For the status message, skip duplicates and invalid buckets
+        missing_buckets = list(
+            dict.fromkeys(
+                bucket_name
+                for bucket_name, bucket_path in requested_bucket_paths
+                if not s3_manager.get_bucket(
+                    bucket_name=bucket_name, path=(config_path or bucket_path or "")
+                )
+                and bucket_name not in invalid_buckets
+            )
+        )
         if missing_buckets:
             status_list.append(BucketStatuses.bucket_unavailable(bucket_names=missing_buckets))
         if invalid_buckets:
