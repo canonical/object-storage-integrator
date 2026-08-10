@@ -102,6 +102,31 @@ jobs:
     permissions:
       contents: read
 
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        charm:
+          - path: azure_storage/
+            track: 1
+          - path: s3/
+            track: 2
+          - path: gcs/
+            track: 1
+    name: Release charm to Charmhub branch | ${{ matrix.charm.path }}
+    if: ${{ github.event_name == 'pull_request' }}
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v50.1.0
+    with:
+      track: ${{ matrix.charm.track }}
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
+      path-to-charm-directory: ${{ matrix.charm.path }}
+    secrets:
+      charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+    permissions:
+      contents: read
+
   integration-test:
     name: Integration test charm
     needs:
