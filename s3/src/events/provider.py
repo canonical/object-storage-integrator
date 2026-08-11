@@ -86,9 +86,7 @@ class S3ProviderEvents(BaseEventHandler, ManagerStatusProtocol):
             s3_manager.create_bucket(bucket_name=bucket_name, wait_until_exists=True)
             return bool(s3_manager.get_bucket(bucket_name=bucket_name, path=path))
         except S3BucketError as exc:
-            self.logger.error(
-                f"Failed to create bucket '{bucket_name}' with path '{path}': {exc}"
-            )
+            self.logger.error(f"Failed to create bucket '{bucket_name}' with path '{path}': {exc}")
             return False
 
     def _add_status(self, status: StatusObject, is_running_status: bool = False) -> None:
