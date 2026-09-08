@@ -9,5 +9,5 @@ execute: |
   cd "$SPREAD_PATH/s3"
   tox run -e integration -- -x "tests/integration/$TEST_MODULE" --trust \
                             --charm mysql-k8s \
-                            --base ubuntu@24.04 \
+                            --base ubuntu@26.04 \
                             --channel-v1 8.4/edge

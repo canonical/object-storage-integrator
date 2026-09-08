@@ -7,10 +7,11 @@
     "theoctober19th",
     "mvlassis"
   ],
-  "schedule": ["* 3 * * 5"],
+  // Between 1AM and 6:59AM, second Friday of the month
+  "schedule": ["* 1-6 7-13 * 5"],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["* 3 * * 5"]
+    "schedule": ["* 1-6 7-13 * 5"],
   },
   "ignoreDeps": ["ubuntu"]
 }

@@ -82,8 +82,9 @@ def test_deploy_consumer_charm(juju: jubilant.Juju, test_charm: Path, platform: 
     logger.info(f"Deploying consumer charm {CONSUMER}...")
     juju.deploy(test_charm, app=CONSUMER, constraints={"arch": platform})
     status = juju.wait(
-        lambda status: jubilant.all_waiting(status, CONSUMER)
-        and jubilant.all_agents_idle(status, CONSUMER),
+        lambda status: (
+            jubilant.all_waiting(status, CONSUMER) and jubilant.all_agents_idle(status, CONSUMER)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER].app_status.message
@@ -121,9 +122,11 @@ def test_integrate_s3_integrator_with_list_objectsv2_denied(
     """Integrate the consumer charm with the S3 charm, where the IAM user has listobjectsv2 disabled."""
     juju.integrate(S3, CONSUMER)
     juju.wait(
-        lambda status: jubilant.all_blocked(status, S3)
-        and jubilant.all_active(status, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_blocked(status, S3)
+            and jubilant.all_active(status, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
 
@@ -135,9 +138,11 @@ def test_integrate_s3_integrator_with_list_objectsv2_denied(
     )
     juju.remove_relation(S3, CONSUMER)
     status = juju.wait(
-        lambda status: jubilant.all_blocked(status, S3)
-        and jubilant.all_waiting(status, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_blocked(status, S3)
+            and jubilant.all_waiting(status, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER].app_status.message
@@ -173,8 +178,10 @@ def test_integrate_s3_integrator_with_list_objectsv2_allowed(
     """Integrate the consumer charm with the S3 charm, where the IAM user has listobjectsv2 enabled."""
     juju.integrate(S3, CONSUMER)
     juju.wait(
-        lambda status: jubilant.all_active(status, S3, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_active(status, S3, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
 
@@ -193,9 +200,11 @@ def test_integrate_s3_integrator_with_list_objectsv2_allowed(
 
     juju.remove_relation(S3, CONSUMER)
     status = juju.wait(
-        lambda status: jubilant.all_active(status, S3)
-        and jubilant.all_waiting(status, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_active(status, S3)
+            and jubilant.all_waiting(status, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER].app_status.message
@@ -226,9 +235,11 @@ def test_integrate_s3_integrator_with_create_bucket_denied(
     """Integrate the consumer charm with the S3 charm, where the IAM user has CreateBucket disabled."""
     juju.integrate(S3, CONSUMER)
     juju.wait(
-        lambda status: jubilant.all_blocked(status, S3)
-        and jubilant.all_active(status, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_blocked(status, S3)
+            and jubilant.all_active(status, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
 
@@ -240,9 +251,11 @@ def test_integrate_s3_integrator_with_create_bucket_denied(
     )
     juju.remove_relation(S3, CONSUMER)
     status = juju.wait(
-        lambda status: jubilant.all_blocked(status, S3)
-        and jubilant.all_waiting(status, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_blocked(status, S3)
+            and jubilant.all_waiting(status, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
     assert "Waiting for relation" in status.apps[CONSUMER].app_status.message
@@ -280,8 +293,10 @@ def test_integrate_s3_integrator_with_create_bucket_allowed(
     """Integrate the consumer charm with the S3 charm, where the IAM user has CreateBucket enabled."""
     juju.integrate(S3, CONSUMER)
     juju.wait(
-        lambda status: jubilant.all_active(status, S3, CONSUMER)
-        and jubilant.all_agents_idle(status, S3, CONSUMER),
+        lambda status: (
+            jubilant.all_active(status, S3, CONSUMER)
+            and jubilant.all_agents_idle(status, S3, CONSUMER)
+        ),
         delay=5,
     )
 
