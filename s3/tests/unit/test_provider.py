@@ -224,6 +224,88 @@ def test_provider_config_bucket_takes_priority_over_relation_bucket(
 
 @patch("utils.secrets.decode_secret_key_with_retry", decode_secret_key)
 @patch("managers.s3.S3Manager.get_bucket", return_value=True)
+def test_recompute_statuses_config_bucket_ignores_relation_buckets(
+    mock_get_bucket,
+    charm_configuration: dict,
+    base_state: State,
+) -> None:
+    """When a config bucket is set, recompute must ignore relation-requested buckets."""
+    # Given
+    credentials_secret = Secret(
+        tracked_content={"access-key": "my-access-key", "secret-key": "my-secret-key"}
+    )
+    charm_configuration["options"]["bucket"]["default"] = "config-bucket"
+    charm_configuration["options"]["credentials"]["default"] = credentials_secret.id
+    ctx = Context(
+        S3IntegratorCharm, meta=METADATA, config=charm_configuration, actions=ACTIONS, unit_id=0
+    )
+
+    s3_provider_relation = Relation(
+        endpoint="s3-credentials",
+        remote_app_data={"bucket": "relation-bucket", "requested-secrets": '["foobar"]'},
+    )
+    relations = list(base_state.relations) + [s3_provider_relation]
+    state_in = dataclasses.replace(base_state, secrets=[credentials_secret], relations=relations)
+
+    # When: the config bucket is available, but the relation bucket would be unavailable.
+    with ctx(ctx.on.update_status(), state_in) as manager:
+        manager.run()
+        charm = manager.charm
+
+        # get_bucket returns True (config bucket available) -> ACTIVE, and the
+        # relation-requested bucket is never evaluated.
+        def only_config_bucket(bucket_name, path=""):
+            return bucket_name == "config-bucket"
+
+        mock_get_bucket.side_effect = only_config_bucket
+        statuses = charm.s3_provider_events.get_statuses(scope="app", recompute=True)
+
+    # Then
+    assert all(s.status == "active" for s in statuses)
+    assert not any("relation-bucket" in (s.message or "") for s in statuses)
+
+
+@patch("utils.secrets.decode_secret_key_with_retry", decode_secret_key)
+def test_recompute_statuses_deduplicates_missing_buckets(
+    charm_configuration: dict,
+    base_state: State,
+) -> None:
+    """Recompute should deduplicate buckets."""
+    # Given
+    credentials_secret = Secret(
+        tracked_content={"access-key": "my-access-key", "secret-key": "my-secret-key"}
+    )
+    charm_configuration["options"]["credentials"]["default"] = credentials_secret.id
+    ctx = Context(
+        S3IntegratorCharm, meta=METADATA, config=charm_configuration, actions=ACTIONS, unit_id=0
+    )
+
+    first_relation = Relation(
+        endpoint="s3-credentials",
+        remote_app_data={"bucket": "mlpipeline", "requested-secrets": '["foobar"]'},
+    )
+    second_relation = Relation(
+        endpoint="s3-credentials",
+        remote_app_data={"bucket": "mlpipeline", "requested-secrets": '["foobar"]'},
+    )
+    relations = list(base_state.relations) + [first_relation, second_relation]
+    state_in = dataclasses.replace(base_state, secrets=[credentials_secret], relations=relations)
+
+    # When: no config bucket set and the requested bucket is unavailable.
+    with patch("managers.s3.S3Manager.get_bucket", return_value=None):
+        with ctx(ctx.on.update_status(), state_in) as manager:
+            manager.run()
+            charm = manager.charm
+            statuses = charm.s3_provider_events.get_statuses(scope="app", recompute=True)
+
+    # Then
+    unavailable = [s for s in statuses if "Could not ensure bucket(s)" in (s.message or "")]
+    assert len(unavailable) == 1
+    assert unavailable[0].message == "Could not ensure bucket(s): 'mlpipeline'"
+
+
+@patch("utils.secrets.decode_secret_key_with_retry", decode_secret_key)
+@patch("managers.s3.S3Manager.get_bucket", return_value=True)
 def test_provider_compatibility_with_requirer_v0(
     mock_get_bucket,
     charm_configuration: dict,
