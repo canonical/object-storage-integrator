@@ -39,6 +39,31 @@ jobs:
           cd ${{ matrix.backend }}
           tox run -e lint
 
+  terraform-lint:
+    name: Terraform - Lint / format / validate ${{ matrix.backend }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    strategy:
+      matrix:
+        backend: ["gcs", "s3"]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install terraform snap
+        run: |
+          sudo snap install terraform --channel=latest/stable --classic
+
+      - name: Install tox
+        run: pipx install tox
+
+      - name: Lint / format / validate TF modules
+        working-directory: ${{ matrix.backend }}
+        run: tox run -e terraform-lint
+
   unit-test:
     name: Unit Test ${{ matrix.backend }}
     runs-on: ubuntu-latest
@@ -70,10 +95,37 @@ jobs:
           - gcs/
           - gcs/tests/integration/requirer-charm
     name: Build charm | ${{ matrix.path }}
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v49.0.2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v50.1.0
     with:
       path-to-charm-directory: ${{ matrix.path }}
       cache: true
+    permissions:
+      contents: read
+
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        charm:
+          - path: azure_storage/
+            track: 1
+          - path: s3/
+            track: 2
+          - path: gcs/
+            track: 1
+    name: Release charm to Charmhub branch | ${{ matrix.charm.path }}
+    if: ${{ github.event_name == 'pull_request' }}
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v50.1.0
+    with:
+      track: ${{ matrix.charm.track }}
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
+      path-to-charm-directory: ${{ matrix.charm.path }}
+    secrets:
+      charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+    permissions:
+      contents: read
 
   integration-test:
     name: Integration test charm

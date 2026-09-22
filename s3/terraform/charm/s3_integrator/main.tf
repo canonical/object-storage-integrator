@@ -1,0 +1,26 @@
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+resource "juju_application" "s3_integrator" {
+  charm {
+    name     = "s3-integrator"
+    base     = var.base
+    channel  = var.channel
+    revision = var.revision
+  }
+  config             = var.config
+  constraints        = var.constraints
+  endpoint_bindings  = var.endpoint_bindings
+  machines           = (var.machines == null || length(var.machines) == 0) ? null : var.machines
+  name               = var.app_name
+  model_uuid         = var.model_uuid
+  storage_directives = var.storage_directives
+  units              = (var.machines == null || length(var.machines) == 0) ? var.units : null
+}
+
+resource "juju_offer" "s3_credentials" {
+  model_uuid       = var.model_uuid
+  application_name = juju_application.s3_integrator.name
+  endpoints        = ["s3-credentials"]
+  depends_on       = [juju_application.s3_integrator]
+}
