@@ -46,7 +46,7 @@ jobs:
     permissions: {}
     strategy:
       matrix:
-        backend: ["gcs", "s3"]
+        backend: ["azure_storage", "gcs", "s3"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
