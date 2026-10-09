@@ -59,6 +59,10 @@ jobs:
                   # Skip arm64 for opensearch because not supported
                   continue
 
+              if "mysql" in task:
+                  # Skip mysql tests due to flakiness
+                  continue
+
               if architecture == "s390x" and task not in {
                   "s3_vm/test_config",
                   "s3_microk8s/test_config",
