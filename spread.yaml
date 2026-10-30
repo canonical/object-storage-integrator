@@ -108,7 +108,10 @@ suites:
     summary: Spread tests for Azure storage on microk8s
     prepare: |
       cd "$SPREAD_PATH"
-      concierge prepare --trace -c environments/concierge-microk8s.yaml
+      if [[ "$SPREAD_SYSTEM" != *s390x* ]]
+      then
+        concierge prepare --trace -c environments/concierge-microk8s.yaml
+      fi
       echo "Juju configured"
   tests/azure_storage_vm/:
     summary: Spread tests for Azure storage on VM
@@ -120,7 +123,10 @@ suites:
     summary: Spread tests for S3 on microk8s
     prepare: |
       cd "$SPREAD_PATH"
-      concierge prepare --trace -c environments/concierge-microk8s.yaml
+      if [[ "$SPREAD_SYSTEM" != *s390x* ]]
+      then
+        concierge prepare --trace -c environments/concierge-microk8s.yaml
+      fi
       echo "Juju configured"
   tests/s3_vm/:
     summary: Spread tests for S3 on VM
@@ -176,10 +182,16 @@ prepare: |
 
   if [[ $SPREAD_SYSTEM == *"s390x"* ]]
   then
-    # On s390x self-hosted runners, ensure a microk8s cloud/controller exists.
-    microk8s config | juju add-k8s my-k8s --client || true
-    juju bootstrap my-k8s concierge-microk8s || true
-    juju add-model testing || true
+    if [[ "$SPREAD_SUITE" == tests/*_microk8s/ ]]
+    then
+      set -o pipefail
+      concierge prepare --trace -c environments/concierge-microk8s.yaml --disable-juju
+      microk8s config | juju add-k8s my-k8s --client
+      juju bootstrap my-k8s concierge-microk8s --verbose \
+        --model-default 'logging-config=<root>=INFO; unit=DEBUG'
+      juju add-model -c concierge-microk8s testing
+      juju set-model-constraints -m concierge-microk8s:testing arch=s390x
+    fi
 
     rustup set profile minimal
     rustup default 1.88.0
